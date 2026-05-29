@@ -538,6 +538,9 @@
 <div id="sun"></div>
 <div id="grid"></div>
 
+<!-- Visually hidden aria-live region for announcements -->
+<div id="a11y-announcer" aria-live="polite" aria-atomic="true" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;"></div>
+
 <div id="cabinet">
   <span class="corner tl"></span>
   <span class="corner tr"></span>
@@ -633,6 +636,7 @@ const DOM = {
   finalScore: document.getElementById('final-score'),
   finalHi:    document.getElementById('final-hi'),
   dots:       Array.from(document.querySelectorAll('.dot')),
+  announcer:  document.getElementById('a11y-announcer'),
 };
 
 // ----- Persistent state -----
@@ -752,6 +756,7 @@ function answer(dotEl) {
     state.streak++;
     if (state.streak % 5 === 0) ding();
     waka();
+    if (DOM.announcer) DOM.announcer.textContent = `Correct! +${10 + state.streak - 1} points. Streak: ${state.streak}.`;
     setTimeout(() => dotEl.classList.add('eaten'), 250);
   } else {
     dotEl.classList.add('wrong');
@@ -762,6 +767,7 @@ function answer(dotEl) {
     DOM.hint.textContent = `${correctVal}  —  ${state.current.hint || ''}`;
     const correctDot = DOM.dots.find(d => d.dataset.value === correctVal);
     if (correctDot) correctDot.classList.add('correct');
+    if (DOM.announcer) DOM.announcer.textContent = `Wrong. Lives remaining: ${state.lives}.`;
     spawnGhost(dotEl);
     ghostHit();
   }
