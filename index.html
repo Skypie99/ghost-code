@@ -320,7 +320,7 @@
            box-shadow: 0 0 18px rgba(157,78,221,0.7),  inset 0 0 12px rgba(255,255,255,0.15); }
 
   .dot:hover {
-    transform: scale(1.08);
+    transform: scale(1.04);
     box-shadow: 0 0 30px rgba(255,255,255,0.85), inset 0 0 12px rgba(255,255,255,0.25);
     z-index: 6;
   }
@@ -344,10 +344,16 @@
   .dot.e { top: 50%;  right: 0;  transform: translate(0, -50%); }
   .dot.s { bottom: 0; left: 50%; transform: translate(-50%, 0); }
   .dot.w { top: 50%;  left: 0;   transform: translate(0, -50%); }
-  .dot.n:hover { transform: translate(-50%, 0) scale(1.08); }
-  .dot.e:hover { transform: translate(0, -50%) scale(1.08); }
-  .dot.s:hover { transform: translate(-50%, 0) scale(1.08); }
-  .dot.w:hover { transform: translate(0, -50%) scale(1.08); }
+  .dot.n:hover { transform: translate(-50%, 0) scale(1.04); }
+  .dot.e:hover { transform: translate(0, -50%) scale(1.04); }
+  .dot.s:hover { transform: translate(-50%, 0) scale(1.04); }
+  .dot.w:hover { transform: translate(0, -50%) scale(1.04); }
+
+  .dot:focus-visible {
+    outline: 3px solid var(--neon-cyan-glow);
+    outline-offset: 4px;
+    z-index: 7;
+  }
 
   .dot.correct {
     background: linear-gradient(135deg, var(--gold), #ff9d00) !important;
