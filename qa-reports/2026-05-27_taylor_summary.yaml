@@ -1,0 +1,32 @@
+role: Taylor
+project: pacman-code-trainer
+cycle_id: 2026-05-27
+mode: background
+model_tier: sonnet
+status: findings
+findings_count: 2
+top_finding: "Pac-Man category chips now carry Casey's aria-labels (ALL/CLAUDE/TERMINAL) on Taylor/a11y/category-aria-labels-2026-05-27; GIT button still needs an aria-label string from Casey when Shamus's git-ui branch merges."
+change_applied:
+  branch: Taylor/a11y/category-aria-labels-2026-05-27
+  base: main@5644631
+  commit: d9af330
+  files: [index.html]
+  reversible: true
+shamus_branches_audited:
+  - { project: pacman-code-trainer, branch: feat/auto-2026-05-25-shamus-git-ui, state: shippable, taylor_action: none-needed }
+  - { project: prompt-library, branch: Shamus/feat/api-key-nudge-2026-05-26, state: signed-off, taylor_action: none-needed }
+  - { project: dev-portfolio, branch: feat/now-section-2026-05-25, state: empty-zero-commits, taylor_action: documented-gap }
+ready_to_merge:
+  - { project: pacman-code-trainer, branches: [feat/auto-2026-05-25-shamus-git-ui, Taylor/a11y/category-aria-labels-2026-05-27] }
+  - { project: prompt-library, branches: [Shamus/feat/api-key-nudge-2026-05-26] }
+decision_needed: true
+decisions:
+  - "GIT button aria-label string — Casey didn't write one; suggested 'Git commands only'."
+  - "dev-portfolio has no FEATURES.md and feat/now-section-2026-05-25 is empty — backlog grooming needed."
+external_sends: 0
+constitution_checks:
+  art_1_main_untouched: true
+  art_5_no_external_sends: true
+  art_12_max_one_change: true
+  art_12_audit_only_respected: true
+next_action: "Sky reviews/merges Taylor's branch on Pac-Man and (separately) Shamus's git-ui branch; Casey supplies the GIT aria-label next loop."
