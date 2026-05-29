@@ -479,6 +479,12 @@
     color: var(--soft);
     margin: 0;
   }
+  #pauseScreen h1 {
+    background: linear-gradient(180deg, var(--neon-cyan), var(--neon-purp));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
   .screen .small {
     font-family: 'Press Start 2P', monospace;
     font-size: 10px;
@@ -616,9 +622,7 @@
 
   <!-- Pause overlay -->
   <div class="screen hidden" id="pauseScreen">
-    <h1 style="background: linear-gradient(180deg, var(--neon-cyan), var(--neon-purp));
-               -webkit-background-clip: text; background-clip: text;
-               -webkit-text-fill-color: transparent;">PAUSED</h1>
+    <h1>PAUSED</h1>
     <p>Press ESC or click PAUSE to resume.</p>
   </div>
 </div>
