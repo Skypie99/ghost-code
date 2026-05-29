@@ -779,7 +779,16 @@ function answer(dotEl) {
 function spawnGhost(dotEl) {
   const ghost = document.createElement('div');
   ghost.className = 'ghost';
-  const colors = ['#ff3b3b','#ffb8ff','#06f3ff','#ffb852'];
+  const getGhostColors = () => {
+    const root = getComputedStyle(document.documentElement);
+    return [
+      root.getPropertyValue('--ghost-red').trim(),
+      root.getPropertyValue('--ghost-pink').trim(),
+      root.getPropertyValue('--ghost-cyan').trim(),
+      root.getPropertyValue('--ghost-orange').trim(),
+    ];
+  };
+  const colors = getGhostColors();
   const c = colors[Math.floor(Math.random()*colors.length)];
   ghost.style.background = c;
   ghost.style.color      = c;
