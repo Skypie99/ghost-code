@@ -55,7 +55,7 @@
   body { display: flex; align-items: center; justify-content: center; }
 
   /* The big arcade font reserved for headers/HUD labels */
-  .arcade { font-family: 'Press Start 2P', monospace; letter-spacing: 1px; }
+  .arcade { font-family: 'Press Start 2P', monospace; letter-spacing: -0.5px; }
   /* The chunky readable terminal font for everything else */
   .term   { font-family: 'VT323', monospace; letter-spacing: 0.5px; }
 
@@ -335,7 +335,7 @@
   .dot .txt {
     font-family: 'VT323', monospace;
     font-size: 22px;
-    line-height: 1.3;
+    line-height: 1.4;
     text-shadow: var(--shadow-sm);
   }
 
@@ -493,6 +493,14 @@
   .big-btn:hover {
     background: var(--pac); color: #0a0118; text-shadow: none;
     box-shadow: 0 0 30px var(--pac);
+  }
+
+  body.playing-state #grid::before,
+  body.playing-state #grid::after {
+    animation-play-state: paused;
+  }
+  body.playing-state #scanlines {
+    opacity: 0.3;
   }
 
   /* Mobile-ish fallback */
