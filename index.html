@@ -428,11 +428,157 @@
     box-shadow: 0 0 18px var(--neon-cyan);
     text-shadow: none;
   }
+  .btn:focus-visible {
+    outline: 3px solid var(--neon-cyan);
+    outline-offset: 4px;
+  }
   .btn.active {
     background: var(--neon-pink);
     color: #fff;
     border-color: var(--neon-pink);
     box-shadow: 0 0 18px var(--neon-pink);
+  }
+
+  /* ==================== MODE TOGGLE ==================== */
+  #mode-toggle {
+    position: absolute; top: 28px; left: 50%; transform: translateX(-50%);
+    display: flex; align-items: center; gap: 0;
+    border: 2px solid var(--neon-cyan);
+    border-radius: 6px;
+    overflow: hidden;
+    z-index: 8;
+    box-shadow: 0 0 10px rgba(6,243,255,0.3);
+  }
+  .mode-btn {
+    background: transparent;
+    color: var(--dim);
+    border: none;
+    padding: 7px 13px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    line-height: 1.2;
+  }
+  .mode-btn:hover { background: rgba(6,243,255,0.12); color: var(--soft); }
+  .mode-btn.active {
+    background: var(--neon-cyan);
+    color: #0a0118;
+    text-shadow: none;
+  }
+  .mode-btn:focus-visible {
+    outline: 3px solid var(--neon-pink);
+    outline-offset: 2px;
+    z-index: 1;
+  }
+  /* Learning mode badge on HUD */
+  #learn-badge {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px;
+    color: var(--neon-cyan);
+    text-shadow: 0 0 6px var(--neon-cyan);
+    padding: 4px 8px;
+    border: 1.5px solid var(--neon-cyan);
+    border-radius: 4px;
+    display: none;
+    white-space: nowrap;
+  }
+  body.learning-mode #learn-badge { display: inline-block; }
+  /* In learning mode hide the lives HUD stat */
+  body.learning-mode #lives-stat { visibility: hidden; }
+
+  /* ==================== LEARNING PANEL ==================== */
+  /* Panel that shows pre-hint, retry state, reveal explanation */
+  #learn-panel {
+    position: absolute;
+    top: 220px; left: 50%; transform: translateX(-50%);
+    width: 82%;
+    background: rgba(10,1,24,0.88);
+    border: 2px solid var(--neon-cyan);
+    border-radius: 10px;
+    padding: 18px 22px;
+    z-index: 7;
+    text-align: center;
+    box-shadow: 0 0 20px rgba(6,243,255,0.2), inset 0 0 20px rgba(6,243,255,0.04);
+    display: none;
+    gap: 12px;
+    flex-direction: column;
+    align-items: center;
+  }
+  #learn-panel.visible { display: flex; }
+  #learn-panel .lp-status {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 12px;
+    color: var(--neon-pink);
+    text-shadow: 0 0 8px var(--neon-pink);
+    margin: 0;
+  }
+  #learn-panel .lp-hint {
+    font-family: 'VT323', monospace;
+    font-size: 22px;
+    color: var(--gold);
+    text-shadow: 0 0 6px rgba(255,215,0,0.5);
+    margin: 0;
+    line-height: 1.4;
+  }
+  #learn-panel .lp-answer {
+    font-family: 'VT323', monospace;
+    font-size: 26px;
+    color: var(--neon-cyan);
+    text-shadow: 0 0 10px var(--neon-cyan);
+    margin: 2px 0;
+    letter-spacing: 1px;
+  }
+  #learn-panel .lp-explain {
+    font-family: 'VT323', monospace;
+    font-size: 20px;
+    color: var(--soft);
+    line-height: 1.4;
+    margin: 0;
+    max-width: 540px;
+    text-align: left;
+  }
+  #learn-panel .lp-actions {
+    display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;
+    margin-top: 4px;
+  }
+  /* progress bar for learning session */
+  #learn-progress-bar {
+    position: absolute; top: 110px; left: 50%; transform: translateX(-50%);
+    width: 70%; max-width: 500px;
+    display: none;
+    align-items: center;
+    gap: 10px;
+    z-index: 6;
+  }
+  body.learning-mode #learn-progress-bar { display: flex; }
+  #learn-progress-bar .lp-label {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px;
+    color: var(--neon-cyan);
+    white-space: nowrap;
+  }
+  #learn-progress-bar .lp-track {
+    flex: 1; height: 8px;
+    background: rgba(6,243,255,0.15);
+    border: 1px solid var(--neon-cyan);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  #learn-progress-bar .lp-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--neon-cyan), var(--neon-purp));
+    border-radius: 4px;
+    transition: width 0.4s ease;
+    box-shadow: 0 0 8px var(--neon-cyan);
+    width: 0%;
+  }
+  #learn-progress-bar .lp-count {
+    font-family: 'VT323', monospace;
+    font-size: 20px;
+    color: var(--gold);
+    white-space: nowrap;
   }
 
   /* ==================== SCREENS (title / game-over / pause) ==================== */
@@ -568,13 +714,31 @@
   <span class="corner bl"></span>
   <span class="corner br"></span>
 
+  <!-- Mode Toggle (Arcade / Learning) -->
+  <div id="mode-toggle" role="group" aria-label="Game mode">
+    <button class="mode-btn active" id="mode-arcade"
+      aria-pressed="true"
+      title="Arcade Mode: 3 lives, lose one on wrong answer">ARCADE</button>
+    <button class="mode-btn" id="mode-learn"
+      aria-pressed="false"
+      title="Learning Mode: no life loss, hint escalation, answer reveal">LEARN</button>
+  </div>
+
   <!-- HUD -->
   <div id="hud">
     <div class="stat"><span class="label">1UP</span><span class="val" id="score">00</span></div>
     <div class="stat"><span class="label">HI-SCORE</span><span class="val" id="hi">00</span></div>
     <div class="stat" id="streak"><span class="label">STREAK</span><span class="val">0</span></div>
-    <div class="stat"><span class="label">LIVES</span><div id="lives"></div></div>
+    <div class="stat" id="lives-stat"><span class="label">LIVES</span><div id="lives"></div></div>
     <div class="stat"><span class="label">CATEGORY</span><span id="cat-badge">ALL</span></div>
+    <span id="learn-badge" aria-label="Learning Mode active">LEARN MODE</span>
+  </div>
+
+  <!-- Learning Mode progress bar -->
+  <div id="learn-progress-bar" aria-hidden="true">
+    <span class="lp-label">MASTERED</span>
+    <div class="lp-track"><div class="lp-fill" id="learn-fill"></div></div>
+    <span class="lp-count" id="learn-count">0/0</span>
   </div>
 
   <!-- Prompt -->
@@ -583,8 +747,13 @@
     <div id="prompt-text">Press START to play</div>
   </div>
 
-  <!-- Hint after wrong answer -->
-  <div id="hint"></div>
+  <!-- Hint after wrong answer (Arcade) -->
+  <div id="hint" aria-live="polite"></div>
+
+  <!-- Learning panel (replaces hint in learning mode) -->
+  <div id="learn-panel" role="region" aria-label="Learning feedback" aria-live="polite">
+    <!-- content injected by JS -->
+  </div>
 
   <!-- Arena: Pac + 4 dots -->
   <div id="arena">
@@ -608,7 +777,8 @@
   <div class="screen" id="title">
     <h1>PAC-MAN<br>CODE TRAINER</h1>
     <p>Click the correct command-dot. Pac chomps right answers — ghosts steal a life on wrong ones.</p>
-    <p class="small">MOUSE or 1·2·3·4 &nbsp; · &nbsp; R RESTART &nbsp; · &nbsp; ESC PAUSE &nbsp; · &nbsp; C CYCLE CATEGORY</p>
+    <p><span style="color:var(--neon-cyan);font-family:'Press Start 2P',monospace;font-size:10px;">LEARN MODE:</span> <span style="font-family:'VT323',monospace;font-size:22px;">No life loss · hint escalation · answer reveal</span></p>
+    <p class="small">MOUSE or 1·2·3·4 &nbsp;·&nbsp; R RESTART &nbsp;·&nbsp; ESC PAUSE &nbsp;·&nbsp; C CATEGORY &nbsp;·&nbsp; L LEARN MODE</p>
     <button class="big-btn blink" id="start-btn">PRESS START</button>
   </div>
 
@@ -635,27 +805,33 @@
 <script>
 /* =========================================================
    PAC-MAN CODE TRAINER — Game logic
+   v2 — Learning Mode (shamus/pm-learning-mode-2026-05-29)
    ========================================================= */
 
 const STORAGE_KEY = 'pmct.v1';
 const DOM = {
-  score:      document.getElementById('score'),
-  hi:         document.getElementById('hi'),
-  streakVal:  document.querySelector('#streak .val'),
-  lives:      document.getElementById('lives'),
-  catBadge:   document.getElementById('cat-badge'),
-  promptTag:  document.getElementById('prompt-tag'),
-  promptText: document.getElementById('prompt-text'),
-  hint:       document.getElementById('hint'),
-  pac:        document.getElementById('pac'),
-  arena:      document.getElementById('arena'),
-  title:      document.getElementById('title'),
-  gameover:   document.getElementById('gameover'),
-  pauseScr:   document.getElementById('pauseScreen'),
-  finalScore: document.getElementById('final-score'),
-  finalHi:    document.getElementById('final-hi'),
-  dots:       Array.from(document.querySelectorAll('.dot')),
-  announcer:  document.getElementById('a11y-announcer'),
+  score:        document.getElementById('score'),
+  hi:           document.getElementById('hi'),
+  streakVal:    document.querySelector('#streak .val'),
+  lives:        document.getElementById('lives'),
+  catBadge:     document.getElementById('cat-badge'),
+  promptTag:    document.getElementById('prompt-tag'),
+  promptText:   document.getElementById('prompt-text'),
+  hint:         document.getElementById('hint'),
+  pac:          document.getElementById('pac'),
+  arena:        document.getElementById('arena'),
+  title:        document.getElementById('title'),
+  gameover:     document.getElementById('gameover'),
+  pauseScr:     document.getElementById('pauseScreen'),
+  finalScore:   document.getElementById('final-score'),
+  finalHi:      document.getElementById('final-hi'),
+  dots:         Array.from(document.querySelectorAll('.dot')),
+  announcer:    document.getElementById('a11y-announcer'),
+  learnPanel:   document.getElementById('learn-panel'),
+  learnFill:    document.getElementById('learn-fill'),
+  learnCount:   document.getElementById('learn-count'),
+  modeArcade:   document.getElementById('mode-arcade'),
+  modeLearn:    document.getElementById('mode-learn'),
 };
 
 // ----- Persistent state -----
@@ -669,6 +845,7 @@ const persist = Object.assign({
   hi: 0,
   category: 'all',
   cardStats: {},
+  mode: 'arcade',   // 'arcade' | 'learn'
 }, loadPersist());
 
 const state = {
@@ -680,7 +857,27 @@ const state = {
   busy: false,
   paused: false,
   playing: false,
+  // Learning Mode per-card state
+  learnAttempt: 0,          // 0-indexed wrong attempts on current card
+  learnRevealed: false,     // has the answer been revealed?
+  learnMastered: new Set(), // card ids mastered this session
+  learnSeen: new Set(),     // card ids seen this session
 };
+
+// ----- Mode helpers -----
+function isLearnMode() { return state.persist.mode === 'learn'; }
+
+function applyMode(mode) {
+  state.persist.mode = mode;
+  save();
+  const isLearn = mode === 'learn';
+  document.body.classList.toggle('learning-mode', isLearn);
+  DOM.modeArcade.classList.toggle('active', !isLearn);
+  DOM.modeLearn.classList.toggle('active', isLearn);
+  DOM.modeArcade.setAttribute('aria-pressed', isLearn ? 'false' : 'true');
+  DOM.modeLearn.setAttribute('aria-pressed', isLearn ? 'true' : 'false');
+  if (DOM.announcer) DOM.announcer.textContent = isLearn ? 'Learning Mode: no life loss, hint escalation enabled.' : 'Arcade Mode: 3 lives, classic rules.';
+}
 
 // ----- Audio -----
 let actx = null;
@@ -697,29 +894,41 @@ function beep(freq, dur=0.08, type='square', gain=0.08) {
     o.stop(actx.currentTime + dur);
   } catch {}
 }
-const waka = () => { beep(440, 0.06, 'square'); setTimeout(()=>beep(660, 0.06, 'square'), 80); };
+const waka     = () => { beep(440, 0.06, 'square'); setTimeout(()=>beep(660, 0.06, 'square'), 80); };
 const ghostHit = () => { beep(150, 0.25, 'sawtooth', 0.12); setTimeout(()=>beep(80, 0.35, 'sawtooth', 0.12), 180); };
-const ding = () => { beep(880, 0.08); setTimeout(()=>beep(1320, 0.1), 90); };
+const ding     = () => { beep(880, 0.08); setTimeout(()=>beep(1320, 0.1), 90); };
+const softDing = () => { beep(660, 0.06, 'sine', 0.06); };
 
 // ----- HUD -----
 function renderHUD() {
-  DOM.score.textContent     = String(state.score).padStart(2,'0');
+  DOM.score.textContent = String(state.score).padStart(2,'0');
   DOM.score.classList.remove('popping');
-  void DOM.score.offsetWidth; // force reflow to restart animation
+  void DOM.score.offsetWidth;
   DOM.score.classList.add('popping');
 
-  DOM.hi.textContent        = String(state.persist.hi).padStart(2,'0');
+  DOM.hi.textContent = String(state.persist.hi).padStart(2,'0');
   DOM.streakVal.textContent = state.streak;
   DOM.streakVal.classList.remove('popping');
-  void DOM.streakVal.offsetWidth; // force reflow to restart animation
+  void DOM.streakVal.offsetWidth;
   DOM.streakVal.classList.add('popping');
 
-  DOM.lives.innerHTML       = '';
+  DOM.lives.innerHTML = '';
   for (let i = 0; i < state.lives; i++) {
     const l = document.createElement('div'); l.className = 'life';
     DOM.lives.appendChild(l);
   }
   DOM.catBadge.textContent = state.persist.category.toUpperCase();
+  renderLearnProgress();
+}
+
+function renderLearnProgress() {
+  if (!isLearnMode() || !state.playing) return;
+  const deck = activeDeck();
+  const total = deck.length;
+  const mastered = state.learnMastered.size;
+  const pct = total > 0 ? (mastered / total) * 100 : 0;
+  DOM.learnFill.style.width = pct + '%';
+  DOM.learnCount.textContent = mastered + '/' + total;
 }
 
 // ----- Card selection -----
@@ -742,12 +951,24 @@ function pickCard() {
 
 // ----- Render a card -----
 function shuffle(a) { return a.map(v=>[Math.random(),v]).sort((x,y)=>x[0]-y[0]).map(p=>p[1]); }
+
 function renderCard(card) {
   state.current = card;
+  state.learnAttempt  = 0;
+  state.learnRevealed = false;
+
   DOM.promptTag.textContent  = card.category === 'claude' ? 'CLAUDE CODE' : 'MAC TERMINAL';
   DOM.promptText.textContent = card.prompt;
   DOM.hint.textContent       = '';
   DOM.pac.style.transform    = 'translate(-50%, -50%) rotate(0deg)';
+
+  // Hide learning panel on new card
+  hideLearningPanel();
+
+  // In learning mode show hint before answering (attempt 0 = pre-hint)
+  if (isLearnMode() && card.hint) {
+    showLearningPanel({ phase: 'pre' });
+  }
 
   const options = shuffle([card.answer, ...card.decoys]);
   DOM.dots.forEach((d, i) => {
@@ -757,14 +978,119 @@ function renderCard(card) {
     d.dataset.value = options[i];
     d.setAttribute('aria-label', `Answer ${i + 1} of 4: ${options[i]}`);
   });
+
+  if (isLearnMode()) state.learnSeen.add(card.id);
+  renderLearnProgress();
+}
+
+// ----- Learning Panel -----
+// phases: 'pre' (hint before answering), 'retry1' (1st wrong), 'retry2' (2nd wrong), 'reveal'
+function hideLearningPanel() {
+  DOM.learnPanel.classList.remove('visible');
+  DOM.learnPanel.innerHTML = '';
+}
+
+function showLearningPanel({ phase }) {
+  const card = state.current;
+  if (!card) return;
+
+  DOM.learnPanel.innerHTML = '';
+  DOM.learnPanel.classList.add('visible');
+
+  if (phase === 'pre') {
+    // Hint shown before first attempt
+    DOM.learnPanel.innerHTML = `
+      <p class="lp-hint" style="color:var(--neon-cyan-soft);">
+        <span style="font-family:'Press Start 2P',monospace;font-size:9px;color:var(--neon-cyan);">HINT</span><br>
+        ${card.hint}
+      </p>`;
+    return;
+  }
+
+  if (phase === 'retry1') {
+    DOM.learnPanel.innerHTML = `
+      <p class="lp-status">NOT QUITE — TRY AGAIN</p>
+      <p class="lp-hint">Think carefully: ${card.hint}</p>
+      <div class="lp-actions">
+        <button class="btn" id="lp-retry" aria-label="Try this card again">TRY AGAIN</button>
+        <button class="btn" id="lp-reveal" aria-label="Show me the answer">SHOW ANSWER</button>
+      </div>`;
+    document.getElementById('lp-retry').addEventListener('click', () => learningRetry());
+    document.getElementById('lp-reveal').addEventListener('click', () => learningReveal());
+    return;
+  }
+
+  if (phase === 'retry2') {
+    DOM.learnPanel.innerHTML = `
+      <p class="lp-status">STILL NOT IT</p>
+      <p class="lp-hint">The command is one of the 4 dots.<br>${card.hint}</p>
+      <div class="lp-actions">
+        <button class="btn" id="lp-retry" aria-label="Try this card again">TRY AGAIN</button>
+        <button class="btn" id="lp-reveal" aria-label="Show me the answer">SHOW ANSWER</button>
+      </div>`;
+    document.getElementById('lp-retry').addEventListener('click', () => learningRetry());
+    document.getElementById('lp-reveal').addEventListener('click', () => learningReveal());
+    return;
+  }
+
+  if (phase === 'reveal') {
+    // Highlight correct dot
+    const correctDot = DOM.dots.find(d => d.dataset.value === card.answer);
+    if (correctDot) correctDot.classList.add('correct');
+
+    DOM.learnPanel.innerHTML = `
+      <p class="lp-status" style="color:var(--neon-cyan);">THE ANSWER IS</p>
+      <p class="lp-answer">${card.answer}</p>
+      <p class="lp-hint">${card.hint}</p>
+      <div class="lp-actions">
+        <button class="btn" id="lp-next" aria-label="Next card">NEXT CARD</button>
+      </div>`;
+    document.getElementById('lp-next').addEventListener('click', () => {
+      hideLearningPanel();
+      state.busy = false;
+      nextCard();
+    });
+    return;
+  }
+
+  if (phase === 'correct') {
+    DOM.learnPanel.innerHTML = `
+      <p class="lp-status" style="color:var(--gold);">CORRECT!</p>
+      <p class="lp-hint">${card.hint}</p>`;
+    return;
+  }
+}
+
+function learningRetry() {
+  hideLearningPanel();
+  DOM.dots.forEach(d => {
+    d.classList.remove('correct','wrong','eaten');
+    d.style.pointerEvents = 'auto';
+  });
+  DOM.pac.style.transform = 'translate(-50%, -50%) rotate(0deg)';
+  // show the pre-hint again so learner still has the hint visible
+  showLearningPanel({ phase: 'pre' });
+  state.busy = false;
+}
+
+function learningReveal() {
+  state.learnRevealed = true;
+  state.busy = true;
+  DOM.dots.forEach(d => d.style.pointerEvents = 'none');
+  showLearningPanel({ phase: 'reveal' });
+  ghostHit();
+  if (DOM.announcer) DOM.announcer.textContent = `Answer revealed: ${state.current.answer}. ${state.current.hint}`;
 }
 
 // ----- Answer handler -----
 function answer(dotEl) {
   if (state.busy || !state.playing || state.paused) return;
-  const chosen = dotEl.dataset.value;
+  // If in reveal phase, ignore dot clicks (use panel Next Card button)
+  if (state.learnRevealed) return;
+
+  const chosen   = dotEl.dataset.value;
   const correctVal = state.current.answer;
-  const isRight = chosen === correctVal;
+  const isRight  = chosen === correctVal;
 
   state.busy = true;
   DOM.dots.forEach(d => d.style.pointerEvents = 'none');
@@ -783,46 +1109,74 @@ function answer(dotEl) {
     state.streak++;
     if (state.streak % 5 === 0) ding();
     waka();
-    if (DOM.announcer) DOM.announcer.textContent = `Correct! +${10 + state.streak - 1} points. Streak: ${state.streak}.`;
+
+    if (isLearnMode()) {
+      state.learnMastered.add(state.current.id);
+      renderLearnProgress();
+      showLearningPanel({ phase: 'correct' });
+      if (DOM.announcer) DOM.announcer.textContent = `Correct! ${state.current.hint} Next card in a moment.`;
+    } else {
+      if (DOM.announcer) DOM.announcer.textContent = `Correct! +${10 + state.streak - 1} points. Streak: ${state.streak}.`;
+    }
     setTimeout(() => dotEl.classList.add('eaten'), 250);
+    if (state.score > state.persist.hi) state.persist.hi = state.score;
+    save();
+    renderHUD();
+    setTimeout(() => {
+      hideLearningPanel();
+      state.busy = false;
+      nextCard();
+    }, isLearnMode() ? 1200 : 750);
+
   } else {
+    // Wrong answer
     dotEl.classList.add('wrong');
-    stats[state.current.id].c = 0;
     stats[state.current.id].w++;
     state.streak = 0;
-    state.lives--;
-    DOM.hint.textContent = `${correctVal}  —  ${state.current.hint || ''}`;
-    const correctDot = DOM.dots.find(d => d.dataset.value === correctVal);
-    if (correctDot) correctDot.classList.add('correct');
-    if (DOM.announcer) DOM.announcer.textContent = `Wrong. Lives remaining: ${state.lives}.`;
-    spawnGhost(dotEl);
-    ghostHit();
+
+    if (isLearnMode()) {
+      // No life loss in learning mode
+      state.learnAttempt++;
+      softDing();
+      if (DOM.announcer) DOM.announcer.textContent = `Not quite. Attempt ${state.learnAttempt}.`;
+      if (state.learnAttempt === 1) {
+        showLearningPanel({ phase: 'retry1' });
+      } else if (state.learnAttempt === 2) {
+        showLearningPanel({ phase: 'retry2' });
+      } else {
+        // 3rd wrong: auto-reveal
+        learningReveal();
+      }
+      // state.busy remains true until retry or reveal clears it
+    } else {
+      // Arcade mode: lose a life
+      stats[state.current.id].c = 0;
+      state.lives--;
+      DOM.hint.textContent = `${correctVal}  —  ${state.current.hint || ''}`;
+      const correctDot = DOM.dots.find(d => d.dataset.value === correctVal);
+      if (correctDot) correctDot.classList.add('correct');
+      if (DOM.announcer) DOM.announcer.textContent = `Wrong. Lives remaining: ${state.lives}.`;
+      spawnGhost(dotEl);
+      ghostHit();
+
+      if (state.score > state.persist.hi) state.persist.hi = state.score;
+      save();
+      renderHUD();
+
+      setTimeout(() => {
+        state.busy = false;
+        if (state.lives <= 0) gameOver();
+        else                  nextCard();
+      }, 1900);
+    }
   }
-
-  if (state.score > state.persist.hi) state.persist.hi = state.score;
-  save();
-  renderHUD();
-
-  setTimeout(() => {
-    state.busy = false;
-    if (state.lives <= 0) gameOver();
-    else                  nextCard();
-  }, isRight ? 750 : 1900);
 }
 
 function spawnGhost(dotEl) {
   const ghost = document.createElement('div');
   ghost.className = 'ghost';
-  const getGhostColors = () => {
-    const root = getComputedStyle(document.documentElement);
-    return [
-      root.getPropertyValue('--ghost-red').trim(),
-      root.getPropertyValue('--ghost-pink').trim(),
-      root.getPropertyValue('--ghost-cyan').trim(),
-      root.getPropertyValue('--ghost-orange').trim(),
-    ];
-  };
-  const colors = getGhostColors();
+  const colors = ['--ghost-red','--ghost-pink','--ghost-cyan','--ghost-orange']
+    .map(v => getComputedStyle(document.documentElement).getPropertyValue(v).trim());
   const c = colors[Math.floor(Math.random()*colors.length)];
   ghost.style.background = c;
   ghost.style.color      = c;
@@ -845,14 +1199,17 @@ function nextCard() {
 
 // ----- Lifecycle -----
 function startGame() {
-  state.score = 0;
-  state.lives = 3;
-  state.streak = 0;
-  state.playing = true;
-  state.paused = false;
+  state.score    = 0;
+  state.lives    = 3;
+  state.streak   = 0;
+  state.playing  = true;
+  state.paused   = false;
+  state.learnMastered = new Set();
+  state.learnSeen     = new Set();
   DOM.title.classList.add('hidden');
   DOM.gameover.classList.add('hidden');
   DOM.pauseScr.classList.add('hidden');
+  hideLearningPanel();
   document.body.classList.add('playing-state');
   renderHUD();
   nextCard();
@@ -863,6 +1220,7 @@ function gameOver() {
   DOM.finalScore.textContent = String(state.score).padStart(2,'0');
   DOM.finalHi.textContent    = String(state.persist.hi).padStart(2,'0');
   DOM.gameover.classList.remove('hidden');
+  hideLearningPanel();
 }
 function togglePause() {
   if (!state.playing) return;
@@ -875,8 +1233,22 @@ function togglePause() {
   }
 }
 
-// ----- Events -----
-DOM.dots.forEach(d => d.addEventListener('click', () => answer(d)));
+// ----- Events: mode toggle -----
+DOM.modeArcade.addEventListener('click', () => {
+  applyMode('arcade');
+  if (state.playing) startGame();
+});
+DOM.modeLearn.addEventListener('click', () => {
+  applyMode('learn');
+  if (state.playing) startGame();
+});
+
+// ----- Events: dots -----
+DOM.dots.forEach(d => {
+  d.addEventListener('click', () => answer(d));
+  d.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); answer(d); } });
+});
+
 document.getElementById('start-btn').addEventListener('click', startGame);
 document.getElementById('again-btn').addEventListener('click', startGame);
 document.getElementById('restart').addEventListener('click', startGame);
@@ -902,6 +1274,11 @@ document.querySelectorAll('[data-cat]').forEach(btn => {
 document.addEventListener('keydown', (e) => {
   if (e.key === 'r' || e.key === 'R') return startGame();
   if (e.key === 'Escape')              return togglePause();
+  if (e.key === 'l' || e.key === 'L') {
+    applyMode(isLearnMode() ? 'arcade' : 'learn');
+    if (state.playing) startGame();
+    return;
+  }
   if (e.key === 'c' || e.key === 'C') {
     const order = ['all','claude','mac'];
     const idx = (order.indexOf(state.persist.category) + 1) % order.length;
@@ -916,7 +1293,8 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-// Init
+// ----- Init -----
+applyMode(state.persist.mode);
 renderHUD();
 </script>
 </body>
