@@ -565,17 +565,17 @@
   <!-- Arena: Pac + 4 dots -->
   <div id="arena">
     <div id="pac"><div class="pac-body"></div></div>
-    <div class="dot n" data-pos="n" data-key="1"><span class="key">1</span><span class="txt"></span></div>
-    <div class="dot e" data-pos="e" data-key="2"><span class="key">2</span><span class="txt"></span></div>
-    <div class="dot s" data-pos="s" data-key="3"><span class="key">3</span><span class="txt"></span></div>
-    <div class="dot w" data-pos="w" data-key="4"><span class="key">4</span><span class="txt"></span></div>
+    <div class="dot n" data-pos="n" data-key="1" role="button" tabindex="0" aria-label="Answer 1 of 4"><span class="key">1</span><span class="txt"></span></div>
+    <div class="dot e" data-pos="e" data-key="2" role="button" tabindex="0" aria-label="Answer 2 of 4"><span class="key">2</span><span class="txt"></span></div>
+    <div class="dot s" data-pos="s" data-key="3" role="button" tabindex="0" aria-label="Answer 3 of 4"><span class="key">3</span><span class="txt"></span></div>
+    <div class="dot w" data-pos="w" data-key="4" role="button" tabindex="0" aria-label="Answer 4 of 4"><span class="key">4</span><span class="txt"></span></div>
   </div>
 
   <!-- Bottom bar -->
   <div id="bar">
-    <button class="btn" data-cat="all">ALL</button>
-    <button class="btn" data-cat="claude">CLAUDE</button>
-    <button class="btn" data-cat="mac">TERMINAL</button>
+    <button class="btn" data-cat="all" aria-pressed="false">ALL</button>
+    <button class="btn" data-cat="claude" aria-pressed="false">CLAUDE</button>
+    <button class="btn" data-cat="mac" aria-pressed="false">TERMINAL</button>
     <button class="btn" id="pause">PAUSE</button>
     <button class="btn" id="restart">RESTART</button>
   </div>
@@ -724,6 +724,7 @@ function renderCard(card) {
     d.style.pointerEvents = 'auto';
     d.querySelector('.txt').textContent = options[i];
     d.dataset.value = options[i];
+    d.setAttribute('aria-label', `Answer ${i + 1} of 4: ${options[i]}`);
   });
 }
 
@@ -852,11 +853,17 @@ document.querySelectorAll('[data-cat]').forEach(btn => {
   btn.addEventListener('click', () => {
     state.persist.category = btn.dataset.cat;
     save();
-    document.querySelectorAll('[data-cat]').forEach(b => b.classList.toggle('active', b === btn));
+    document.querySelectorAll('[data-cat]').forEach(b => {
+      b.classList.toggle('active', b === btn);
+      b.setAttribute('aria-pressed', (b === btn) ? 'true' : 'false');
+    });
     renderHUD();
     if (state.playing) nextCard();
   });
-  if (btn.dataset.cat === state.persist.category) btn.classList.add('active');
+  if (btn.dataset.cat === state.persist.category) {
+    btn.classList.add('active');
+    btn.setAttribute('aria-pressed', 'true');
+  }
 });
 
 document.addEventListener('keydown', (e) => {
