@@ -515,6 +515,15 @@
     opacity: 0.3;
   }
 
+  @keyframes hud-pop {
+    0%   { transform: scale(1); }
+    50%  { transform: scale(1.25); }
+    100% { transform: scale(1); }
+  }
+  .popping {
+    animation: hud-pop 0.25s ease-out;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     * {
       animation-duration: 0.01ms !important;
@@ -691,8 +700,16 @@ const ding = () => { beep(880, 0.08); setTimeout(()=>beep(1320, 0.1), 90); };
 // ----- HUD -----
 function renderHUD() {
   DOM.score.textContent     = String(state.score).padStart(2,'0');
+  DOM.score.classList.remove('popping');
+  void DOM.score.offsetWidth; // force reflow to restart animation
+  DOM.score.classList.add('popping');
+
   DOM.hi.textContent        = String(state.persist.hi).padStart(2,'0');
   DOM.streakVal.textContent = state.streak;
+  DOM.streakVal.classList.remove('popping');
+  void DOM.streakVal.offsetWidth; // force reflow to restart animation
+  DOM.streakVal.classList.add('popping');
+
   DOM.lives.innerHTML       = '';
   for (let i = 0; i < state.lives; i++) {
     const l = document.createElement('div'); l.className = 'life';
