@@ -819,11 +819,13 @@ function startGame() {
   DOM.title.classList.add('hidden');
   DOM.gameover.classList.add('hidden');
   DOM.pauseScr.classList.add('hidden');
+  document.body.classList.add('playing-state');
   renderHUD();
   nextCard();
 }
 function gameOver() {
   state.playing = false;
+  document.body.classList.remove('playing-state');
   DOM.finalScore.textContent = String(state.score).padStart(2,'0');
   DOM.finalHi.textContent    = String(state.persist.hi).padStart(2,'0');
   DOM.gameover.classList.remove('hidden');
@@ -832,6 +834,11 @@ function togglePause() {
   if (!state.playing) return;
   state.paused = !state.paused;
   DOM.pauseScr.classList.toggle('hidden', !state.paused);
+  if (state.paused) {
+    document.body.classList.remove('playing-state');
+  } else {
+    document.body.classList.add('playing-state');
+  }
 }
 
 // ----- Events -----
