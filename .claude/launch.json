@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "pacman-dev",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "$PORT"],
+      "port": 8080,
+      "autoPort": true
+    }
+  ]
+}

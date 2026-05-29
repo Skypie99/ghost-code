@@ -13,11 +13,11 @@
   :root {
     --bg-deep:    #0a0118;          /* deep purple-black, easier than pure black */
     --bg-mid:     #1a0a3a;
-    --neon-pink:  #ff2d95;
-    --neon-mag:   #c724b1;
-    --neon-cyan:  #06f3ff;
+    --neon-pink:  #e6237f;
+    --neon-mag:   #b01d99;
+    --neon-cyan:  #1ed4e6;
     --neon-purp:  #9d4edd;
-    --neon-blue:  #2a47ff;
+    --neon-blue:  #3550e6;
     --sun-top:    #ffea00;
     --sun-mid:    #ff6ec7;
     --sun-bot:    #ff2d95;
@@ -34,6 +34,13 @@
     --ghost-pink:   #ffb8ff;
     --ghost-cyan:   #06f3ff;
     --ghost-orange: #ffb852;
+    --neon-pink-soft: #f58db5;
+    --neon-pink-glow: #ff2d95;
+    --neon-cyan-soft: #7ee6f5;
+    --neon-cyan-glow: #06f3ff;
+    --shadow-sm:   0 2px 6px rgba(0,0,0,0.55);
+    --shadow-md:   0 0 18px rgba(255,110,199,0.55);
+    --shadow-glow: 0 0 28px var(--neon-cyan);
   }
   * { box-sizing: border-box; }
   html, body {
@@ -48,7 +55,7 @@
   body { display: flex; align-items: center; justify-content: center; }
 
   /* The big arcade font reserved for headers/HUD labels */
-  .arcade { font-family: 'Press Start 2P', monospace; letter-spacing: 1px; }
+  .arcade { font-family: 'Press Start 2P', monospace; letter-spacing: -0.5px; }
   /* The chunky readable terminal font for everything else */
   .term   { font-family: 'VT323', monospace; letter-spacing: 0.5px; }
 
@@ -167,7 +174,7 @@
     border-radius: 22px;
     box-shadow:
       0 0 28px var(--neon-cyan),
-      0 0 80px rgba(6, 243, 255, 0.25),
+      0 0 80px rgba(6, 243, 255, 0.15),
       inset 0 0 30px rgba(199, 36, 177, 0.15);
     overflow: hidden;
     background:
@@ -298,7 +305,7 @@
     text-align: center;
     cursor: pointer;
     box-shadow:
-      0 0 18px rgba(255,110,199,0.7),
+      var(--shadow-md),
       inset 0 0 12px rgba(255,255,255,0.15);
     transition: transform 0.18s, box-shadow 0.18s, background 0.3s, opacity 0.4s;
     word-break: break-word;
@@ -307,13 +314,13 @@
            box-shadow: 0 0 18px rgba(255,110,199,0.7), inset 0 0 12px rgba(255,255,255,0.15); }
   .dot.e { background: linear-gradient(135deg, var(--dot-2), #0080ff);
            box-shadow: 0 0 18px rgba(6,243,255,0.7),   inset 0 0 12px rgba(255,255,255,0.15); }
-  .dot.s { background: linear-gradient(135deg, var(--dot-4), #ff6e00);
+  .dot.s { background: linear-gradient(135deg, var(--dot-4), #e65c00);
            box-shadow: 0 0 18px rgba(255,184,82,0.7),  inset 0 0 12px rgba(255,255,255,0.15); }
   .dot.w { background: linear-gradient(135deg, var(--neon-purp), var(--neon-blue));
            box-shadow: 0 0 18px rgba(157,78,221,0.7),  inset 0 0 12px rgba(255,255,255,0.15); }
 
   .dot:hover {
-    transform: scale(1.08);
+    transform: scale(1.04);
     box-shadow: 0 0 30px rgba(255,255,255,0.85), inset 0 0 12px rgba(255,255,255,0.25);
     z-index: 6;
   }
@@ -328,8 +335,8 @@
   .dot .txt {
     font-family: 'VT323', monospace;
     font-size: 22px;
-    line-height: 1.3;
-    text-shadow: 0 0 4px rgba(0,0,0,0.4);
+    line-height: 1.4;
+    text-shadow: var(--shadow-sm);
   }
 
   /* dot positions */
@@ -337,10 +344,16 @@
   .dot.e { top: 50%;  right: 0;  transform: translate(0, -50%); }
   .dot.s { bottom: 0; left: 50%; transform: translate(-50%, 0); }
   .dot.w { top: 50%;  left: 0;   transform: translate(0, -50%); }
-  .dot.n:hover { transform: translate(-50%, 0) scale(1.08); }
-  .dot.e:hover { transform: translate(0, -50%) scale(1.08); }
-  .dot.s:hover { transform: translate(-50%, 0) scale(1.08); }
-  .dot.w:hover { transform: translate(0, -50%) scale(1.08); }
+  .dot.n:hover { transform: translate(-50%, 0) scale(1.04); }
+  .dot.e:hover { transform: translate(0, -50%) scale(1.04); }
+  .dot.s:hover { transform: translate(-50%, 0) scale(1.04); }
+  .dot.w:hover { transform: translate(0, -50%) scale(1.04); }
+
+  .dot:focus-visible {
+    outline: 3px solid var(--neon-cyan-glow);
+    outline-offset: 4px;
+    z-index: 7;
+  }
 
   .dot.correct {
     background: linear-gradient(135deg, var(--gold), #ff9d00) !important;
@@ -488,6 +501,22 @@
     box-shadow: 0 0 30px var(--pac);
   }
 
+  body.playing-state #grid::before,
+  body.playing-state #grid::after {
+    animation-play-state: paused;
+  }
+  body.playing-state #scanlines {
+    opacity: 0.3;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
   /* Mobile-ish fallback */
   @media (max-width: 700px) {
     #arena { width: 340px; height: 360px; }
@@ -508,6 +537,9 @@
 <div id="stars"></div>
 <div id="sun"></div>
 <div id="grid"></div>
+
+<!-- Visually hidden aria-live region for announcements -->
+<div id="a11y-announcer" aria-live="polite" aria-atomic="true" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;"></div>
 
 <div id="cabinet">
   <span class="corner tl"></span>
@@ -536,17 +568,17 @@
   <!-- Arena: Pac + 4 dots -->
   <div id="arena">
     <div id="pac"><div class="pac-body"></div></div>
-    <div class="dot n" data-pos="n" data-key="1"><span class="key">1</span><span class="txt"></span></div>
-    <div class="dot e" data-pos="e" data-key="2"><span class="key">2</span><span class="txt"></span></div>
-    <div class="dot s" data-pos="s" data-key="3"><span class="key">3</span><span class="txt"></span></div>
-    <div class="dot w" data-pos="w" data-key="4"><span class="key">4</span><span class="txt"></span></div>
+    <div class="dot n" data-pos="n" data-key="1" role="button" tabindex="0" aria-label="Answer 1 of 4"><span class="key">1</span><span class="txt"></span></div>
+    <div class="dot e" data-pos="e" data-key="2" role="button" tabindex="0" aria-label="Answer 2 of 4"><span class="key">2</span><span class="txt"></span></div>
+    <div class="dot s" data-pos="s" data-key="3" role="button" tabindex="0" aria-label="Answer 3 of 4"><span class="key">3</span><span class="txt"></span></div>
+    <div class="dot w" data-pos="w" data-key="4" role="button" tabindex="0" aria-label="Answer 4 of 4"><span class="key">4</span><span class="txt"></span></div>
   </div>
 
   <!-- Bottom bar -->
   <div id="bar">
-    <button class="btn" data-cat="all">ALL</button>
-    <button class="btn" data-cat="claude">CLAUDE</button>
-    <button class="btn" data-cat="mac">TERMINAL</button>
+    <button class="btn" data-cat="all" aria-pressed="false">ALL</button>
+    <button class="btn" data-cat="claude" aria-pressed="false">CLAUDE</button>
+    <button class="btn" data-cat="mac" aria-pressed="false">TERMINAL</button>
     <button class="btn" id="pause">PAUSE</button>
     <button class="btn" id="restart">RESTART</button>
   </div>
@@ -604,6 +636,7 @@ const DOM = {
   finalScore: document.getElementById('final-score'),
   finalHi:    document.getElementById('final-hi'),
   dots:       Array.from(document.querySelectorAll('.dot')),
+  announcer:  document.getElementById('a11y-announcer'),
 };
 
 // ----- Persistent state -----
@@ -695,6 +728,7 @@ function renderCard(card) {
     d.style.pointerEvents = 'auto';
     d.querySelector('.txt').textContent = options[i];
     d.dataset.value = options[i];
+    d.setAttribute('aria-label', `Answer ${i + 1} of 4: ${options[i]}`);
   });
 }
 
@@ -722,6 +756,7 @@ function answer(dotEl) {
     state.streak++;
     if (state.streak % 5 === 0) ding();
     waka();
+    if (DOM.announcer) DOM.announcer.textContent = `Correct! +${10 + state.streak - 1} points. Streak: ${state.streak}.`;
     setTimeout(() => dotEl.classList.add('eaten'), 250);
   } else {
     dotEl.classList.add('wrong');
@@ -732,6 +767,7 @@ function answer(dotEl) {
     DOM.hint.textContent = `${correctVal}  —  ${state.current.hint || ''}`;
     const correctDot = DOM.dots.find(d => d.dataset.value === correctVal);
     if (correctDot) correctDot.classList.add('correct');
+    if (DOM.announcer) DOM.announcer.textContent = `Wrong. Lives remaining: ${state.lives}.`;
     spawnGhost(dotEl);
     ghostHit();
   }
@@ -750,7 +786,16 @@ function answer(dotEl) {
 function spawnGhost(dotEl) {
   const ghost = document.createElement('div');
   ghost.className = 'ghost';
-  const colors = ['#ff3b3b','#ffb8ff','#06f3ff','#ffb852'];
+  const getGhostColors = () => {
+    const root = getComputedStyle(document.documentElement);
+    return [
+      root.getPropertyValue('--ghost-red').trim(),
+      root.getPropertyValue('--ghost-pink').trim(),
+      root.getPropertyValue('--ghost-cyan').trim(),
+      root.getPropertyValue('--ghost-orange').trim(),
+    ];
+  };
+  const colors = getGhostColors();
   const c = colors[Math.floor(Math.random()*colors.length)];
   ghost.style.background = c;
   ghost.style.color      = c;
@@ -781,11 +826,13 @@ function startGame() {
   DOM.title.classList.add('hidden');
   DOM.gameover.classList.add('hidden');
   DOM.pauseScr.classList.add('hidden');
+  document.body.classList.add('playing-state');
   renderHUD();
   nextCard();
 }
 function gameOver() {
   state.playing = false;
+  document.body.classList.remove('playing-state');
   DOM.finalScore.textContent = String(state.score).padStart(2,'0');
   DOM.finalHi.textContent    = String(state.persist.hi).padStart(2,'0');
   DOM.gameover.classList.remove('hidden');
@@ -794,6 +841,11 @@ function togglePause() {
   if (!state.playing) return;
   state.paused = !state.paused;
   DOM.pauseScr.classList.toggle('hidden', !state.paused);
+  if (state.paused) {
+    document.body.classList.remove('playing-state');
+  } else {
+    document.body.classList.add('playing-state');
+  }
 }
 
 // ----- Events -----
@@ -807,11 +859,17 @@ document.querySelectorAll('[data-cat]').forEach(btn => {
   btn.addEventListener('click', () => {
     state.persist.category = btn.dataset.cat;
     save();
-    document.querySelectorAll('[data-cat]').forEach(b => b.classList.toggle('active', b === btn));
+    document.querySelectorAll('[data-cat]').forEach(b => {
+      b.classList.toggle('active', b === btn);
+      b.setAttribute('aria-pressed', (b === btn) ? 'true' : 'false');
+    });
     renderHUD();
     if (state.playing) nextCard();
   });
-  if (btn.dataset.cat === state.persist.category) btn.classList.add('active');
+  if (btn.dataset.cat === state.persist.category) {
+    btn.classList.add('active');
+    btn.setAttribute('aria-pressed', 'true');
+  }
 });
 
 document.addEventListener('keydown', (e) => {

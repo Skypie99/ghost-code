@@ -1,0 +1,15 @@
+---
+project: Pac-Man Code Trainer
+updated: 2026-05-27
+active_features: 2
+total_features: 5
+in_progress:
+  - slug: responsive-overflow-guard
+    status: shipped
+    owner: dani
+  - slug: dark-neon-theme
+    status: shipped
+    owner: dani
+in_review: []
+shipped_last_week: 0
+---
