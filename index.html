@@ -539,6 +539,21 @@
     max-width: 540px;
     text-align: left;
   }
+  /* learn-panel text modifiers — tokenized; replace inline style= overrides */
+  #learn-panel .lp-kicker {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    color: var(--neon-cyan);
+  }
+  #learn-panel .lp-hint.lp-hint--cyan { color: var(--neon-cyan-soft); }
+  #learn-panel .lp-status.lp-status--cyan {
+    color: var(--neon-cyan);
+    text-shadow: 0 0 8px var(--neon-cyan);
+  }
+  #learn-panel .lp-status.lp-status--gold {
+    color: var(--gold);
+    text-shadow: 0 0 8px var(--gold);
+  }
   #learn-panel .lp-actions {
     display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;
     margin-top: 4px;
@@ -751,7 +766,7 @@
   <div id="hint" aria-live="polite"></div>
 
   <!-- Learning panel (replaces hint in learning mode) -->
-  <div id="learn-panel" role="region" aria-label="Learning feedback" aria-live="polite">
+  <div id="learn-panel" role="region" aria-label="Learning feedback">
     <!-- content injected by JS -->
   </div>
 
@@ -766,9 +781,9 @@
 
   <!-- Bottom bar -->
   <div id="bar">
-    <button class="btn" data-cat="all" aria-pressed="false">ALL</button>
-    <button class="btn" data-cat="claude" aria-pressed="false">CLAUDE</button>
-    <button class="btn" data-cat="mac" aria-pressed="false">TERMINAL</button>
+    <button class="btn" data-cat="all" aria-pressed="false" aria-label="Show all command categories">ALL</button>
+    <button class="btn" data-cat="claude" aria-pressed="false" aria-label="Show Claude Code commands only">CLAUDE</button>
+    <button class="btn" data-cat="mac" aria-pressed="false" aria-label="Show Mac terminal commands only">TERMINAL</button>
     <button class="btn" id="pause">PAUSE</button>
     <button class="btn" id="restart">RESTART</button>
   </div>
@@ -968,6 +983,7 @@ function renderCard(card) {
   // In learning mode show hint before answering (attempt 0 = pre-hint)
   if (isLearnMode() && card.hint) {
     showLearningPanel({ phase: 'pre' });
+    if (DOM.announcer) DOM.announcer.textContent = `Hint: ${card.hint}`;
   }
 
   const options = shuffle([card.answer, ...card.decoys]);
@@ -1000,8 +1016,8 @@ function showLearningPanel({ phase }) {
   if (phase === 'pre') {
     // Hint shown before first attempt
     DOM.learnPanel.innerHTML = `
-      <p class="lp-hint" style="color:var(--neon-cyan-soft);">
-        <span style="font-family:'Press Start 2P',monospace;font-size:9px;color:var(--neon-cyan);">HINT</span><br>
+      <p class="lp-hint lp-hint--cyan">
+        <span class="lp-kicker">HINT</span><br>
         ${card.hint}
       </p>`;
     return;
@@ -1017,6 +1033,7 @@ function showLearningPanel({ phase }) {
       </div>`;
     document.getElementById('lp-retry').addEventListener('click', () => learningRetry());
     document.getElementById('lp-reveal').addEventListener('click', () => learningReveal());
+    document.getElementById('lp-retry').focus();
     return;
   }
 
@@ -1030,6 +1047,7 @@ function showLearningPanel({ phase }) {
       </div>`;
     document.getElementById('lp-retry').addEventListener('click', () => learningRetry());
     document.getElementById('lp-reveal').addEventListener('click', () => learningReveal());
+    document.getElementById('lp-retry').focus();
     return;
   }
 
@@ -1039,7 +1057,7 @@ function showLearningPanel({ phase }) {
     if (correctDot) correctDot.classList.add('correct');
 
     DOM.learnPanel.innerHTML = `
-      <p class="lp-status" style="color:var(--neon-cyan);">THE ANSWER IS</p>
+      <p class="lp-status lp-status--cyan">THE ANSWER IS</p>
       <p class="lp-answer">${card.answer}</p>
       <p class="lp-hint">${card.hint}</p>
       <div class="lp-actions">
@@ -1050,12 +1068,13 @@ function showLearningPanel({ phase }) {
       state.busy = false;
       nextCard();
     });
+    document.getElementById('lp-next').focus();
     return;
   }
 
   if (phase === 'correct') {
     DOM.learnPanel.innerHTML = `
-      <p class="lp-status" style="color:var(--gold);">CORRECT!</p>
+      <p class="lp-status lp-status--gold">CORRECT!</p>
       <p class="lp-hint">${card.hint}</p>`;
     return;
   }
