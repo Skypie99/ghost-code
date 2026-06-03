@@ -2,7 +2,7 @@
 
 > Living roadmap for build bursts. Each burst continues here instead of re-deciding.
 > Owner: Morgan (planning) → roles execute. **Never merge to `main` — Sky's gate.**
-> Last reconciled: **2026-06-02** (burst `burst/pacman-2026-06-02`).
+> Last reconciled: **2026-06-02 (updated)** (burst `burst/pacman-2026-06-02`).
 
 ## What this project is
 A vanilla HTML/JS **flashcard game** (Pac-Man themed) for memorizing Claude Code + Mac
@@ -35,11 +35,13 @@ A11y baseline: `#a11y-announcer` aria-live · aria-labels · `aria-pressed` togg
 | # | Phase | Roles | Status |
 |---|---|---|---|
 | P0 | Foundation & reconciliation | Morgan, Gary | **DONE 2026-06-02** |
-| P1 | Learning Mode Design Compiler gate + a11y fold-in | Dani, Alex, Shamus | this burst |
-| P2 | Card-level explanations (Riley P3) | Quinn, Dani, Dana, Shamus, QA, Gary | this burst |
-| P3 | Difficulty tags + content quality | Dani, Dana, Shamus, QA, Gary | this burst |
-| P4 | Lifelines / confidence self-assessment | Dani, Shamus, QA | **QUEUED** (next burst) |
-| P5 | Card-validation test + CI adoption (infra) | Gary, Rory | this burst if capacity |
+| P1 | Learning Mode Design Compiler gate + a11y fold-in | Dani, Alex, Shamus | **DONE 2026-06-02** |
+| P2 | Card-level explanations (Riley P3) | Quinn, Dani, Dana, Shamus, QA, Gary | **DONE 2026-06-02** |
+| P3 | Difficulty tags + content quality | Dani, Dana, Shamus, QA, Gary | **DONE 2026-06-02** |
+| P4 | 50/50 Lifeline (H key, 3 per game) | Dani, Shamus, QA | **DONE 2026-06-02** |
+| P5 | Card-validation test + CI adoption (infra) | Gary, Rory | **DONE 2026-06-02** |
+| P6 | GIT command cards fold-in (~16 cards + GIT category button) | Shamus, QA, Gary | **NEXT** |
+| P7 | Arcade game-over review + card-prompt announcements | Shamus, Alex, QA | queued |
 
 Strict sequence — never parallel (every phase edits the same 2 files). One commit per phase.
 
@@ -62,13 +64,59 @@ medium→gold, hard→pink) with text label + `aria-label` (not color-only). P3 
 `ternary → tagLabels` refactor. Optional `pickCard` weighting `{easy:1.2,medium:1,hard:0.7}`.
 Rewrite oblique hints.
 
-### P4 — Lifelines / confidence (QUEUED)
-50/50 (drop two decoys) or post-answer confidence → mastery. Additive persist keys; touches
-`answer()`/`startGame()` so it follows P2/P3.
+### P4 — 50/50 Lifeline ✅ DONE
+H key eliminates 2 wrong dots. 3 lifelines per game (both modes). Gold ⚡ pip HUD indicator.
+`state.lifelinesLeft` (session only, no persist). Idempotent per card; dots restored on `nextCard`.
 
-### P5 — Card-validation test + CI adoption (infra)
-Cherry-pick **only** `test/cards.test.js` (`cd84dc9`) — zero-dep validator. Adopt CI workflow
-file (`dfe352d`, runs `node --check cards.js`) **as files only** (no Actions enablement).
+### P5 — Card-validation test + CI adoption (infra) ✅ DONE
+`test/cards.test.js` (zero-dep, validates difficulty/explain/decoys/answer-in-decoys).
+`.github/workflows/ci.yml` mirrors the local green gate (node --check + validator + html smoke).
+
+---
+
+### P6 — GIT command cards fold-in  ·  NEXT  ·  roles: Shamus, QA, Gary
+~16 git cards written from scratch (the stale `feat/auto-2026-05-25-shamus-git-*` branch has
+the content but a conflicting old base — write fresh, do NOT cherry-pick the UI commit which
+touches line 960 in the old tree).
+
+**cards.js changes:**
+- Add ~16 `{ id: "git-*", category: "git", difficulty, prompt, answer, decoys, hint }` cards
+  (commands: init, clone, status, add, commit, push, pull, log, diff, branch, checkout, merge,
+  stash, reset HEAD, rm cached). Tag each with difficulty.
+- Update `VALID_CATEGORIES` in `test/cards.test.js` to include `"git"`.
+
+**index.html changes:**
+- `CATEGORY_LABELS`: add `git: 'GIT'`.
+- `activeDeck()`: already category-agnostic — no change needed.
+- Bottom bar: add `<button class="btn" data-cat="git" aria-pressed="false" aria-label="Show Git commands only">GIT</button>` after TERMINAL.
+- C-key cycle: update `const order = ['all','claude','mac','git']`.
+- No new CSS needed (`.btn` styling is already shared).
+
+**Persist:** `category` already stores arbitrary strings; old saves default to `'all'` which
+includes GIT cards automatically. Additive, no schema bump.
+
+**Content note:** add `explain` to the trickier GIT cards (e.g., stash vs reset, merge vs rebase).
+
+---
+
+### P7 — Arcade game-over review + card-prompt announcements (a11y)  ·  roles: Shamus, Alex, QA
+
+**Part A — Arcade game-over missed-cards review:**
+- `state.missedThisRun = new Set()` — reset in `startGame()` alongside `learnMastered`.
+- In `answer()` wrong branch (arcade path ~line 1195): `state.missedThisRun.add(state.current.id)`.
+- In `gameOver()`: if `state.missedThisRun.size > 0`, build a scrollable `<div>` inside
+  `#gameover` listing each missed card's prompt + explain (via `textContent`, never innerHTML).
+  Use `.lp-explain` CSS class — already styled and correct contrast. Limited to the last 5–8
+  misses to keep the screen readable.
+- No new persist keys needed.
+
+**Part B — Card-prompt screen-reader announcement:**
+- In `renderCard()`, after setting `DOM.promptText.textContent`, add:
+  `if (DOM.announcer) DOM.announcer.textContent = \`${CATEGORY_LABELS[card.category] || card.category}: ${card.prompt}\`;`
+- This closes the pre-existing cross-mode a11y gap noted in the Design Compiler report
+  (prompts are currently never announced; only hints/feedback are).
+
+Both parts are small, independent, and touch `index.html` only.
 
 ---
 
