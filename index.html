@@ -804,6 +804,7 @@
     <button class="btn" data-cat="all" aria-pressed="false" aria-label="Show all command categories">ALL</button>
     <button class="btn" data-cat="claude" aria-pressed="false" aria-label="Show Claude Code commands only">CLAUDE</button>
     <button class="btn" data-cat="mac" aria-pressed="false" aria-label="Show Mac terminal commands only">TERMINAL</button>
+    <button class="btn" data-cat="git" aria-pressed="false" aria-label="Show Git commands only">GIT</button>
     <button class="btn" id="pause">PAUSE</button>
     <button class="btn" id="restart">RESTART</button>
   </div>
@@ -982,7 +983,7 @@ function renderLearnProgress() {
 }
 
 // ----- Card metadata helpers -----
-const CATEGORY_LABELS = { claude: 'CLAUDE CODE', mac: 'MAC TERMINAL' };
+const CATEGORY_LABELS = { claude: 'CLAUDE CODE', mac: 'MAC TERMINAL', git: 'GIT' };
 const DIFF = c => (c && (c.difficulty === 'easy' || c.difficulty === 'hard')) ? c.difficulty : 'medium';
 const DIFF_WEIGHT = { easy: 1.2, medium: 1.0, hard: 0.7 };
 
@@ -1392,7 +1393,7 @@ document.addEventListener('keydown', (e) => {
     return;
   }
   if (e.key === 'c' || e.key === 'C') {
-    const order = ['all','claude','mac'];
+    const order = ['all','claude','mac','git'];
     const idx = (order.indexOf(state.persist.category) + 1) % order.length;
     document.querySelector(`[data-cat="${order[idx]}"]`).click();
     return;

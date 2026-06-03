@@ -21,7 +21,7 @@
 const fs = require("fs");
 const path = require("path");
 
-const VALID_CATEGORIES = new Set(["claude", "mac"]);
+const VALID_CATEGORIES = new Set(["claude", "mac", "git"]);
 const VALID_DIFFICULTIES = new Set(["easy", "medium", "hard"]);
 const REQUIRED_FIELDS = ["id", "category", "prompt", "answer", "decoys", "hint"];
 const DECOY_COUNT = 3;

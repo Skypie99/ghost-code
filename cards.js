@@ -195,4 +195,90 @@ window.CARDS = [
   { id: "mac-man",     category: "mac", difficulty: "medium", prompt: "Look up the manual / help page for the 'ls' command",
     answer: "man ls",      decoys: ["help ls", "ls --help", "info ls"],
     hint: "Short for MANual." },
+
+  // ---------------- GIT (16) ----------------
+  { id: "git-init",       category: "git", difficulty: "easy",
+    prompt: "Start a new Git repository in the current folder",
+    answer: "git init",    decoys: ["git start", "git new", "git create"],
+    hint: "Same verb as Claude Code's /init." },
+
+  { id: "git-clone",      category: "git", difficulty: "easy",
+    prompt: "Copy a remote repository to your local machine",
+    answer: "git clone <url>", decoys: ["git copy <url>", "git download <url>", "git get <url>"],
+    hint: "Think 'cloning' — an exact copy." },
+
+  { id: "git-status",     category: "git", difficulty: "easy",
+    prompt: "Show which files are staged, unstaged, or untracked",
+    answer: "git status",  decoys: ["git state", "git check", "git show"],
+    hint: "Status = what's happening right now." },
+
+  { id: "git-add",        category: "git", difficulty: "easy",
+    prompt: "Stage all changed files in the current folder for commit",
+    answer: "git add .",   decoys: ["git add *", "git add all", "git stage ."],
+    hint: "Dot = 'everything here'." },
+
+  { id: "git-commit",     category: "git", difficulty: "easy",
+    prompt: "Save staged changes with a short commit message",
+    answer: 'git commit -m "msg"', decoys: ['git save -m "msg"', 'git push -m "msg"', 'git write -m "msg"'],
+    hint: "-m = message flag." },
+
+  { id: "git-push",       category: "git", difficulty: "easy",
+    prompt: "Upload your local commits to the remote repository",
+    answer: "git push",    decoys: ["git upload", "git send", "git sync"],
+    hint: "You push work out to the remote." },
+
+  { id: "git-pull",       category: "git", difficulty: "easy",
+    prompt: "Download and merge the latest remote changes into your branch",
+    answer: "git pull",    decoys: ["git fetch", "git download", "git update"],
+    hint: "You pull work in from the remote.",
+    explain: "git pull is git fetch + git merge in one step. Use git fetch alone if you want to see what's changed remotely before merging it in." },
+
+  { id: "git-log",        category: "git", difficulty: "medium",
+    prompt: "View recent commit history — one compact line per commit",
+    answer: "git log --oneline", decoys: ["git log --compact", "git log -1", "git history"],
+    hint: "--oneline = one line per commit." },
+
+  { id: "git-diff",       category: "git", difficulty: "medium",
+    prompt: "Show changes you've made but have NOT yet staged",
+    answer: "git diff",    decoys: ["git diff --staged", "git show", "git changes"],
+    hint: "No flag = unstaged changes only." },
+
+  { id: "git-branch",     category: "git", difficulty: "medium",
+    prompt: "List all local branches in the repository",
+    answer: "git branch",  decoys: ["git branches", "git list", "git show-branch"],
+    hint: "Just the noun — no verb needed." },
+
+  { id: "git-checkout-b", category: "git", difficulty: "medium",
+    prompt: "Create a new branch called 'feature' and immediately switch to it",
+    answer: "git checkout -b feature", decoys: ["git branch feature", "git branch -n feature", "git new feature"],
+    hint: "-b = make a new branch while checking out." },
+
+  { id: "git-merge",      category: "git", difficulty: "medium",
+    prompt: "Merge a branch called 'feature' into your current branch",
+    answer: "git merge feature", decoys: ["git join feature", "git combine feature", "git rebase feature"],
+    hint: "Merge = bring two branches together." },
+
+  { id: "git-stash",      category: "git", difficulty: "medium",
+    prompt: "Shelve all uncommitted changes so your working tree is clean",
+    answer: "git stash",   decoys: ["git save", "git temp", "git hide"],
+    hint: "Like tucking your work in a drawer for later.",
+    explain: "git stash shelves your changes so you can switch tasks with a clean slate. Run 'git stash pop' to bring them back when you're ready." },
+
+  { id: "git-diff-staged",category: "git", difficulty: "hard",
+    prompt: "Show only the changes you've staged and are about to commit",
+    answer: "git diff --staged", decoys: ["git diff", "git show --staged", "git status --diff"],
+    hint: "Add --staged to diff to see what's in the index.",
+    explain: "Without a flag, git diff shows unstaged edits. Add --staged and you see what's in the index — the snapshot that will become your next commit. Two views of your work." },
+
+  { id: "git-reset-head", category: "git", difficulty: "hard",
+    prompt: "Unstage 'index.html' without losing your edits to that file",
+    answer: "git reset HEAD index.html", decoys: ["git unstage index.html", "git undo index.html", "git rm --cached index.html"],
+    hint: "Reset the staged snapshot back to HEAD.",
+    explain: "git reset HEAD <file> moves the file out of staging while keeping your edits safe in the working directory. 'git rm --cached' is different — it stops tracking the file entirely." },
+
+  { id: "git-rm-cached",  category: "git", difficulty: "hard",
+    prompt: "Stop Git from tracking a file without deleting it from disk",
+    answer: "git rm --cached <file>", decoys: ["git rm <file>", "git untrack <file>", "git reset HEAD <file>"],
+    hint: "--cached = index only, leave the file on disk.",
+    explain: "git rm --cached removes the file from Git's index (stops tracking it) but leaves it on your disk. Plain 'git rm' deletes it from both the index and your disk." },
 ];
