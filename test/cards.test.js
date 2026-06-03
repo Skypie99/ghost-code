@@ -12,6 +12,7 @@
 //    - answer accidentally listed as a decoy
 //    - empty strings or non-string values
 //    - unknown category
+//    - bad difficulty value / empty explain (optional fields)
 //
 //  Run:  node test/cards.test.js
 //  Exits non-zero on first failure so CI / pre-commit can use it.
@@ -21,6 +22,7 @@ const fs = require("fs");
 const path = require("path");
 
 const VALID_CATEGORIES = new Set(["claude", "mac"]);
+const VALID_DIFFICULTIES = new Set(["easy", "medium", "hard"]);
 const REQUIRED_FIELDS = ["id", "category", "prompt", "answer", "decoys", "hint"];
 const DECOY_COUNT = 3;
 
@@ -89,6 +91,14 @@ const seenIds = new Set();
     if (uniqueDecoys.size !== card.decoys.length) {
       fail(`${tag}: decoys contain duplicates`);
     }
+  }
+
+  // Optional fields — validate only when present (backward-compatible).
+  if ("difficulty" in card && !VALID_DIFFICULTIES.has(card.difficulty)) {
+    fail(`${tag}: difficulty "${card.difficulty}" not in {${[...VALID_DIFFICULTIES].join(", ")}}`);
+  }
+  if ("explain" in card && !isNonEmptyString(card.explain)) {
+    fail(`${tag}: explain, when present, must be a non-empty string`);
   }
 });
 

@@ -1,0 +1,46 @@
+name: CI
+
+# Mirrors the local "green gate": syntax-check cards.js + the inline <script>,
+# run the zero-dep deck validator, and confirm index.html still loads cards.js.
+# Pure Node — no dependencies, no build. Runs only when GitHub Actions executes
+# it (push/PR to main); adding this file does not trigger anything by itself.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    name: validate-cards-and-html
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Syntax-check cards.js
+        run: |
+          node --check cards.js
+          echo "OK: cards.js parses cleanly."
+
+      - name: Syntax-check the inline <script> in index.html
+        run: |
+          open=$(grep -n '<script>' index.html | head -1 | cut -d: -f1)
+          close=$(grep -n '</script>' index.html | tail -1 | cut -d: -f1)
+          sed -n "$((open+1)),$((close-1))p" index.html | node --check -
+          echo "OK: inline <script> parses cleanly (lines $open..$close)."
+
+      - name: Run the card-deck data validator
+        run: node test/cards.test.js
+
+      - name: HTML smoke-check (index.html still loads cards.js)
+        run: |
+          if ! grep -q 'src="cards.js"' index.html; then
+            echo "ERROR: index.html no longer references cards.js"
+            exit 1
+          fi
+          echo "OK: index.html references cards.js."
