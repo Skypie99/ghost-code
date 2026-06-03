@@ -494,7 +494,7 @@
     position: absolute;
     top: 220px; left: 50%; transform: translateX(-50%);
     width: 82%;
-    background: rgba(10,1,24,0.88);
+    background: rgba(10,1,24,0.96);
     border: 2px solid var(--neon-cyan);
     border-radius: 10px;
     padding: 18px 22px;
@@ -1006,6 +1006,17 @@ function hideLearningPanel() {
   DOM.learnPanel.innerHTML = '';
 }
 
+// Build the optional "why" explanation node. textContent only — never innerHTML —
+// so card-authored text can never inject markup. Returns null when the card has none.
+function renderExplain(card) {
+  const text = (card.explain || '').trim();
+  if (!text) return null;
+  const p = document.createElement('p');
+  p.className = 'lp-explain';
+  p.textContent = text;
+  return p;
+}
+
 function showLearningPanel({ phase }) {
   const card = state.current;
   if (!card) return;
@@ -1068,6 +1079,9 @@ function showLearningPanel({ phase }) {
       state.busy = false;
       nextCard();
     });
+    // Optional "why" explanation, inserted above the action button (Riley P3: transfer learning)
+    const ex = renderExplain(card);
+    if (ex) DOM.learnPanel.insertBefore(ex, DOM.learnPanel.querySelector('.lp-actions'));
     document.getElementById('lp-next').focus();
     return;
   }

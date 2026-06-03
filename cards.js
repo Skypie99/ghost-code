@@ -12,6 +12,9 @@
 //    answer   : the CORRECT command (must match one dot)
 //    decoys   : 3 wrong-but-plausible commands
 //    hint     : short memory aid (shown after wrong answer)
+//    explain  : (optional) one or two sentences on WHY — the deeper
+//               reasoning, shown in Learn Mode's answer-reveal panel.
+//               Cards without it simply render no explanation.
 // =======================================================
 
 window.CARDS = [
@@ -22,7 +25,8 @@ window.CARDS = [
 
   { id: "cc-clear",    category: "claude", prompt: "Clear the current Claude Code conversation",
     answer: "/clear",      decoys: ["/reset", "/new", "/wipe"],
-    hint: "Same word you'd use to wipe a screen." },
+    hint: "Same word you'd use to wipe a screen.",
+    explain: "/clear wipes the conversation so Claude starts fresh. /compact keeps a summary instead — reach for clear when you switch tasks entirely." },
 
   { id: "cc-memory",   category: "claude", prompt: "Open and edit Claude's long-term memory files",
     answer: "/memory",     decoys: ["/remember", "/notes", "/brain"],
@@ -30,7 +34,8 @@ window.CARDS = [
 
   { id: "cc-init",     category: "claude", prompt: "Create a CLAUDE.md file documenting this codebase",
     answer: "/init",       decoys: ["/setup", "/start", "/scaffold"],
-    hint: "Same word `git` uses to start a repo." },
+    hint: "Same word `git` uses to start a repo.",
+    explain: "/init scans your repo and writes a CLAUDE.md so Claude remembers how the project works — like `git init` bootstrapping a repo." },
 
   { id: "cc-config",   category: "claude", prompt: "Open Claude Code's settings UI",
     answer: "/config",     decoys: ["/settings", "/prefs", "/options"],
@@ -42,15 +47,18 @@ window.CARDS = [
 
   { id: "cc-status",   category: "claude", prompt: "Show current session status (account, model, version)",
     answer: "/status",     decoys: ["/info", "/whoami", "/about"],
-    hint: "Same word your laundry app uses." },
+    hint: "Same word your laundry app uses.",
+    explain: "/status reports account, model, and version. The decoys aren't Claude commands — `whoami` is a shell command, not a slash command." },
 
   { id: "cc-cost",     category: "claude", prompt: "See how much this session has cost in tokens / $",
     answer: "/cost",       decoys: ["/usage", "/tokens", "/bill"],
-    hint: "One word, four letters, $$$." },
+    hint: "One word, four letters, $$$.",
+    explain: "/cost shows the tokens and dollars spent this session — worth checking before and after a long task." },
 
   { id: "cc-compact",  category: "claude", prompt: "Summarize and shrink the conversation to free up context",
     answer: "/compact",    decoys: ["/summarize", "/shrink", "/trim"],
-    hint: "Like compacting a trash bag." },
+    hint: "Like compacting a trash bag.",
+    explain: "/compact summarizes older turns so they cost fewer tokens — you keep the thread but free up context. /clear would discard it." },
 
   { id: "cc-login",    category: "claude", prompt: "Sign in to your Anthropic account from the CLI",
     answer: "/login",      decoys: ["/auth", "/signin", "/connect"],
@@ -119,7 +127,8 @@ window.CARDS = [
 
   { id: "mac-cd-up",   category: "mac", prompt: "Go up one folder (to the parent directory)",
     answer: "cd ..",       decoys: ["cd up", "cd back", "cd -"],
-    hint: "Two dots means 'parent'." },
+    hint: "Two dots means 'parent'.",
+    explain: "'..' always means the parent folder, so `cd ..` steps up one level. A single '.' means the folder you're already in." },
 
   { id: "mac-cd-home", category: "mac", prompt: "Jump back to your home folder from anywhere",
     answer: "cd ~",        decoys: ["cd home", "cd /", "cd $"],
@@ -147,7 +156,8 @@ window.CARDS = [
 
   { id: "mac-rm-r",    category: "mac", prompt: "Delete a folder called 'old' and everything inside it",
     answer: "rm -r old",   decoys: ["rm old", "rmdir old", "rm -f old"],
-    hint: "-r = recursive (go into subfolders)." },
+    hint: "-r = recursive (go into subfolders).",
+    explain: "-r means recursive, so rm descends into the folder and deletes everything inside. Plain rm refuses folders; rmdir only removes EMPTY ones." },
 
   { id: "mac-cat",     category: "mac", prompt: "Print the contents of 'notes.txt' to the screen",
     answer: "cat notes.txt", decoys: ["print notes.txt", "show notes.txt", "read notes.txt"],
@@ -155,11 +165,13 @@ window.CARDS = [
 
   { id: "mac-less",    category: "mac", prompt: "View a long file one screen at a time, scrollable",
     answer: "less big.log", decoys: ["more big.log", "page big.log", "view big.log"],
-    hint: "Counter-intuitively named: 'less' is better than 'more'." },
+    hint: "Counter-intuitively named: 'less' is better than 'more'.",
+    explain: "less pages through a file and scrolls BOTH directions; the older `more` only scrolls forward. Mnemonic: 'less is more'." },
 
   { id: "mac-grep",    category: "mac", prompt: "Search inside files for the word 'TODO'",
     answer: "grep TODO",   decoys: ["find TODO", "search TODO", "match TODO"],
-    hint: "Four letters, sounds like grabbing." },
+    hint: "Four letters, sounds like grabbing.",
+    explain: "grep searches INSIDE files for text; `find` searches for files by name. Different tools for different jobs." },
 
   { id: "mac-find",    category: "mac", prompt: "Find every file named '*.png' starting from the current folder",
     answer: "find . -name '*.png'", decoys: ["find *.png", "search . *.png", "locate *.png"],
@@ -171,7 +183,8 @@ window.CARDS = [
 
   { id: "mac-chmod",   category: "mac", prompt: "Make a script file 'run.sh' executable",
     answer: "chmod +x run.sh", decoys: ["chmod 777 run.sh", "exec run.sh", "make run.sh +x"],
-    hint: "+x = add the eXecute permission." },
+    hint: "+x = add the eXecute permission.",
+    explain: "+x adds the execute permission so the shell will run the file. `chmod 777` works too but over-grants read/write/execute to everyone." },
 
   { id: "mac-man",     category: "mac", prompt: "Look up the manual / help page for the 'ls' command",
     answer: "man ls",      decoys: ["help ls", "ls --help", "info ls"],
