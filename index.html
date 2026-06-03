@@ -222,6 +222,19 @@
     clip-path: polygon(100% 50%, 50% 50%, 100% 15%, 0% 15%, 0% 85%, 100% 85%);
     box-shadow: 0 0 6px var(--pac-glow);
   }
+  /* Lifeline (50/50) HUD — ⚡ icons, gold, mirrors lives */
+  #lifelines { display: flex; gap: 5px; margin-top: 4px; }
+  .lifeline-pip {
+    width: 16px; height: 22px;
+    background: var(--gold);
+    clip-path: polygon(50% 0%,65% 40%,100% 40%,70% 62%,85% 100%,50% 72%,15% 100%,30% 62%,0% 40%,35% 40%);
+    box-shadow: 0 0 6px rgba(255,215,0,0.7);
+  }
+  .dot.eliminated {
+    opacity: 0.12;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+  }
   #streak .val { color: var(--gold); text-shadow: 0 0 10px rgba(255,215,0,0.7); }
   #cat-badge {
     font-family: 'Press Start 2P', monospace;
@@ -750,6 +763,7 @@
     <div class="stat"><span class="label">HI-SCORE</span><span class="val" id="hi">00</span></div>
     <div class="stat" id="streak"><span class="label">STREAK</span><span class="val">0</span></div>
     <div class="stat" id="lives-stat"><span class="label">LIVES</span><div id="lives"></div></div>
+    <div class="stat" id="lifelines-stat"><span class="label">50/50</span><div id="lifelines" aria-label="Lifelines remaining"></div></div>
     <div class="stat"><span class="label">CATEGORY</span><span id="cat-badge">ALL</span></div>
     <span id="learn-badge" aria-label="Learning Mode active">LEARN MODE</span>
   </div>
@@ -799,7 +813,7 @@
     <h1>PAC-MAN<br>CODE TRAINER</h1>
     <p>Click the correct command-dot. Pac chomps right answers — ghosts steal a life on wrong ones.</p>
     <p><span style="color:var(--neon-cyan);font-family:'Press Start 2P',monospace;font-size:10px;">LEARN MODE:</span> <span style="font-family:'VT323',monospace;font-size:22px;">No life loss · hint escalation · answer reveal</span></p>
-    <p class="small">MOUSE or 1·2·3·4 &nbsp;·&nbsp; R RESTART &nbsp;·&nbsp; ESC PAUSE &nbsp;·&nbsp; C CATEGORY &nbsp;·&nbsp; L LEARN MODE</p>
+    <p class="small">MOUSE or 1·2·3·4 &nbsp;·&nbsp; H 50/50 &nbsp;·&nbsp; R RESTART &nbsp;·&nbsp; ESC PAUSE &nbsp;·&nbsp; C CATEGORY &nbsp;·&nbsp; L LEARN MODE</p>
     <button class="big-btn blink" id="start-btn">PRESS START</button>
   </div>
 
@@ -838,6 +852,8 @@ const DOM = {
   catBadge:     document.getElementById('cat-badge'),
   promptTag:    document.getElementById('prompt-tag'),
   diffBadge:    document.getElementById('diff-badge'),
+  lifelines:    document.getElementById('lifelines'),
+  lifelinesStat: document.getElementById('lifelines-stat'),
   promptText:   document.getElementById('prompt-text'),
   hint:         document.getElementById('hint'),
   pac:          document.getElementById('pac'),
@@ -884,6 +900,8 @@ const state = {
   learnRevealed: false,     // has the answer been revealed?
   learnMastered: new Set(), // card ids mastered this session
   learnSeen: new Set(),     // card ids seen this session
+  // Lifeline (50/50)
+  lifelinesLeft: 3,         // resets each game; both modes
 };
 
 // ----- Mode helpers -----
@@ -940,6 +958,16 @@ function renderHUD() {
     DOM.lives.appendChild(l);
   }
   DOM.catBadge.textContent = state.persist.category.toUpperCase();
+
+  // Lifeline pips
+  DOM.lifelines.innerHTML = '';
+  for (let i = 0; i < state.lifelinesLeft; i++) {
+    const pip = document.createElement('div');
+    pip.className = 'lifeline-pip';
+    DOM.lifelines.appendChild(pip);
+  }
+  DOM.lifelines.setAttribute('aria-label', `${state.lifelinesLeft} lifeline${state.lifelinesLeft !== 1 ? 's' : ''} remaining`);
+
   renderLearnProgress();
 }
 
@@ -1007,8 +1035,9 @@ function renderCard(card) {
 
   const options = shuffle([card.answer, ...card.decoys]);
   DOM.dots.forEach((d, i) => {
-    d.classList.remove('correct','wrong','eaten');
+    d.classList.remove('correct','wrong','eaten','eliminated');
     d.style.pointerEvents = 'auto';
+    d.removeAttribute('aria-hidden');
     d.querySelector('.txt').textContent = options[i];
     d.dataset.value = options[i];
     d.setAttribute('aria-label', `Answer ${i + 1} of 4: ${options[i]}`);
@@ -1134,6 +1163,26 @@ function learningReveal() {
   if (DOM.announcer) DOM.announcer.textContent = `Answer revealed: ${state.current.answer}. ${state.current.hint}`;
 }
 
+// ----- Lifeline (50/50) -----
+function useLifeline() {
+  if (!state.playing || state.paused || state.busy || state.lifelinesLeft <= 0) return;
+  // Already used one this card? (dots already eliminated — idempotent guard)
+  if (DOM.dots.some(d => d.classList.contains('eliminated'))) return;
+
+  const wrongDots = DOM.dots.filter(d => d.dataset.value !== state.current.answer);
+  // Pick 2 random wrong dots to eliminate
+  const toEliminate = wrongDots.sort(() => Math.random() - 0.5).slice(0, 2);
+  toEliminate.forEach(d => {
+    d.classList.add('eliminated');
+    d.setAttribute('aria-hidden', 'true');
+  });
+
+  state.lifelinesLeft--;
+  renderHUD();
+  softDing();
+  if (DOM.announcer) DOM.announcer.textContent = `50/50 used — two wrong answers removed. ${state.lifelinesLeft} lifeline${state.lifelinesLeft !== 1 ? 's' : ''} left.`;
+}
+
 // ----- Answer handler -----
 function answer(dotEl) {
   if (state.busy || !state.playing || state.paused) return;
@@ -1256,8 +1305,9 @@ function startGame() {
   state.streak   = 0;
   state.playing  = true;
   state.paused   = false;
-  state.learnMastered = new Set();
-  state.learnSeen     = new Set();
+  state.learnMastered  = new Set();
+  state.learnSeen      = new Set();
+  state.lifelinesLeft  = 3;
   DOM.title.classList.add('hidden');
   DOM.gameover.classList.add('hidden');
   DOM.pauseScr.classList.add('hidden');
@@ -1326,6 +1376,7 @@ document.querySelectorAll('[data-cat]').forEach(btn => {
 document.addEventListener('keydown', (e) => {
   if (e.key === 'r' || e.key === 'R') return startGame();
   if (e.key === 'Escape')              return togglePause();
+  if (e.key === 'h' || e.key === 'H') return useLifeline();
   if (e.key === 'l' || e.key === 'L') {
     applyMode(isLearnMode() ? 'arcade' : 'learn');
     if (state.playing) startGame();
