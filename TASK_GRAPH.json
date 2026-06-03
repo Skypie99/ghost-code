@@ -1,0 +1,17 @@
+{
+  "project": "pacman-code-trainer",
+  "last_updated": "2026-06-02",
+  "tasks": [
+    { "id": "P0-foundation",       "title": "Burst foundation — branch, PLAN.md, green gate",                     "status": "done",       "owner": "Morgan/Gary",       "notes": "commit 022a97a" },
+    { "id": "P1-design-compiler",  "title": "Learning Mode Design Compiler gate → PASS + a11y fold-in",           "status": "done",       "owner": "Dani/Alex/Shamus",  "notes": "commit 7a4e478; report qa-reports/2026-06-02_DesignCompile_pm-learning-mode.md" },
+    { "id": "P2-explanations",     "title": "Card-level explanations (explain field, renderExplain via textContent)", "status": "done",   "owner": "Shamus/QA",         "notes": "commit f3a3964; 12 cards with explain" },
+    { "id": "P3-difficulty",       "title": "Difficulty tags + content quality + decoy bug fixes",                 "status": "done",       "owner": "Shamus/QA",         "notes": "commit 525e6ef; 40 cards tagged; 2 decoy bugs fixed" },
+    { "id": "P4-lifeline",         "title": "50/50 Lifeline — H key, 3 per game, gold pip HUD",                   "status": "done",       "owner": "Shamus/QA",         "notes": "commit c53b8ad; state.lifelinesLeft, useLifeline(), .dot.eliminated" },
+    { "id": "P5-infra",            "title": "Card-validation test + CI workflow (files only)",                     "status": "done",       "owner": "Gary/Rory",         "notes": "commit 32f8d73; test/cards.test.js + .github/workflows/ci.yml" },
+    { "id": "P6-git-cards",        "title": "GIT command cards (16) + GIT category button + C-cycle + validator", "status": "done-pending-compile", "owner": "Shamus",   "notes": "commit 2c91fe1; 56 cards total; GIT button + C-cycle; Design Compiler requested (qa-reports/2026-06-02_Shamus_P6_GITCards.md)" },
+    { "id": "EMPTY-DECK-VERIFY",   "title": "Verify empty-deck robustness fix (3b1de9c) vs current nextCard guard", "status": "done",      "owner": "Gary",              "notes": "FAIL → fix ported as commit 42d3387; pre-P6 gate cleared." },
+    { "id": "P7-gameover-a11y",    "title": "Arcade game-over missed-cards review + renderCard SR prompt announce", "status": "pending",   "owner": "Shamus/Alex",       "notes": "Specced in PLAN.md. state.missedThisRun + .lp-explain in #gameover + renderCard announcer." },
+    { "id": "MERGE-BURST",         "title": "Sky merges burst/pacman-2026-06-02 to main",                          "status": "pending",    "owner": "Sky",               "notes": "git checkout main && git merge --ff-only burst/pacman-2026-06-02 (now includes P6 + robustness fix)" },
+    { "id": "PUSH-ORIGIN-MAIN",    "title": "Push local main to origin (local ahead vs origin/Initial)",           "status": "pending",    "owner": "Sky",               "notes": "Optional but needed for GitHub Pages live URL." }
+  ]
+}

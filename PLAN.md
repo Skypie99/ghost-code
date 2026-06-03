@@ -40,7 +40,7 @@ A11y baseline: `#a11y-announcer` aria-live · aria-labels · `aria-pressed` togg
 | P3 | Difficulty tags + content quality | Dani, Dana, Shamus, QA, Gary | **DONE 2026-06-02** |
 | P4 | 50/50 Lifeline (H key, 3 per game) | Dani, Shamus, QA | **DONE 2026-06-02** |
 | P5 | Card-validation test + CI adoption (infra) | Gary, Rory | **DONE 2026-06-02** |
-| P6 | GIT command cards fold-in (~16 cards + GIT category button) | Shamus, QA, Gary | **NEXT** |
+| P6 | GIT command cards fold-in (~16 cards + GIT category button) | Shamus, QA, Gary | **DONE 2026-06-02 — Design Compiler pending** |
 | P7 | Arcade game-over review + card-prompt announcements | Shamus, Alex, QA | queued |
 
 Strict sequence — never parallel (every phase edits the same 2 files). One commit per phase.
