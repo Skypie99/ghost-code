@@ -1292,9 +1292,18 @@ function spawnGhost(dotEl) {
 function nextCard() {
   const card = pickCard();
   if (!card) {
+    state.busy = true;
+    DOM.promptTag.textContent  = '';
     DOM.promptText.textContent = 'No cards in this category yet — add some in cards.js!';
+    DOM.hint.textContent       = '';
+    DOM.dots.forEach(d => {
+      d.classList.remove('correct','wrong','eaten','entering','shake');
+      d.querySelector('.txt').textContent = '—';
+      d.dataset.value = '';
+    });
     return;
   }
+  state.busy = false;
   renderCard(card);
 }
 
