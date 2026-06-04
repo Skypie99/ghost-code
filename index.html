@@ -1068,7 +1068,6 @@ function renderCard(card) {
   DOM.diffBadge.textContent = diff.toUpperCase();
   DOM.diffBadge.setAttribute('aria-label', 'Difficulty: ' + diff);
   DOM.promptText.textContent = card.prompt;
-  if (DOM.announcer) DOM.announcer.textContent = `${CATEGORY_LABELS[card.category] || card.category}: ${card.prompt}`;
   DOM.hint.textContent       = '';
   DOM.pac.style.transform    = 'translate(-50%, -50%) rotate(0deg)';
 
@@ -1078,7 +1077,10 @@ function renderCard(card) {
   // In learning mode show hint before answering (attempt 0 = pre-hint)
   if (isLearnMode() && card.hint) {
     showLearningPanel({ phase: 'pre' });
-    if (DOM.announcer) DOM.announcer.textContent = `Hint: ${card.hint}`;
+    // Announce prompt + hint together so SR users get both in one pass (avoid clobber)
+    if (DOM.announcer) DOM.announcer.textContent = `${CATEGORY_LABELS[card.category] || card.category}: ${card.prompt}. Hint: ${card.hint}`;
+  } else {
+    if (DOM.announcer) DOM.announcer.textContent = `${CATEGORY_LABELS[card.category] || card.category}: ${card.prompt}`;
   }
 
   const options = shuffle([card.answer, ...card.decoys]);
@@ -1393,6 +1395,9 @@ function gameOver() {
 
     const section = document.createElement('div');
     section.className = 'missed-review';
+    section.setAttribute('role', 'region');
+    section.setAttribute('aria-label', 'Cards you missed this run');
+    section.setAttribute('tabindex', '0');
 
     const heading = document.createElement('p');
     heading.className = 'missed-review__heading';
@@ -1430,6 +1435,8 @@ function gameOver() {
 
   DOM.gameover.classList.remove('hidden');
   hideLearningPanel();
+  // Move focus to PLAY AGAIN button so keyboard/SR users land somewhere sensible
+  document.getElementById('again-btn').focus();
 }
 function togglePause() {
   if (!state.playing) return;
