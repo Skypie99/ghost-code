@@ -1,0 +1,17 @@
+# DECISIONS_LOG — pacman-code-trainer
+
+[DELIVERY-IMESSAGE] Burst briefings go via iMessage not email (per Sky's explicit in-session choice; email disabled system-wide) — 2026-06-02
+[GREEN-GATE-NOTS] Green gate for pacman (no TypeScript): `node --check cards.js` + extracted inline `<script>` bounds (re-derive with grep each step, they drift) + `node test/cards.test.js` + browser smoke (start, 4 dots, correct/wrong, C/L/localStorage) — 2026-06-02
+[BRANCH-BASE-SHAMUS] Burst integration branch is always based on the cumulative shamus tip (= local main + Learning Mode), NOT origin/main (origin is still at Initial commit, +21 behind local main) — 2026-06-02
+[GIT-CARDS-DEFERRED] GIT-cards feature (~16 cards, `feat/auto-2026-05-25-shamus-git-*`) deferred; write cards fresh in P6 and do NOT cherry-pick the conflicting UI commit (stale base, touches the ternary P3 already refactored) — 2026-06-02
+[MAIN-SKY-ONLY] Merge to `main` declined even with Sky's in-session approval — Constitution Art. 1 is a hard stop; Sky must run the git command directly (`git merge --ff-only burst/...`); this is not agent-delegable — 2026-06-02
+[PLAN-MD-LIVING] PLAN.md lives in project root as the persistent burst roadmap; each burst reads it before replanning (prevents re-deciding) — 2026-06-02
+[PERSIST-ADDITIVE] localStorage schema stays at `pmct.v1`; all new state fields additive via Object.assign defaults; never rename `hi/category/cardStats/mode`; bump to `pmct.v2` only if a rename is forced (with migration) — 2026-06-02
+[LIFELINE-SESSION-ONLY] `state.lifelinesLeft` is session-only (resets to 3 on startGame) — not persisted; no schema change — 2026-06-02
+[EXPLAIN-TEXTCONTENT] `renderExplain()` and all card-derived text MUST use `textContent` only, never `innerHTML` — even for trusted card data, to guard against future content injections — 2026-06-02
+[P6-SPEC] P6 = ~16 GIT command cards written fresh (not cherry-picked from stale branch) + GIT button in bottom bar + CATEGORY_LABELS['git'] + C-cycle order update + validator VALID_CATEGORIES update — 2026-06-02
+[P7-SPEC] P7 = (A) arcade game-over missed-cards review via `state.missedThisRun` Set + `.lp-explain` in `#gameover`, (B) `renderCard` announces prompt to `#a11y-announcer` — closes pre-existing cross-mode SR gap noted in Design Compiler report — 2026-06-02
+[RE-ENGAGE-2026-06-03] Pac-Man re-engaged from "on hold" on Sky's direct request (whole review + update + phased plan). 4-phase plan adopted: P1 land burst (Dani compile → Sky ff-merge → push → prune), P2 build P7, P3 governance catch-up (LEARNINGS.md + INDEX.md + CLAUDE.md), P4 optional growth via Quinn. — 2026-06-03
+[P6-COMPILE-GATE] P6's GIT filter button is a UI surface → not marked DONE until Dani's 7-layer Design Compiler returns COMMIT (Const Art 2.4). Shamus predicts COMMIT (1-line reuse of shared `.btn`, aria pattern identical to CLAUDE/TERMINAL). This is the last gate before a clean ff-merge. — 2026-06-03
+[LOOSE-FILES-COMMITTED] DECISIONS_LOG.md + PROJECT_STATE.md + 3 qa-reports (Gary verify, prior Morgan cycle, new-window) were untracked on burst; committed onto the burst branch (NOT main — Const Art 1) this cycle so they travel with Sky's merge. — 2026-06-03
+[GOVERNANCE-GAPS] Project is missing LEARNINGS.md (routed to Will twice, never executed), qa-reports/INDEX.md (breaks the prescribed "read INDEX first" PM scan), and an agent-facing CLAUDE.md (PLAN.md half-serves this). Folded into Phase 3 as real nodes, not just routing notes. — 2026-06-03
