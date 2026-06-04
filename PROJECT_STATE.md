@@ -1,26 +1,32 @@
 # PROJECT_STATE — pacman-code-trainer
-_Last compiled: 2026-06-03 by /morgan (Sky re-engaged from hold)_
+_Last compiled: 2026-06-03 by /morgan (Phase 1 landed + Phase 2 built & reviewed)_
 
 ## Current Status
-Build burst on `burst/pacman-2026-06-02` is **+13 commits** ahead of local `main` (fast-forward clean — verified `main 4c853d9` is an ancestor of burst). Branch is **green** (0 console errors, validator: "56 cards passed all integrity checks"). Phases **P0–P6 + Learning Mode DONE** (7 of 8). One gate outstanding before a clean merge: **P6's UI (GIT filter button) has not passed the Design Compiler** (Const Art 2.4) — Shamus predicts COMMIT. P7 is specced and unbuilt. Awaiting Sky's merge gate.
+**P0–P6 are LIVE on `main`** (`3791d6e`, green — "56 cards passed all integrity checks") and **P7 is built + fully reviewed** on `shamus/p7-gameover-a11y-2026-06-03` (ff-clean over main, green). The game spec is effectively complete. Two things remain, both Sky-gated: (1) **push `main` to origin** to publish the features to the live public site, and (2) **merge P7** to main. Neither has happened yet.
+
+## Branch topology (read this before touching git)
+- **`main` `3791d6e`** — canonical live code: Learning Mode + P1–P6 + LEARNINGS.md + the P6 Design Compiler report. This is what `git push` would publish.
+- **`shamus/p7-gameover-a11y-2026-06-03` `39e7690`+** — the single next-merge branch: P7 code + Shamus/Dani/Alex reports + ALL consolidated bookkeeping (this file, TASK_GRAPH, DECISIONS_LOG, Rory's merge report). Fast-forward-clean over main.
+- **`burst/pacman-2026-06-02`** — content-superseded by p7 (its bookkeeping was copied onto p7). Prune with `-D`.
+- `origin/main` `5644631` — STALE "Initial commit"; local main is +37 ahead. The public Pages site (skypie99.github.io/pacman-code-trainer/, repo is PUBLIC) is serving this bare base game until Sky pushes.
 
 ## Context Snapshot
-`/Users/skypie/Games/pacman-code-trainer` is a vanilla HTML/JS flashcard game (Pac-Man themed) for memorizing Claude Code + Mac terminal + Git commands. Single-file: `index.html` (~1.4k lines, inline CSS+JS, script lines 841–1412) + `cards.js` (**56 cards**). No TypeScript, no build, no framework, **zero deps, no DB, no network, no auth**. Green gate = `node --check cards.js` + extracted inline `<script>` + browser smoke + `node test/cards.test.js`. Data layer is `localStorage['pmct.v1']` only — additive keys, no migrations.
+Vanilla HTML/JS Pac-Man flashcard game for memorizing Claude Code + Mac terminal + Git commands. Single `index.html` (inline CSS+JS) + `cards.js` (**56 cards**). Zero deps, no build, no framework, no TS, **no DB / no network / no auth / no PII**. Green gate = `node --check cards.js` + extracted inline `<script>` + browser smoke + `node test/cards.test.js`. Data = `localStorage['pmct.v1']` only, additive keys.
 
-## Recent Outcomes (delta since 2026-06-02 cycle)
-- **EMPTY-DECK-VERIFY (DONE):** Gary's pre-P6 gate FAILED → fix `3b1de9c` ported to burst as **`42d3387`**. Prevents phantom scoring when switching to the empty GIT category mid-game.
-- **P6 (DONE — pending compile):** 16 GIT cards written fresh (`2c91fe1`) — 7 easy / 6 medium / 3 hard; `explain` on 5 trickier cards. GIT button added to bottom bar (`.btn` reuse), C-cycle `['all','claude','mac','git']`, `CATEGORY_LABELS.git`, validator `VALID_CATEGORIES += git`. **Deck 40 → 56**, all pass. No localStorage bump (additive).
-- **P0–P5 + Learning Mode:** unchanged — see prior cycle / `2026-06-02_Burst_Report.md`.
-- **Loose files committed:** DECISIONS_LOG.md + PROJECT_STATE.md + 3 qa-reports were untracked on burst; committed this cycle so they travel with the merge.
+## Recent Outcomes (this session)
+- **P6 GIT cards MERGED** to main via Rory under Sky's scoped Art.1 override (4c853d9 → 3791d6e, ff, +16, green). See DECISIONS_LOG `[ART1-OVERRIDE-2026-06-03]`.
+- **P6 Design Compiler = PASS** (Dani, `13dda1e`) — last UI gate cleared.
+- **LEARNINGS.md shipped** (Will, `3791d6e`) — 12 lessons, overdue close-out.
+- **P7 built + reviewed** (Shamus `9a4c763`; Dani POLISH→PASS `a1fbab1` — fixed `.lp-explain` 26→20px scope bug; Alex PASS-WITH-FIXES `39e7690` — fixed learn-mode SR announcer clobber + scroll-region landmarks + focus management; AA contrast verified).
 
-## Next Actions (phased plan)
-- **Phase 1 (land burst):** Dani runs P6 Design Compiler → Sky `git merge --ff-only burst/pacman-2026-06-02` → optional `git push origin main` → Rory-confirmed stale-branch prune.
-- **Phase 2 (P7):** arcade game-over missed-cards review + renderCard SR prompt announce — specced in PLAN.md, index.html only.
-- **Phase 3 (governance):** Will writes LEARNINGS.md + CLAUDE.md; create qa-reports/INDEX.md.
-- **Phase 4 (optional growth):** Quinn grooms spaced-repetition / stats screen / new categories from Riley's friction research.
+## Next Actions (Sky-gated)
+- **Push origin** (publishes P6 to the live public site): `git push origin main`. EXTERNAL SEND — Sky's explicit word required.
+- **Merge P7** to main (another Art.1 decision; the burst override was one-off): `git merge --ff-only shamus/p7-gameover-a11y-2026-06-03`, then push again.
+- **Phase 3 governance** (LEARNINGS done): create `qa-reports/INDEX.md` + agent-facing `CLAUDE.md`.
+- **Prune**: 4 fully-merged branches → `-d`; `burst` → `-D` (superseded).
+- **Phase 4 (optional)**: Quinn grooms spaced-rep / stats screen / new categories.
 
 ## Open Risks
-- P6 UI un-compiled — last gate before clean merge (low: predicted COMMIT).
-- `burst/pacman-2026-06-02` NOT merged — 13 commits pending Sky's gate.
-- Local `main` +21 vs `origin/main` (stale at Initial commit) — GitHub Pages not live until pushed.
-- **Governance gaps:** LEARNINGS.md, qa-reports/INDEX.md, CLAUDE.md all missing (LEARNINGS routed to Will twice, never done).
+- Local `main` +37 vs stale `origin/main` — live public site shows the bare base game until Sky pushes.
+- Non-blocking polish: `#bar` has no `flex-wrap` → 6 filter buttons can clip below ~400px (pre-existing; flagged in Dani's P6 report). Phase-4/mobile ticket.
+- Governance: `INDEX.md` + `CLAUDE.md` still missing (Phase 3).
