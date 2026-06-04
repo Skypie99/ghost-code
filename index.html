@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>PAC-MAN CODE TRAINER</title>
+<title>Ghost Code</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <!-- Press Start 2P for big arcade headers, VT323 for readable body text -->
@@ -21,19 +21,11 @@
     --sun-top:    #ffea00;
     --sun-mid:    #ff6ec7;
     --sun-bot:    #ff2d95;
-    --pac:        #ffe600;
-    --pac-glow:   rgba(255, 230, 0, 0.55);
-    --dot-1:      #ff6ec7;
-    --dot-2:      #06f3ff;
-    --dot-3:      #c724b1;
-    --dot-4:      #ffb852;
     --gold:       #ffd700;
     --soft:       #f1e6ff;          /* off-white text — easier on eyes than #fff */
     --dim:        #b59dde;
-    --ghost-red:    #ff3b3b;
-    --ghost-pink:   #ffb8ff;
-    --ghost-cyan:   #06f3ff;
-    --ghost-orange: #ffb852;
+    --danger:          #ff3b3b;
+    --danger-glow:     rgba(255,59,59,0.6);
     --neon-pink-soft: #f58db5;
     --neon-pink-glow: #ff2d95;
     --neon-cyan-soft: #7ee6f5;
@@ -41,6 +33,13 @@
     --shadow-sm:   0 2px 6px rgba(0,0,0,0.55);
     --shadow-md:   0 0 18px rgba(255,110,199,0.55);
     --shadow-glow: 0 0 28px var(--neon-cyan);
+
+    /* === GHOST CODE MASCOT TOKENS === */
+    --phantom-core:    #06f3ff;
+    --phantom-glow:    rgba(6,243,255,0.6);
+    --phantom-tail:    rgba(6,243,255,0.22);
+    --phantom-eye:     #ffffff;
+    --phantom-eye-dim: rgba(255,255,255,0.55);
   }
   * { box-sizing: border-box; }
   html, body {
@@ -60,7 +59,7 @@
   .term   { font-family: 'VT323', monospace; letter-spacing: 0.5px; }
 
   /* ==================== SYNTHWAVE BACKDROP ==================== */
-  /* Layered behind the cabinet: sunset, stars, grid horizon */
+  /* Layered behind the cabinet: sunset, stars, terminal grid horizon */
   #sky {
     position: fixed; inset: 0;
     background:
@@ -111,7 +110,7 @@
     -webkit-mask-composite: source-out;
             mask-composite: subtract;
   }
-  /* The neon grid floor */
+  /* The neon terminal grid horizon */
   #grid {
     position: fixed;
     left: 0; right: 0; bottom: 0;
@@ -211,18 +210,43 @@
   #hud .stat .val {
     font-family: 'VT323', monospace;
     font-size: 28px;
-    color: var(--pac);
-    text-shadow: 0 0 10px var(--pac-glow);
+    color: var(--neon-cyan);
+    text-shadow: 0 0 10px var(--phantom-glow);
     line-height: 1;
   }
   #lives { display: flex; gap: 6px; margin-top: 4px; }
-  .life {
-    width: 22px; height: 22px; border-radius: 50%;
-    background: var(--pac);
-    clip-path: polygon(100% 50%, 50% 50%, 100% 15%, 0% 15%, 0% 85%, 100% 85%);
-    box-shadow: 0 0 6px var(--pac-glow);
+
+  /* ======================================================
+     SPIRIT PIP — replaces the yellow pac-man silhouette life icon.
+     Shape: a tiny glowing rectangular cursor-block (8x16px)
+     with a small tapered tail drip below. CSS-only, entirely
+     distinct from Pac-Man silhouette.
+     ====================================================== */
+  .spirit-pip {
+    width: 8px; height: 16px;
+    background: var(--phantom-core);
+    border-radius: 2px;
+    box-shadow:
+      0 0 6px var(--phantom-glow),
+      0 0 12px rgba(6,243,255,0.35);
+    position: relative;
+    animation: spirit-blink 1.1s infinite;
   }
-  /* Lifeline (50/50) HUD — ⚡ icons, gold, mirrors lives */
+  .spirit-pip::after {
+    content: "";
+    position: absolute;
+    left: 50%; bottom: -6px;
+    transform: translateX(-50%);
+    width: 3px; height: 6px;
+    background: linear-gradient(180deg, var(--phantom-core), transparent);
+    border-radius: 0 0 3px 3px;
+  }
+  @keyframes spirit-blink {
+    0%, 80%, 100% { opacity: 1; }
+    85%           { opacity: 0.15; }
+  }
+
+  /* Lifeline (50/50) HUD — gold star, generic */
   #lifelines { display: flex; gap: 5px; margin-top: 4px; }
   .lifeline-pip {
     width: 16px; height: 22px;
@@ -230,7 +254,7 @@
     clip-path: polygon(50% 0%,65% 40%,100% 40%,70% 62%,85% 100%,50% 72%,15% 100%,30% 62%,0% 40%,35% 40%);
     box-shadow: 0 0 6px rgba(255,215,0,0.7);
   }
-  .dot.eliminated {
+  .token.eliminated {
     opacity: 0.12;
     pointer-events: none;
     transition: opacity 0.2s ease;
@@ -287,129 +311,236 @@
     transform: translate(-50%, -30%);
     z-index: 4;
   }
-  /* Pac-Man centered */
-  #pac {
+
+  /* ======================================================
+     THE PHANTOM — Ghost Code mascot (center of arena)
+     Shape: teardrop/pointed-chin oval head + spectral plume
+     tail. NOT a Pac-Man ghost (no rounded-top + scalloped-
+     bottom). Terminal cursor that has become sentient.
+     ====================================================== */
+  #phantom {
     position: absolute;
     left: 50%; top: 50%;
-    width: 80px; height: 80px;
-    transform: translate(-50%, -50%) rotate(0deg);
+    width: 64px; height: 80px;
+    transform: translate(-50%, -50%);
     transition: transform 0.45s cubic-bezier(.4,1.4,.6,1);
     z-index: 5;
   }
-  .pac-body {
-    position: absolute; inset: 0;
-    background: radial-gradient(circle at 30% 30%, #fff8a0 0%, var(--pac) 30%, #d4b800 100%);
-    border-radius: 50%;
-    clip-path: polygon(100% 50%, 50% 50%, 100% 15%, 0% 15%, 0% 85%, 100% 85%, 50% 50%);
-    animation: chomp 0.35s infinite;
+
+  /* Head: upright oval, pointy chin — cursor-drop teardrop */
+  .phantom-head {
+    position: absolute;
+    top: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 44px; height: 52px;
+    background: radial-gradient(ellipse at 38% 35%,
+      #a8faff 0%, var(--phantom-core) 45%, #0aa8bb 100%);
+    border-radius: 50% 50% 45% 45% / 55% 55% 50% 50%;
+    /* Pointed chin via clip-path — teardrop, NOT Pac-Man arc */
+    clip-path: polygon(
+      10% 0%,
+      90% 0%,
+      100% 30%,
+      100% 65%,
+      85% 85%,
+      50% 100%,
+      15% 85%,
+      0% 65%,
+      0% 30%
+    );
     box-shadow:
-      0 0 24px var(--pac-glow),
-      0 0 50px rgba(255,230,0,0.3);
-  }
-  @keyframes chomp {
-    0%, 100% { clip-path: polygon(100% 50%, 50% 50%, 100% 15%, 0% 15%, 0% 85%, 100% 85%, 50% 50%); }
-    50%      { clip-path: polygon(100% 50%, 50% 50%, 100% 50%, 0% 50%, 0% 50%, 100% 50%, 50% 50%); }
+      0 0 24px var(--phantom-glow),
+      0 0 50px rgba(6,243,255,0.3);
+    animation: phantom-float 1.8s ease-in-out infinite alternate;
   }
 
-  /* Answer dots */
-  .dot {
+  /* Eyes: white ovals with cyan cursor-square pupils */
+  .phantom-eye-l,
+  .phantom-eye-r {
+    position: absolute;
+    width: 11px; height: 14px;
+    background: #fff;
+    border-radius: 50%;
+    top: 16px;
+    box-shadow: 0 0 5px rgba(255,255,255,0.6);
+  }
+  .phantom-eye-l { left: 8px; }
+  .phantom-eye-r { right: 8px; }
+
+  /* Cursor-square pupils — NOT emoji */
+  .phantom-eye-l::after,
+  .phantom-eye-r::after {
+    content: "";
+    position: absolute;
+    width: 5px; height: 6px;
+    background: var(--phantom-core);
+    border-radius: 1px;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 4px var(--phantom-glow);
+  }
+
+  /* Spectral tail — single smooth gradient plume, NOT scalloped */
+  .phantom-tail {
+    position: absolute;
+    bottom: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 30px; height: 34px;
+    background: radial-gradient(ellipse at 50% 0%,
+      rgba(6,243,255,0.55) 0%,
+      rgba(6,243,255,0.18) 50%,
+      transparent 100%);
+    /* Tapered plume — smooth, not bumpy */
+    clip-path: polygon(20% 0%, 80% 0%, 100% 40%, 60% 100%, 40% 100%, 0% 40%);
+    animation: phantom-tail-pulse 1.8s ease-in-out infinite alternate;
+  }
+
+  /* Cursor bar — blinks above the Phantom head */
+  .phantom-cursor-bar {
+    position: absolute;
+    top: -14px; left: 50%;
+    transform: translateX(-50%);
+    width: 3px; height: 10px;
+    background: var(--phantom-core);
+    border-radius: 1px;
+    box-shadow: 0 0 6px var(--phantom-glow);
+    animation: cursor-blink 0.95s infinite;
+  }
+
+  @keyframes phantom-float {
+    from { transform: translateX(-50%) translateY(0px); }
+    to   { transform: translateX(-50%) translateY(-10px); }
+  }
+  @keyframes phantom-tail-pulse {
+    from { opacity: 0.6; transform: translateX(-50%) scaleY(1); }
+    to   { opacity: 1;   transform: translateX(-50%) scaleY(1.12); }
+  }
+  @keyframes cursor-blink {
+    0%, 45%  { opacity: 1; }
+    50%, 95% { opacity: 0; }
+    100%     { opacity: 1; }
+  }
+
+  /* ======================================================
+     COMMAND TOKENS — replace answer dots.
+     Shape: rectangular code-pill chips. 8px border-radius
+     (NOT blob-round). Monospace VT323 text with "> " prefix.
+     4 directional color variants: cyan/N, pink/E, purple/S, gold/W.
+     ====================================================== */
+  .token {
     position: absolute;
     width: 200px;
-    padding: 18px 14px;
-    background: linear-gradient(135deg, var(--dot-1) 0%, var(--dot-3) 100%);
-    color: #fff;
-    border: 3px solid #fff;
-    border-radius: 18px;
+    padding: 16px 14px 14px;
+    background: linear-gradient(135deg, rgba(6,243,255,0.08) 0%, rgba(26,10,58,0.95) 100%);
+    border: 2px solid var(--neon-cyan);
+    border-radius: 8px;
     text-align: center;
     cursor: pointer;
     box-shadow:
-      var(--shadow-md),
-      inset 0 0 12px rgba(255,255,255,0.15);
+      0 0 14px rgba(6,243,255,0.35),
+      inset 0 0 10px rgba(6,243,255,0.06);
     transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.4, 1), box-shadow 0.18s, background 0.3s, opacity 0.3s ease-out;
     word-break: break-word;
   }
-  .dot.n { background: linear-gradient(135deg, #7a1a5e, #3d0a2e);
-           box-shadow: 0 0 20px rgba(255,110,199,0.8), inset 0 0 12px rgba(255,255,255,0.1); }
-  .dot.e { background: linear-gradient(135deg, #0a5a65, #003d80);
-           box-shadow: 0 0 18px rgba(6,243,255,0.7),   inset 0 0 12px rgba(255,255,255,0.15); }
-  .dot.s { background: linear-gradient(135deg, #8b4513, #6b2c0f);
-           box-shadow: 0 0 18px rgba(255,184,82,0.7),  inset 0 0 12px rgba(255,255,255,0.15); }
-  .dot.w { background: linear-gradient(135deg, #3d1a6e, #1a0a4d);
-           box-shadow: 0 0 20px rgba(157,78,221,0.8), inset 0 0 12px rgba(255,255,255,0.1); }
+  .token.n {
+    border-color: var(--neon-cyan);
+    box-shadow: 0 0 18px rgba(6,243,255,0.5), inset 0 0 10px rgba(6,243,255,0.08);
+  }
+  .token.e {
+    border-color: var(--neon-pink);
+    box-shadow: 0 0 18px rgba(230,35,127,0.45), inset 0 0 10px rgba(230,35,127,0.06);
+    background: linear-gradient(135deg, rgba(230,35,127,0.08) 0%, rgba(26,10,58,0.95) 100%);
+  }
+  .token.s {
+    border-color: var(--neon-purp);
+    box-shadow: 0 0 18px rgba(157,78,221,0.5), inset 0 0 10px rgba(157,78,221,0.06);
+    background: linear-gradient(135deg, rgba(157,78,221,0.08) 0%, rgba(26,10,58,0.95) 100%);
+  }
+  .token.w {
+    border-color: var(--gold);
+    box-shadow: 0 0 18px rgba(255,215,0,0.4), inset 0 0 10px rgba(255,215,0,0.06);
+    background: linear-gradient(135deg, rgba(255,215,0,0.07) 0%, rgba(26,10,58,0.95) 100%);
+  }
 
-  .dot:hover {
-    transform: scale(1.04);
-    box-shadow: 0 0 30px rgba(255,255,255,0.85), inset 0 0 12px rgba(255,255,255,0.25);
+  .token:hover {
     z-index: 6;
   }
-  .dot .key {
+  .token .key {
     display: block;
     font-family: 'Press Start 2P', monospace;
-    color: var(--gold);
-    font-size: 10px;
+    color: var(--dim);
+    font-size: 9px;
     margin-bottom: 8px;
-    text-shadow: 0 0 6px rgba(255,215,0,0.8);
+    text-shadow: 0 0 4px rgba(181,157,222,0.5);
   }
-  .dot .txt {
+  /* Token command text — terminal prompt prefix via ::before */
+  .token .txt {
     font-family: 'VT323', monospace;
     font-size: 22px;
     line-height: 1.4;
-    text-shadow: var(--shadow-sm);
+    color: var(--neon-cyan);
+    text-shadow: 0 0 6px rgba(6,243,255,0.5);
+    letter-spacing: 0.5px;
   }
+  .token.e .txt { color: var(--neon-pink);  text-shadow: 0 0 6px rgba(230,35,127,0.5); }
+  .token.s .txt { color: var(--neon-purp);  text-shadow: 0 0 6px rgba(157,78,221,0.5); }
+  .token.w .txt { color: var(--gold);       text-shadow: 0 0 6px rgba(255,215,0,0.5); }
 
-  /* dot positions */
-  .dot.n { top: 0;    left: 50%; transform: translate(-50%, 0); }
-  .dot.e { top: 50%;  right: 0;  transform: translate(0, -50%); }
-  .dot.s { bottom: 0; left: 50%; transform: translate(-50%, 0); }
-  .dot.w { top: 50%;  left: 0;   transform: translate(0, -50%); }
-  .dot.n:hover { transform: translate(-50%, 0) scale(1.04); }
-  .dot.e:hover { transform: translate(0, -50%) scale(1.04); }
-  .dot.s:hover { transform: translate(-50%, 0) scale(1.04); }
-  .dot.w:hover { transform: translate(0, -50%) scale(1.04); }
+  /* Terminal prompt prefix on command text */
+  .token .txt::before { content: "> "; opacity: 0.5; }
 
-  .dot:focus-visible {
+  /* token positions */
+  .token.n { top: 0;    left: 50%; transform: translate(-50%, 0); }
+  .token.e { top: 50%;  right: 0;  transform: translate(0, -50%); }
+  .token.s { bottom: 0; left: 50%; transform: translate(-50%, 0); }
+  .token.w { top: 50%;  left: 0;   transform: translate(0, -50%); }
+  .token.n:hover { transform: translate(-50%, 0) scale(1.04); }
+  .token.e:hover { transform: translate(0, -50%) scale(1.04); }
+  .token.s:hover { transform: translate(-50%, 0) scale(1.04); }
+  .token.w:hover { transform: translate(0, -50%) scale(1.04); }
+
+  .token:focus-visible {
     outline: 3px solid var(--neon-cyan-glow);
     outline-offset: 4px;
     z-index: 7;
   }
 
-  .dot.correct {
-    background: linear-gradient(135deg, var(--gold), #ff9d00) !important;
-    color: #1a0033;
+  .token.correct {
+    background: linear-gradient(135deg, rgba(255,215,0,0.2), rgba(255,157,0,0.1)) !important;
+    border-color: var(--gold) !important;
+    box-shadow: 0 0 28px var(--gold), inset 0 0 14px rgba(255,215,0,0.15) !important;
     animation: flash 0.4s 3;
   }
-  .dot.wrong {
+  .token.wrong {
     background: linear-gradient(135deg, #8b0000, #5a0010) !important;
-    color: #fff;
-    box-shadow: 0 0 24px rgba(200, 0, 0, 0.8), inset 0 0 12px rgba(255,255,255,0.08) !important;
+    border-color: var(--danger) !important;
+    box-shadow: 0 0 24px var(--danger-glow), inset 0 0 12px rgba(255,255,255,0.08) !important;
   }
-  .dot.eaten { opacity: 0; transform: scale(0.2); }
+  /* Captured (correct) state — dissolves upward */
+  .token.captured {
+    opacity: 0;
+    transform: translateY(-12px) scale(0.85);
+    transition: all 0.35s ease-out;
+  }
   @keyframes flash {
     50% { box-shadow: 0 0 40px var(--gold), inset 0 0 20px rgba(255,255,255,0.4); }
   }
 
-  /* Ghost */
-  .ghost {
-    position: absolute;
-    width: 70px; height: 70px;
-    background: var(--ghost-red);
-    border-radius: 35px 35px 0 0;
-    z-index: 4;
-    animation: ghost-bob 0.4s infinite alternate;
-    box-shadow: 0 0 16px currentColor;
+  /* ======================================================
+     DANGER FLASH — replaces ghost-enemy spawn.
+     On wrong answer: the wrong token pulses danger-red, and
+     the cabinet border strobes. No creature shape.
+     ====================================================== */
+  @keyframes danger-pulse {
+    0%   { box-shadow: 0 0 14px var(--danger-glow); }
+    40%  { box-shadow: 0 0 48px rgba(255,59,59,0.9); }
+    100% { box-shadow: 0 0 14px var(--danger-glow); }
   }
-  .ghost::before {
-    content: ""; position: absolute; left: 0; right: 0; bottom: -12px;
-    height: 16px;
-    background:
-      radial-gradient(circle at 10% 0, currentColor 50%, transparent 51%) 0 0/24px 16px repeat-x;
-    color: inherit;
+  .danger-flash { animation: danger-pulse 0.4s ease-out; }
+  .danger-flash-cabinet {
+    animation: danger-pulse 0.4s ease-out;
+    border-color: var(--danger) !important;
   }
-  .ghost::after {
-    content: "👀"; position: absolute; top: 16px; left: 50%; transform: translateX(-50%);
-    font-size: 26px;
-  }
-  @keyframes ghost-bob { to { transform: translateY(-8px); } }
 
   /* ==================== HINT + BOTTOM BAR ==================== */
   #hint {
@@ -503,7 +634,7 @@
     white-space: nowrap;
   }
   body.learning-mode #learn-badge { display: inline-block; }
-  /* In learning mode hide the lives HUD stat */
+  /* In learning mode hide the spirits HUD stat */
   body.learning-mode #lives-stat { visibility: hidden; }
 
   /* ==================== LEARNING PANEL ==================== */
@@ -557,7 +688,7 @@
     max-width: 540px;
     text-align: left;
   }
-  /* learn-panel text modifiers — tokenized; replace inline style= overrides */
+  /* learn-panel text modifiers */
   #learn-panel .lp-kicker {
     font-family: 'Press Start 2P', monospace;
     font-size: 9px;
@@ -633,23 +764,57 @@
     visibility: hidden;
     pointer-events: none;
   }
-  .screen h1 {
+
+  /* ===== GHOST CODE title treatment ===== */
+  /* "GHOST" cyan→pink gradient lockup */
+  .screen h1 .word1 {
+    display: block;
     font-family: 'Press Start 2P', monospace;
-    font-size: 38px; line-height: 1.4;
-    margin: 0;
-    background: linear-gradient(180deg, var(--sun-top) 0%, var(--sun-mid) 55%, var(--sun-bot) 100%);
+    font-size: 38px;
+    letter-spacing: 6px;
+    background: linear-gradient(90deg, var(--neon-cyan) 0%, #b4f8ff 40%, var(--neon-pink) 100%);
     -webkit-background-clip: text;
             background-clip: text;
     -webkit-text-fill-color: transparent;
-    filter: drop-shadow(0 0 14px rgba(255,46,149,0.6));
+    filter: drop-shadow(0 0 14px rgba(6,243,255,0.7));
+    line-height: 1.2;
+    margin: 0;
+  }
+  /* "CODE" smaller, neon-cyan */
+  .screen h1 .word2 {
+    display: block;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 22px;
+    letter-spacing: 10px;
+    color: var(--neon-cyan);
+    text-shadow: 0 0 8px var(--neon-cyan);
+    margin-top: 4px;
+    opacity: 0.85;
+    -webkit-text-fill-color: var(--neon-cyan);
+  }
+  /* Tagline below title */
+  .screen h1 .tagline {
+    display: block;
+    font-family: 'VT323', monospace;
+    font-size: 20px;
+    color: var(--dim);
+    letter-spacing: 2px;
+    margin-top: 8px;
+    -webkit-text-fill-color: var(--dim);
+    filter: none;
+  }
+  .screen h1 {
+    font-family: 'Press Start 2P', monospace;
+    margin: 0;
     letter-spacing: 3px;
   }
+
   .screen h2 {
     font-family: 'Press Start 2P', monospace;
     font-size: 24px;
-    color: var(--ghost-red);
+    color: var(--danger);
     margin: 0;
-    text-shadow: 0 0 12px var(--ghost-red);
+    text-shadow: 0 0 12px var(--danger);
   }
   .screen p {
     font-family: 'VT323', monospace;
@@ -658,11 +823,12 @@
     color: var(--soft);
     margin: 0;
   }
-  #pauseScreen h1 {
+  #pauseScreen h1 .word1 {
     background: linear-gradient(180deg, var(--neon-cyan), var(--neon-purp));
     -webkit-background-clip: text;
-    background-clip: text;
+            background-clip: text;
     -webkit-text-fill-color: transparent;
+    filter: none;
   }
   .screen .small {
     font-family: 'Press Start 2P', monospace;
@@ -674,7 +840,7 @@
   .blink { animation: blink 1s infinite; }
   @keyframes blink { 50% { opacity: 0.25; } }
 
-  /* ---- Missed-cards review block (Part A / P7) ---- */
+  /* ---- Missed-tokens review block ---- */
   .missed-review {
     width: 100%;
     max-width: 560px;
@@ -712,29 +878,28 @@
     margin: 0 0 2px 0;
     line-height: 1.2;
   }
-  /* .missed-review: explicit companion so explain text matches learn-panel's 20px,
-     not the wider .screen p (26px) it would otherwise inherit.
-     (#learn-panel .lp-explain is scoped and does not apply here.) */
+  /* explicit 20px so explain text matches learn-panel's 20px */
   .missed-review .lp-explain {
     font-size: 20px;
   }
 
+  /* ===== BIG BUTTON — spectral cyan (Phantom's color) ===== */
   .big-btn {
     font-family: 'Press Start 2P', monospace;
     font-size: 18px;
     padding: 22px 38px;
-    border: 3px solid var(--pac);
-    color: var(--pac);
+    border: 3px solid var(--neon-cyan);
+    color: var(--neon-cyan);
     background: transparent;
     cursor: pointer;
     letter-spacing: 2px;
-    text-shadow: 0 0 8px var(--pac-glow);
-    box-shadow: 0 0 18px var(--pac-glow), inset 0 0 10px rgba(255,230,0,0.1);
+    text-shadow: 0 0 8px var(--phantom-glow);
+    box-shadow: 0 0 18px var(--phantom-glow), inset 0 0 10px rgba(6,243,255,0.1);
     transition: all 0.15s;
   }
   .big-btn:hover {
-    background: var(--pac); color: #0a0118; text-shadow: none;
-    box-shadow: 0 0 30px var(--pac);
+    background: var(--neon-cyan); color: #0a0118; text-shadow: none;
+    box-shadow: 0 0 30px var(--neon-cyan);
   }
 
   body.playing-state #grid::before,
@@ -765,11 +930,12 @@
   /* Mobile-ish fallback */
   @media (max-width: 700px) {
     #arena { width: 340px; height: 360px; }
-    #pac { width: 60px; height: 60px; }
-    .dot { width: 140px; padding: 12px 8px; }
-    .dot .txt { font-size: 18px; }
+    #phantom { width: 48px; height: 60px; }
+    .phantom-head { width: 33px; height: 39px; }
+    .token { width: 140px; padding: 12px 8px; }
+    .token .txt { font-size: 18px; }
     #prompt-text { font-size: 22px; }
-    .screen h1 { font-size: 26px; }
+    .screen h1 .word1 { font-size: 26px; }
     .screen p { font-size: 20px; }
     #sun { width: 240px; height: 240px; }
   }
@@ -796,10 +962,10 @@
   <div id="mode-toggle" role="group" aria-label="Game mode">
     <button class="mode-btn active" id="mode-arcade"
       aria-pressed="true"
-      title="Arcade Mode: 3 lives, lose one on wrong answer">ARCADE</button>
+      title="Arcade Mode: 3 spirits, lose one on wrong answer">ARCADE</button>
     <button class="mode-btn" id="mode-learn"
       aria-pressed="false"
-      title="Learning Mode: no life loss, hint escalation, answer reveal">LEARN</button>
+      title="Learning Mode: no spirit loss, hint escalation, answer reveal">LEARN</button>
   </div>
 
   <!-- HUD -->
@@ -807,7 +973,7 @@
     <div class="stat"><span class="label">1UP</span><span class="val" id="score">00</span></div>
     <div class="stat"><span class="label">HI-SCORE</span><span class="val" id="hi">00</span></div>
     <div class="stat" id="streak"><span class="label">STREAK</span><span class="val">0</span></div>
-    <div class="stat" id="lives-stat"><span class="label">LIVES</span><div id="lives"></div></div>
+    <div class="stat" id="lives-stat"><span class="label">SPIRITS</span><div id="lives"></div></div>
     <div class="stat" id="lifelines-stat"><span class="label">50/50</span><div id="lifelines" aria-label="Lifelines remaining"></div></div>
     <div class="stat"><span class="label">CATEGORY</span><span id="cat-badge">ALL</span></div>
     <span id="learn-badge" aria-label="Learning Mode active">LEARN MODE</span>
@@ -835,13 +1001,22 @@
     <!-- content injected by JS -->
   </div>
 
-  <!-- Arena: Pac + 4 dots -->
+  <!-- Arena: Phantom + 4 command tokens -->
   <div id="arena">
-    <div id="pac"><div class="pac-body"></div></div>
-    <div class="dot n" data-pos="n" data-key="1" role="button" tabindex="0" aria-label="Answer 1 of 4"><span class="key">1</span><span class="txt"></span></div>
-    <div class="dot e" data-pos="e" data-key="2" role="button" tabindex="0" aria-label="Answer 2 of 4"><span class="key">2</span><span class="txt"></span></div>
-    <div class="dot s" data-pos="s" data-key="3" role="button" tabindex="0" aria-label="Answer 3 of 4"><span class="key">3</span><span class="txt"></span></div>
-    <div class="dot w" data-pos="w" data-key="4" role="button" tabindex="0" aria-label="Answer 4 of 4"><span class="key">4</span><span class="txt"></span></div>
+    <!-- The Phantom — spectral terminal-cursor mascot -->
+    <div id="phantom" aria-hidden="true">
+      <div class="phantom-cursor-bar"></div>
+      <div class="phantom-head">
+        <div class="phantom-eye-l"></div>
+        <div class="phantom-eye-r"></div>
+      </div>
+      <div class="phantom-tail"></div>
+    </div>
+    <!-- Command Tokens — 4 directional answer choices -->
+    <div class="token n" data-pos="n" data-key="1" role="button" tabindex="0" aria-label="Answer 1 of 4"><span class="key">1</span><span class="txt"></span></div>
+    <div class="token e" data-pos="e" data-key="2" role="button" tabindex="0" aria-label="Answer 2 of 4"><span class="key">2</span><span class="txt"></span></div>
+    <div class="token s" data-pos="s" data-key="3" role="button" tabindex="0" aria-label="Answer 3 of 4"><span class="key">3</span><span class="txt"></span></div>
+    <div class="token w" data-pos="w" data-key="4" role="button" tabindex="0" aria-label="Answer 4 of 4"><span class="key">4</span><span class="txt"></span></div>
   </div>
 
   <!-- Bottom bar -->
@@ -856,9 +1031,9 @@
 
   <!-- Title screen -->
   <div class="screen" id="title">
-    <h1>PAC-MAN<br>CODE TRAINER</h1>
-    <p>Click the correct command-dot. Pac chomps right answers — ghosts steal a life on wrong ones.</p>
-    <p><span style="color:var(--neon-cyan);font-family:'Press Start 2P',monospace;font-size:10px;">LEARN MODE:</span> <span style="font-family:'VT323',monospace;font-size:22px;">No life loss · hint escalation · answer reveal</span></p>
+    <h1><span class="word1">GHOST</span><span class="word2">CODE</span><span class="tagline">learn commands · haunt the terminal</span></h1>
+    <p>Guide the Phantom. Capture the right command token. A wrong guess costs a spirit.</p>
+    <p><span style="color:var(--neon-cyan);font-family:'Press Start 2P',monospace;font-size:10px;">LEARN MODE:</span> <span style="font-family:'VT323',monospace;font-size:22px;">No spirit loss · hint escalation · answer reveal</span></p>
     <p class="small">MOUSE or 1·2·3·4 &nbsp;·&nbsp; H 50/50 &nbsp;·&nbsp; R RESTART &nbsp;·&nbsp; ESC PAUSE &nbsp;·&nbsp; C CATEGORY &nbsp;·&nbsp; L LEARN MODE</p>
     <button class="big-btn blink" id="start-btn">PRESS START</button>
   </div>
@@ -866,14 +1041,14 @@
   <!-- Game over screen -->
   <div class="screen hidden" id="gameover">
     <h2>GAME OVER</h2>
-    <h1 id="final-score">00</h1>
+    <h1 id="final-score"><span class="word1">00</span></h1>
     <p>HI-SCORE: <span id="final-hi">00</span></p>
     <button class="big-btn blink" id="again-btn">PLAY AGAIN [R]</button>
   </div>
 
   <!-- Pause overlay -->
   <div class="screen hidden" id="pauseScreen">
-    <h1>PAUSED</h1>
+    <h1><span class="word1">PAUSED</span></h1>
     <p>Press ESC or click PAUSE to resume.</p>
   </div>
 </div>
@@ -885,11 +1060,11 @@
 <script src="cards.js"></script>
 <script>
 /* =========================================================
-   PAC-MAN CODE TRAINER — Game logic
+   GHOST CODE — Game logic
    v2 — Learning Mode (shamus/pm-learning-mode-2026-05-29)
    ========================================================= */
 
-const STORAGE_KEY = 'pmct.v1';
+const STORAGE_KEY = 'gc.v1';
 const DOM = {
   score:        document.getElementById('score'),
   hi:           document.getElementById('hi'),
@@ -902,14 +1077,14 @@ const DOM = {
   lifelinesStat: document.getElementById('lifelines-stat'),
   promptText:   document.getElementById('prompt-text'),
   hint:         document.getElementById('hint'),
-  pac:          document.getElementById('pac'),
+  phantom:      document.getElementById('phantom'),
   arena:        document.getElementById('arena'),
   title:        document.getElementById('title'),
   gameover:     document.getElementById('gameover'),
   pauseScr:     document.getElementById('pauseScreen'),
   finalScore:   document.getElementById('final-score'),
   finalHi:      document.getElementById('final-hi'),
-  dots:         Array.from(document.querySelectorAll('.dot')),
+  tokens:       Array.from(document.querySelectorAll('.token')),
   announcer:    document.getElementById('a11y-announcer'),
   learnPanel:   document.getElementById('learn-panel'),
   learnFill:    document.getElementById('learn-fill'),
@@ -918,10 +1093,17 @@ const DOM = {
   modeLearn:    document.getElementById('mode-learn'),
 };
 
-// ----- Persistent state -----
+// ----- Persistent state — migrate legacy pmct.v1 key -----
+const LEGACY_KEY = 'pmct.v1';
 const save = () => localStorage.setItem(STORAGE_KEY, JSON.stringify(state.persist));
 const loadPersist = () => {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
+  try {
+    // [PERSIST-ADDITIVE] Migration: if new key absent but legacy key exists, copy it over.
+    if (!localStorage.getItem(STORAGE_KEY) && localStorage.getItem(LEGACY_KEY)) {
+      localStorage.setItem(STORAGE_KEY, localStorage.getItem(LEGACY_KEY));
+    }
+    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+  }
   catch { return {}; }
 };
 
@@ -963,7 +1145,7 @@ function applyMode(mode) {
   DOM.modeLearn.classList.toggle('active', isLearn);
   DOM.modeArcade.setAttribute('aria-pressed', isLearn ? 'false' : 'true');
   DOM.modeLearn.setAttribute('aria-pressed', isLearn ? 'true' : 'false');
-  if (DOM.announcer) DOM.announcer.textContent = isLearn ? 'Learning Mode: no life loss, hint escalation enabled.' : 'Arcade Mode: 3 lives, classic rules.';
+  if (DOM.announcer) DOM.announcer.textContent = isLearn ? 'Learning Mode: no spirit loss, hint escalation enabled.' : 'Arcade Mode: 3 spirits, classic rules.';
 }
 
 // ----- Audio -----
@@ -981,8 +1163,8 @@ function beep(freq, dur=0.08, type='square', gain=0.08) {
     o.stop(actx.currentTime + dur);
   } catch {}
 }
-const waka     = () => { beep(440, 0.06, 'square'); setTimeout(()=>beep(660, 0.06, 'square'), 80); };
-const ghostHit = () => { beep(150, 0.25, 'sawtooth', 0.12); setTimeout(()=>beep(80, 0.35, 'sawtooth', 0.12), 180); };
+const zap      = () => { beep(440, 0.06, 'square'); setTimeout(()=>beep(660, 0.06, 'square'), 80); };
+const miss     = () => { beep(150, 0.25, 'sawtooth', 0.12); setTimeout(()=>beep(80, 0.35, 'sawtooth', 0.12), 180); };
 const ding     = () => { beep(880, 0.08); setTimeout(()=>beep(1320, 0.1), 90); };
 const softDing = () => { beep(660, 0.06, 'sine', 0.06); };
 
@@ -1001,7 +1183,8 @@ function renderHUD() {
 
   DOM.lives.innerHTML = '';
   for (let i = 0; i < state.lives; i++) {
-    const l = document.createElement('div'); l.className = 'life';
+    const l = document.createElement('div');
+    l.className = 'spirit-pip';
     DOM.lives.appendChild(l);
   }
   DOM.catBadge.textContent = state.persist.category.toUpperCase();
@@ -1069,7 +1252,7 @@ function renderCard(card) {
   DOM.diffBadge.setAttribute('aria-label', 'Difficulty: ' + diff);
   DOM.promptText.textContent = card.prompt;
   DOM.hint.textContent       = '';
-  DOM.pac.style.transform    = 'translate(-50%, -50%) rotate(0deg)';
+  DOM.phantom.style.transform = 'translate(-50%, -50%) rotate(0deg)';
 
   // Hide learning panel on new card
   hideLearningPanel();
@@ -1084,8 +1267,8 @@ function renderCard(card) {
   }
 
   const options = shuffle([card.answer, ...card.decoys]);
-  DOM.dots.forEach((d, i) => {
-    d.classList.remove('correct','wrong','eaten','eliminated');
+  DOM.tokens.forEach((d, i) => {
+    d.classList.remove('correct','wrong','captured','eliminated');
     d.style.pointerEvents = 'auto';
     d.removeAttribute('aria-hidden');
     d.querySelector('.txt').textContent = options[i];
@@ -1149,7 +1332,7 @@ function showLearningPanel({ phase }) {
   if (phase === 'retry2') {
     DOM.learnPanel.innerHTML = `
       <p class="lp-status">STILL NOT IT</p>
-      <p class="lp-hint">The command is one of the 4 dots.<br>${card.hint}</p>
+      <p class="lp-hint">The command is one of the 4 tokens.<br>${card.hint}</p>
       <div class="lp-actions">
         <button class="btn" id="lp-retry" aria-label="Try this card again">TRY AGAIN</button>
         <button class="btn" id="lp-reveal" aria-label="Show me the answer">SHOW ANSWER</button>
@@ -1161,9 +1344,9 @@ function showLearningPanel({ phase }) {
   }
 
   if (phase === 'reveal') {
-    // Highlight correct dot
-    const correctDot = DOM.dots.find(d => d.dataset.value === card.answer);
-    if (correctDot) correctDot.classList.add('correct');
+    // Highlight correct token
+    const correctToken = DOM.tokens.find(d => d.dataset.value === card.answer);
+    if (correctToken) correctToken.classList.add('correct');
 
     DOM.learnPanel.innerHTML = `
       <p class="lp-status lp-status--cyan">THE ANSWER IS</p>
@@ -1177,7 +1360,7 @@ function showLearningPanel({ phase }) {
       state.busy = false;
       nextCard();
     });
-    // Optional "why" explanation, inserted above the action button (Riley P3: transfer learning)
+    // Optional "why" explanation, inserted above the action button
     const ex = renderExplain(card);
     if (ex) DOM.learnPanel.insertBefore(ex, DOM.learnPanel.querySelector('.lp-actions'));
     document.getElementById('lp-next').focus();
@@ -1194,11 +1377,11 @@ function showLearningPanel({ phase }) {
 
 function learningRetry() {
   hideLearningPanel();
-  DOM.dots.forEach(d => {
-    d.classList.remove('correct','wrong','eaten');
+  DOM.tokens.forEach(d => {
+    d.classList.remove('correct','wrong','captured');
     d.style.pointerEvents = 'auto';
   });
-  DOM.pac.style.transform = 'translate(-50%, -50%) rotate(0deg)';
+  DOM.phantom.style.transform = 'translate(-50%, -50%) rotate(0deg)';
   // show the pre-hint again so learner still has the hint visible
   showLearningPanel({ phase: 'pre' });
   state.busy = false;
@@ -1207,21 +1390,21 @@ function learningRetry() {
 function learningReveal() {
   state.learnRevealed = true;
   state.busy = true;
-  DOM.dots.forEach(d => d.style.pointerEvents = 'none');
+  DOM.tokens.forEach(d => d.style.pointerEvents = 'none');
   showLearningPanel({ phase: 'reveal' });
-  ghostHit();
+  miss();
   if (DOM.announcer) DOM.announcer.textContent = `Answer revealed: ${state.current.answer}. ${state.current.hint}`;
 }
 
 // ----- Lifeline (50/50) -----
 function useLifeline() {
   if (!state.playing || state.paused || state.busy || state.lifelinesLeft <= 0) return;
-  // Already used one this card? (dots already eliminated — idempotent guard)
-  if (DOM.dots.some(d => d.classList.contains('eliminated'))) return;
+  // Already used one this card? (tokens already eliminated — idempotent guard)
+  if (DOM.tokens.some(d => d.classList.contains('eliminated'))) return;
 
-  const wrongDots = DOM.dots.filter(d => d.dataset.value !== state.current.answer);
-  // Pick 2 random wrong dots to eliminate
-  const toEliminate = wrongDots.sort(() => Math.random() - 0.5).slice(0, 2);
+  const wrongTokens = DOM.tokens.filter(d => d.dataset.value !== state.current.answer);
+  // Pick 2 random wrong tokens to eliminate
+  const toEliminate = wrongTokens.sort(() => Math.random() - 0.5).slice(0, 2);
   toEliminate.forEach(d => {
     d.classList.add('eliminated');
     d.setAttribute('aria-hidden', 'true');
@@ -1230,36 +1413,46 @@ function useLifeline() {
   state.lifelinesLeft--;
   renderHUD();
   softDing();
-  if (DOM.announcer) DOM.announcer.textContent = `50/50 used — two wrong answers removed. ${state.lifelinesLeft} lifeline${state.lifelinesLeft !== 1 ? 's' : ''} left.`;
+  if (DOM.announcer) DOM.announcer.textContent = `50/50 used — two wrong commands removed. ${state.lifelinesLeft} lifeline${state.lifelinesLeft !== 1 ? 's' : ''} left.`;
+}
+
+// ----- Danger Flash (replaces ghost spawn) -----
+function flashDanger(tokenEl) {
+  tokenEl.classList.add('danger-flash');
+  document.getElementById('cabinet').classList.add('danger-flash-cabinet');
+  setTimeout(() => {
+    tokenEl.classList.remove('danger-flash');
+    document.getElementById('cabinet').classList.remove('danger-flash-cabinet');
+  }, 420);
 }
 
 // ----- Answer handler -----
-function answer(dotEl) {
+function answer(tokenEl) {
   if (state.busy || !state.playing || state.paused) return;
-  // If in reveal phase, ignore dot clicks (use panel Next Card button)
+  // If in reveal phase, ignore token clicks (use panel Next Card button)
   if (state.learnRevealed) return;
 
-  const chosen   = dotEl.dataset.value;
+  const chosen   = tokenEl.dataset.value;
   const correctVal = state.current.answer;
   const isRight  = chosen === correctVal;
 
   state.busy = true;
-  DOM.dots.forEach(d => d.style.pointerEvents = 'none');
+  DOM.tokens.forEach(d => d.style.pointerEvents = 'none');
 
-  const angle = { n: 270, e: 0, s: 90, w: 180 }[dotEl.dataset.pos];
-  DOM.pac.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
+  const angle = { n: 270, e: 0, s: 90, w: 180 }[tokenEl.dataset.pos];
+  DOM.phantom.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
 
   const stats = state.persist.cardStats;
   if (!stats[state.current.id]) stats[state.current.id] = { c: 0, w: 0, total: 0 };
   stats[state.current.id].total++;
 
   if (isRight) {
-    dotEl.classList.add('correct');
+    tokenEl.classList.add('correct');
     stats[state.current.id].c++;
     state.score += 10 + state.streak;
     state.streak++;
     if (state.streak % 5 === 0) ding();
-    waka();
+    zap();
 
     if (isLearnMode()) {
       state.learnMastered.add(state.current.id);
@@ -1269,7 +1462,7 @@ function answer(dotEl) {
     } else {
       if (DOM.announcer) DOM.announcer.textContent = `Correct! +${10 + state.streak - 1} points. Streak: ${state.streak}.`;
     }
-    setTimeout(() => dotEl.classList.add('eaten'), 250);
+    setTimeout(() => tokenEl.classList.add('captured'), 250);
     if (state.score > state.persist.hi) state.persist.hi = state.score;
     save();
     renderHUD();
@@ -1281,12 +1474,12 @@ function answer(dotEl) {
 
   } else {
     // Wrong answer
-    dotEl.classList.add('wrong');
+    tokenEl.classList.add('wrong');
     stats[state.current.id].w++;
     state.streak = 0;
 
     if (isLearnMode()) {
-      // No life loss in learning mode
+      // No spirit loss in learning mode
       state.learnAttempt++;
       softDing();
       if (DOM.announcer) DOM.announcer.textContent = `Not quite. Attempt ${state.learnAttempt}.`;
@@ -1300,16 +1493,16 @@ function answer(dotEl) {
       }
       // state.busy remains true until retry or reveal clears it
     } else {
-      // Arcade mode: lose a life
+      // Arcade mode: lose a spirit
       stats[state.current.id].c = 0;
       state.missedThisRun.add(state.current.id);
       state.lives--;
       DOM.hint.textContent = `${correctVal}  —  ${state.current.hint || ''}`;
-      const correctDot = DOM.dots.find(d => d.dataset.value === correctVal);
-      if (correctDot) correctDot.classList.add('correct');
-      if (DOM.announcer) DOM.announcer.textContent = `Wrong. Lives remaining: ${state.lives}.`;
-      spawnGhost(dotEl);
-      ghostHit();
+      const correctToken = DOM.tokens.find(d => d.dataset.value === correctVal);
+      if (correctToken) correctToken.classList.add('correct');
+      if (DOM.announcer) DOM.announcer.textContent = `Wrong. Spirits remaining: ${state.lives}.`;
+      flashDanger(tokenEl);
+      miss();
 
       if (state.score > state.persist.hi) state.persist.hi = state.score;
       save();
@@ -1324,31 +1517,15 @@ function answer(dotEl) {
   }
 }
 
-function spawnGhost(dotEl) {
-  const ghost = document.createElement('div');
-  ghost.className = 'ghost';
-  const colors = ['--ghost-red','--ghost-pink','--ghost-cyan','--ghost-orange']
-    .map(v => getComputedStyle(document.documentElement).getPropertyValue(v).trim());
-  const c = colors[Math.floor(Math.random()*colors.length)];
-  ghost.style.background = c;
-  ghost.style.color      = c;
-  const r = dotEl.getBoundingClientRect();
-  const a = DOM.arena.getBoundingClientRect();
-  ghost.style.left = (r.left - a.left + r.width/2 - 35) + 'px';
-  ghost.style.top  = (r.top  - a.top  + r.height/2 - 35) + 'px';
-  DOM.arena.appendChild(ghost);
-  setTimeout(() => ghost.remove(), 1700);
-}
-
 function nextCard() {
   const card = pickCard();
   if (!card) {
     state.busy = true;
     DOM.promptTag.textContent  = '';
-    DOM.promptText.textContent = 'No cards in this category yet — add some in cards.js!';
+    DOM.promptText.textContent = 'No commands in this category yet — add some in cards.js!';
     DOM.hint.textContent       = '';
-    DOM.dots.forEach(d => {
-      d.classList.remove('correct','wrong','eaten','entering','shake');
+    DOM.tokens.forEach(d => {
+      d.classList.remove('correct','wrong','captured','eliminated');
       d.querySelector('.txt').textContent = '—';
       d.dataset.value = '';
     });
@@ -1383,11 +1560,11 @@ function gameOver() {
   DOM.finalScore.textContent = String(state.score).padStart(2,'0');
   DOM.finalHi.textContent    = String(state.persist.hi).padStart(2,'0');
 
-  // Remove any prior missed-cards review (so replays don't stack them)
+  // Remove any prior missed-commands review (so replays don't stack them)
   const oldReview = DOM.gameover.querySelector('.missed-review');
   if (oldReview) oldReview.remove();
 
-  // Build scrollable missed-cards review block (up to last 8 misses)
+  // Build scrollable missed-commands review block (up to last 8 misses)
   if (state.missedThisRun.size > 0) {
     const missedIds = Array.from(state.missedThisRun).slice(-8);
     const cardMap = {};
@@ -1396,12 +1573,12 @@ function gameOver() {
     const section = document.createElement('div');
     section.className = 'missed-review';
     section.setAttribute('role', 'region');
-    section.setAttribute('aria-label', 'Cards you missed this run');
+    section.setAttribute('aria-label', 'Commands you missed this run');
     section.setAttribute('tabindex', '0');
 
     const heading = document.createElement('p');
     heading.className = 'missed-review__heading';
-    heading.textContent = 'REVIEW MISSED CARDS';
+    heading.textContent = 'REVIEW MISSED COMMANDS';
     section.appendChild(heading);
 
     const list = document.createElement('div');
@@ -1459,8 +1636,8 @@ DOM.modeLearn.addEventListener('click', () => {
   if (state.playing) startGame();
 });
 
-// ----- Events: dots -----
-DOM.dots.forEach(d => {
+// ----- Events: tokens -----
+DOM.tokens.forEach(d => {
   d.addEventListener('click', () => answer(d));
   d.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); answer(d); } });
 });
@@ -1505,8 +1682,8 @@ document.addEventListener('keydown', (e) => {
   if (!state.playing || state.paused || state.busy) return;
   const map = { '1': 'n', '2': 'e', '3': 's', '4': 'w' };
   if (map[e.key]) {
-    const dot = DOM.dots.find(d => d.dataset.pos === map[e.key]);
-    if (dot) answer(dot);
+    const token = DOM.tokens.find(d => d.dataset.pos === map[e.key]);
+    if (token) answer(token);
   }
 });
 
