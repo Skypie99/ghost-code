@@ -674,6 +674,46 @@
   .blink { animation: blink 1s infinite; }
   @keyframes blink { 50% { opacity: 0.25; } }
 
+  /* ---- Missed-cards review block (Part A / P7) ---- */
+  .missed-review {
+    width: 100%;
+    max-width: 560px;
+    max-height: 220px;
+    overflow-y: auto;
+    border: 1px solid var(--neon-purp);
+    border-radius: 6px;
+    padding: 10px 14px;
+    background: rgba(30, 0, 60, 0.72);
+    scrollbar-width: thin;
+    scrollbar-color: var(--neon-purp) transparent;
+  }
+  .missed-review__heading {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    color: var(--neon-pink);
+    text-shadow: 0 0 6px var(--neon-pink);
+    margin: 0 0 8px 0;
+    text-align: center;
+  }
+  .missed-review__list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .missed-review__item {
+    border-bottom: 1px solid rgba(157,78,221,0.3);
+    padding-bottom: 8px;
+  }
+  .missed-review__item:last-child { border-bottom: none; padding-bottom: 0; }
+  .missed-review__prompt {
+    font-family: 'VT323', monospace;
+    font-size: 20px;
+    color: var(--neon-cyan);
+    margin: 0 0 2px 0;
+    line-height: 1.2;
+  }
+  /* .lp-explain reused from learn-panel — already styled */
+
   .big-btn {
     font-family: 'Press Start 2P', monospace;
     font-size: 18px;
@@ -901,6 +941,7 @@ const state = {
   learnRevealed: false,     // has the answer been revealed?
   learnMastered: new Set(), // card ids mastered this session
   learnSeen: new Set(),     // card ids seen this session
+  missedThisRun: new Set(), // card ids answered wrong (arcade) this run
   // Lifeline (50/50)
   lifelinesLeft: 3,         // resets each game; both modes
 };
@@ -1022,6 +1063,7 @@ function renderCard(card) {
   DOM.diffBadge.textContent = diff.toUpperCase();
   DOM.diffBadge.setAttribute('aria-label', 'Difficulty: ' + diff);
   DOM.promptText.textContent = card.prompt;
+  if (DOM.announcer) DOM.announcer.textContent = `${CATEGORY_LABELS[card.category] || card.category}: ${card.prompt}`;
   DOM.hint.textContent       = '';
   DOM.pac.style.transform    = 'translate(-50%, -50%) rotate(0deg)';
 
@@ -1253,6 +1295,7 @@ function answer(dotEl) {
     } else {
       // Arcade mode: lose a life
       stats[state.current.id].c = 0;
+      state.missedThisRun.add(state.current.id);
       state.lives--;
       DOM.hint.textContent = `${correctVal}  —  ${state.current.hint || ''}`;
       const correctDot = DOM.dots.find(d => d.dataset.value === correctVal);
@@ -1317,6 +1360,7 @@ function startGame() {
   state.paused   = false;
   state.learnMastered  = new Set();
   state.learnSeen      = new Set();
+  state.missedThisRun  = new Set();
   state.lifelinesLeft  = 3;
   DOM.title.classList.add('hidden');
   DOM.gameover.classList.add('hidden');
@@ -1331,6 +1375,54 @@ function gameOver() {
   document.body.classList.remove('playing-state');
   DOM.finalScore.textContent = String(state.score).padStart(2,'0');
   DOM.finalHi.textContent    = String(state.persist.hi).padStart(2,'0');
+
+  // Remove any prior missed-cards review (so replays don't stack them)
+  const oldReview = DOM.gameover.querySelector('.missed-review');
+  if (oldReview) oldReview.remove();
+
+  // Build scrollable missed-cards review block (up to last 8 misses)
+  if (state.missedThisRun.size > 0) {
+    const missedIds = Array.from(state.missedThisRun).slice(-8);
+    const cardMap = {};
+    for (const c of CARDS) cardMap[c.id] = c;
+
+    const section = document.createElement('div');
+    section.className = 'missed-review';
+
+    const heading = document.createElement('p');
+    heading.className = 'missed-review__heading';
+    heading.textContent = 'REVIEW MISSED CARDS';
+    section.appendChild(heading);
+
+    const list = document.createElement('div');
+    list.className = 'missed-review__list';
+
+    for (const id of missedIds) {
+      const card = cardMap[id];
+      if (!card) continue;
+
+      const item = document.createElement('div');
+      item.className = 'missed-review__item';
+
+      const prompt = document.createElement('p');
+      prompt.className = 'missed-review__prompt';
+      prompt.textContent = card.prompt;
+
+      const explain = document.createElement('p');
+      explain.className = 'lp-explain';
+      explain.textContent = card.explain || card.hint || '';
+
+      item.appendChild(prompt);
+      if ((card.explain || card.hint || '').trim()) item.appendChild(explain);
+      list.appendChild(item);
+    }
+
+    section.appendChild(list);
+    // Insert before the PLAY AGAIN button
+    const againBtn = document.getElementById('again-btn');
+    DOM.gameover.insertBefore(section, againBtn);
+  }
+
   DOM.gameover.classList.remove('hidden');
   hideLearningPanel();
 }
