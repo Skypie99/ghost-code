@@ -712,7 +712,12 @@
     margin: 0 0 2px 0;
     line-height: 1.2;
   }
-  /* .lp-explain reused from learn-panel — already styled */
+  /* .missed-review: explicit companion so explain text matches learn-panel's 20px,
+     not the wider .screen p (26px) it would otherwise inherit.
+     (#learn-panel .lp-explain is scoped and does not apply here.) */
+  .missed-review .lp-explain {
+    font-size: 20px;
+  }
 
   .big-btn {
     font-family: 'Press Start 2P', monospace;
