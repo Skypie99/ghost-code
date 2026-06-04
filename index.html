@@ -16,7 +16,7 @@
     --neon-pink:  #e6237f;
     --neon-mag:   #b01d99;
     --neon-cyan:  #1ed4e6;
-    --neon-purp:  #9d4edd;
+    --neon-purp:  #a855e1;  /* lightened from #9d4edd → WCAG AA pass (4.53:1 vs bg-deep) */
     --neon-blue:  #3550e6;
     --sun-top:    #ffea00;
     --sun-mid:    #ff6ec7;
@@ -453,8 +453,8 @@
   }
   .token.s {
     border-color: var(--neon-purp);
-    box-shadow: 0 0 18px rgba(157,78,221,0.5), inset 0 0 10px rgba(157,78,221,0.06);
-    background: linear-gradient(135deg, rgba(157,78,221,0.08) 0%, rgba(26,10,58,0.95) 100%);
+    box-shadow: 0 0 18px rgba(168,85,225,0.5), inset 0 0 10px rgba(168,85,225,0.06);
+    background: linear-gradient(135deg, rgba(168,85,225,0.08) 0%, rgba(26,10,58,0.95) 100%);
   }
   .token.w {
     border-color: var(--gold);
@@ -483,7 +483,7 @@
     letter-spacing: 0.5px;
   }
   .token.e .txt { color: var(--neon-pink);  text-shadow: 0 0 6px rgba(230,35,127,0.5); }
-  .token.s .txt { color: var(--neon-purp);  text-shadow: 0 0 6px rgba(157,78,221,0.5); }
+  .token.s .txt { color: var(--neon-purp);  text-shadow: 0 0 6px rgba(168,85,225,0.5); }
   .token.w .txt { color: var(--gold);       text-shadow: 0 0 6px rgba(255,215,0,0.5); }
 
   /* Terminal prompt prefix on command text */
@@ -867,7 +867,7 @@
     gap: 10px;
   }
   .missed-review__item {
-    border-bottom: 1px solid rgba(157,78,221,0.3);
+    border-bottom: 1px solid rgba(168,85,225,0.3);
     padding-bottom: 8px;
   }
   .missed-review__item:last-child { border-bottom: none; padding-bottom: 0; }
