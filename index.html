@@ -552,13 +552,27 @@
     background: linear-gradient(135deg, rgba(255,215,0,0.2), rgba(255,157,0,0.1)) !important;
     border-color: var(--gold) !important;
     box-shadow: 0 0 28px var(--gold), inset 0 0 14px rgba(255,215,0,0.15) !important;
-    animation: flash 0.4s 3;
+    /* WCAG 2.3.1: one bloom, not 3 in 0.4s (~7.5/s) — stays under 3 flashes/sec */
+    animation: flash 0.5s 1;
   }
   .token.wrong {
     background: linear-gradient(135deg, #8b0000, #5a0010) !important;
     border-color: var(--danger) !important;
     box-shadow: 0 0 24px var(--danger-glow), inset 0 0 12px rgba(255,255,255,0.08) !important;
   }
+  /* WCAG 1.4.1: outcome is not signalled by colour alone — a ✓ / ✗ glyph (shape)
+     marks correct vs wrong. White for contrast on either token background; the
+     coloured glow is supplementary. System font so the glyphs always render. */
+  .token.correct::after,
+  .token.wrong::after {
+    position: absolute;
+    top: 5px; right: 8px;
+    font-family: system-ui, -apple-system, 'Segoe UI Symbol', sans-serif;
+    font-size: 14px; font-weight: 700; line-height: 1;
+    color: #fff;
+  }
+  .token.correct::after { content: "\2713"; text-shadow: 0 0 6px var(--gold), 0 0 2px #000; }   /* ✓ */
+  .token.wrong::after   { content: "\2717"; text-shadow: 0 0 6px var(--danger), 0 0 2px #000; }  /* ✗ */
   /* Captured (correct) state — dissolves upward */
   .token.captured {
     opacity: 0;
@@ -650,7 +664,8 @@
     background: transparent;
     color: var(--dim);
     border: none;
-    padding: 7px 13px;
+    padding: 8px 14px;
+    min-height: 28px;            /* WCAG 2.5.8 target size (>=24px) */
     font-family: 'Press Start 2P', monospace;
     font-size: 9px;
     letter-spacing: 0.5px;
@@ -1178,9 +1193,9 @@
   </div>
 
   <!-- Pause overlay -->
-  <div class="screen hidden" id="pauseScreen">
+  <div class="screen hidden" id="pauseScreen" tabindex="-1" aria-label="Game paused">
     <h1><span class="word1">PAUSED</span></h1>
-    <p>Press ESC or click PAUSE to resume.</p>
+    <p>Tap PAUSE or press Esc to resume.</p>
   </div>
 </div>
 
@@ -1768,11 +1783,10 @@ function togglePause() {
   if (!state.playing) return;
   state.paused = !state.paused;
   DOM.pauseScr.classList.toggle('hidden', !state.paused);
-  if (state.paused) {
-    document.body.classList.remove('playing-state');
-  } else {
-    document.body.classList.add('playing-state');
-  }
+  document.body.classList.toggle('playing-state', !state.paused);
+  // Announce via the live region; focus stays on the trigger (PAUSE button / token)
+  // so keyboard + SR users keep their place and Esc/PAUSE resumes from there.
+  if (DOM.announcer) DOM.announcer.textContent = state.paused ? 'Paused.' : 'Resumed.';
 }
 
 // ----- Events: mode toggle -----
