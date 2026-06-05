@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Ghost Code</title>
 <meta name="description" content="A retro synthwave arcade game for muscle-memorizing CLI commands. Guide the Phantom, capture the right command token. 56 cards across Claude Code, macOS terminal, and Git. Zero dependencies, runs in any browser." />
 <meta name="theme-color" content="#0a0118" />
@@ -74,8 +74,15 @@
     overflow: hidden;
     user-select: none;
     -webkit-font-smoothing: none;
+    overscroll-behavior: none;                /* no rubber-band bounce on mobile */
+    -webkit-tap-highlight-color: transparent; /* no grey tap flash; focus-visible still shows */
+    touch-action: manipulation;               /* removes the legacy double-tap-zoom delay */
   }
-  body { display: flex; align-items: center; justify-content: center; }
+  body {
+    display: flex; align-items: center; justify-content: center;
+    /* keep content clear of notches / home indicator on modern phones */
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
 
   /* The big arcade font reserved for headers/HUD labels */
   .arcade { font-family: 'Press Start 2P', monospace; letter-spacing: -0.5px; }
@@ -318,7 +325,7 @@
   }
   #prompt-text {
     font-family: 'VT323', monospace;
-    font-size: 30px;
+    font-size: clamp(20px, 5.6vw, 30px);
     line-height: 1.4;
     color: var(--soft);
     text-shadow: 0 0 8px rgba(241,230,255,0.4);
@@ -333,9 +340,11 @@
   #arena {
     position: absolute;
     top: 52%; left: 50%;
-    width: 580px; height: 400px;
+    /* Fluid: desktop keeps 580x400; phones scale down so the diamond never clips */
+    width: min(580px, 90vw); height: min(400px, 48vh);
     transform: translate(-50%, -30%);
     z-index: 4;
+    touch-action: none;          /* swipe-to-answer owns gestures here — no scroll/zoom */
   }
 
   /* ======================================================
@@ -455,7 +464,8 @@
      ====================================================== */
   .token {
     position: absolute;
-    width: 200px;
+    /* Fluid: desktop 200px; phones shrink so E/W tokens clear the Phantom + each other */
+    width: clamp(110px, 36vw, 200px);
     padding: 16px 14px 14px;
     background: linear-gradient(135deg, rgba(6,243,255,0.08) 0%, rgba(26,10,58,0.95) 100%);
     border: 2px solid var(--neon-cyan);
@@ -502,7 +512,7 @@
   /* Token command text — terminal prompt prefix via ::before */
   .token .txt {
     font-family: 'VT323', monospace;
-    font-size: 22px;
+    font-size: clamp(16px, 4.6vw, 22px);
     line-height: 1.4;
     color: var(--neon-cyan);
     text-shadow: 0 0 6px rgba(6,243,255,0.5);
@@ -524,6 +534,13 @@
   .token.e:hover { transform: translate(0, -50%) scale(1.04); }
   .token.s:hover { transform: translate(-50%, 0) scale(1.04); }
   .token.w:hover { transform: translate(0, -50%) scale(1.04); }
+  /* Touch press feedback (hover never fires on touch): instant brightness pop
+     + a subtle depress. Reduced-motion users get the brightness, no scale travel. */
+  .token:active { filter: brightness(1.22); }
+  .token.n:active { transform: translate(-50%, 0) scale(0.97); }
+  .token.e:active { transform: translate(0, -50%) scale(0.97); }
+  .token.s:active { transform: translate(-50%, 0) scale(0.97); }
+  .token.w:active { transform: translate(0, -50%) scale(0.97); }
 
   .token:focus-visible {
     outline: 3px solid var(--neon-cyan-glow);
@@ -535,13 +552,27 @@
     background: linear-gradient(135deg, rgba(255,215,0,0.2), rgba(255,157,0,0.1)) !important;
     border-color: var(--gold) !important;
     box-shadow: 0 0 28px var(--gold), inset 0 0 14px rgba(255,215,0,0.15) !important;
-    animation: flash 0.4s 3;
+    /* WCAG 2.3.1: one bloom, not 3 in 0.4s (~7.5/s) — stays under 3 flashes/sec */
+    animation: flash 0.5s 1;
   }
   .token.wrong {
     background: linear-gradient(135deg, #8b0000, #5a0010) !important;
     border-color: var(--danger) !important;
     box-shadow: 0 0 24px var(--danger-glow), inset 0 0 12px rgba(255,255,255,0.08) !important;
   }
+  /* WCAG 1.4.1: outcome is not signalled by colour alone — a ✓ / ✗ glyph (shape)
+     marks correct vs wrong. White for contrast on either token background; the
+     coloured glow is supplementary. System font so the glyphs always render. */
+  .token.correct::after,
+  .token.wrong::after {
+    position: absolute;
+    top: 5px; right: 8px;
+    font-family: system-ui, -apple-system, 'Segoe UI Symbol', sans-serif;
+    font-size: 14px; font-weight: 700; line-height: 1;
+    color: #fff;
+  }
+  .token.correct::after { content: "\2713"; text-shadow: 0 0 6px var(--gold), 0 0 2px #000; }   /* ✓ */
+  .token.wrong::after   { content: "\2717"; text-shadow: 0 0 6px var(--danger), 0 0 2px #000; }  /* ✗ */
   /* Captured (correct) state — dissolves upward */
   .token.captured {
     opacity: 0;
@@ -613,6 +644,16 @@
     border-color: var(--neon-pink);
     box-shadow: 0 0 18px var(--neon-pink);
   }
+  /* 50/50 lifeline button — gold accent to match the lifeline pips */
+  .btn.lifeline-btn { border-color: var(--gold); color: var(--gold); box-shadow: 0 0 8px rgba(255,215,0,0.3); }
+  .btn.lifeline-btn:hover:not(:disabled) { background: var(--gold); color: #0a0118; box-shadow: 0 0 18px var(--gold); }
+  /* Disabled control (e.g. 50/50 with none left) — dims + ignores pointer so no hover-fill */
+  .btn:disabled { opacity: 0.38; box-shadow: none; pointer-events: none; }
+  /* Press feedback on buttons — consistent tactile cue with the tokens.
+     Transitions snap to instant under prefers-reduced-motion (global * rule). */
+  .btn:active:not(:disabled) { transform: translateY(1px) scale(0.98); filter: brightness(1.12); }
+  .big-btn:active { transform: scale(0.97); filter: brightness(1.12); }
+  .mode-btn:active { filter: brightness(1.15); }
 
   /* ==================== MODE TOGGLE ==================== */
   #mode-toggle {
@@ -628,7 +669,8 @@
     background: transparent;
     color: var(--dim);
     border: none;
-    padding: 7px 13px;
+    padding: 8px 14px;
+    min-height: 28px;            /* WCAG 2.5.8 target size (>=24px) */
     font-family: 'Press Start 2P', monospace;
     font-size: 9px;
     letter-spacing: 0.5px;
@@ -786,6 +828,9 @@
     z-index: 20;
     text-align: center;
     padding: 40px;
+    overflow-y: auto;                  /* tall content (e.g. game-over review) scrolls on short phones */
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
     transition: opacity 0.35s ease, visibility 0.35s ease;
   }
   .screen.hidden {
@@ -869,12 +914,21 @@
   .blink { animation: blink 1s infinite; }
   @keyframes blink { 50% { opacity: 0.25; } }
 
+  /* Title-screen controls hint: keyboard line on desktop, tap/swipe line on touch.
+     Driven by a JS-set .touch-device class (covers ontouchstart + coarse pointer). */
+  .touch-hint { display: none; }
+  html.touch-device .kbd-hint { display: none; }
+  html.touch-device .touch-hint { display: block; }
+
   /* ---- Missed-tokens review block ---- */
   .missed-review {
     width: 100%;
     max-width: 560px;
     max-height: 220px;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;   /* momentum scroll on iOS */
+    touch-action: pan-y;                 /* this list stays scrollable by touch */
+    overscroll-behavior: contain;
     border: 1px solid var(--neon-purp);
     border-radius: 6px;
     padding: 10px 14px;
@@ -956,17 +1010,84 @@
     }
   }
 
-  /* Mobile-ish fallback */
-  @media (max-width: 700px) {
-    #arena { width: 340px; height: 360px; }
-    #phantom { width: 48px; height: 60px; }
-    .phantom-head { width: 33px; height: 39px; }
-    .token { width: 140px; padding: 12px 8px; }
-    .token .txt { font-size: 18px; }
-    #prompt-text { font-size: 22px; }
-    .screen h1 .word1 { font-size: 26px; }
-    .screen p { font-size: 20px; }
-    #sun { width: 240px; height: 240px; }
+  /* ====================================================================
+     PHONE LAYOUT (portrait) — the desktop layout is absolutely-positioned
+     at fixed pixels; on a narrow screen we re-anchor each cluster so the
+     HUD, prompt, compass diamond, hint and control bar stack without
+     overlapping or clipping. Arena/token/font sizes are already fluid
+     (clamp/min) in the base rules; here we tune the vertical rhythm.
+     ==================================================================== */
+  @media (max-width: 600px) {
+    /* Mode toggle pinned to the very top-centre, clear of the HUD */
+    #mode-toggle { top: 10px; }
+
+    /* HUD wraps + condenses below the toggle (no margin-auto push so it centres) */
+    #hud {
+      top: 44px;
+      padding: 0 10px;
+      gap: 4px 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    #hud #lives-stat { margin-left: 0; }
+    #hud .stat { min-width: 0; align-items: center; }
+    #hud .stat .label { font-size: 8px; letter-spacing: 0.5px; }
+    #hud .stat .val { font-size: 18px; }
+    #cat-badge { font-size: 9px; padding: 4px 7px; margin-top: 2px; }
+
+    /* Corner brackets are desktop ornaments — keep them as modest accents */
+    .corner.tl, .corner.tr { width: 110px; height: 52px; }
+
+    /* Prompt below the wrapped HUD */
+    #prompt { top: 128px; width: 92%; min-height: 58px; }
+    #prompt .tag { font-size: 10px; margin-bottom: 8px; padding: 5px 9px; }
+
+    /* Learning mode adds a LEARN badge (taller HUD) + progress bar + hint panel.
+       Re-anchor that stack and cap the panel so long reveal phases scroll
+       internally instead of overflowing. The panel covers the prompt (as on
+       desktop); the compass drops lower so the short pre-hint clears the N token. */
+    #learn-badge { font-size: 7px; padding: 3px 6px; }
+    body.learning-mode #learn-progress-bar { top: 150px; width: 88%; }
+    /* Prompt drops below the progress bar and is covered by the opaque hint panel
+       (matches desktop, where the panel fully overlaps the prompt). Hidden here so a
+       short one-line hint can't let the longer question text peek out beneath it. */
+    body.learning-mode #prompt { top: 174px; visibility: hidden; }
+    #learn-panel {
+      width: 92%; padding: 12px 14px;
+      max-height: 44vh; overflow-y: auto;
+      -webkit-overflow-scrolling: touch; touch-action: pan-y;
+    }
+    body.learning-mode #learn-panel.visible { top: 174px; }
+    #learn-panel .lp-status { font-size: 11px; }
+    #learn-panel .lp-hint { font-size: 18px; }
+    #learn-panel .lp-answer { font-size: 22px; }
+    #learn-panel .lp-explain { font-size: 17px; }
+    body.learning-mode #arena { top: 62%; height: min(330px, 42vh); }
+
+    /* Compass diamond: centre it in the cabinet and shrink the Phantom so N
+       clears the prompt and S clears the hint/bar */
+    #arena { top: 53%; transform: translate(-50%, -50%); height: min(370px, 47vh); }
+    #phantom { width: 44px; height: 56px; }
+    .phantom-head { width: 32px; height: 38px; }
+    .token { padding: 12px 9px; }
+    .token .key { font-size: 8px; margin-bottom: 5px; }
+
+    /* Hint sits above the control bar; bar pinned near the bottom */
+    #hint { bottom: 128px; font-size: 18px; padding: 0 16px; min-height: 22px; }
+    #bar { bottom: 14px; gap: 8px; padding: 0 8px; }
+
+    /* Screen (title / game-over / pause) type scales down */
+    .screen { padding: 32px 22px; gap: 18px; }
+    .screen h1 .word1 { font-size: 28px; letter-spacing: 4px; }
+    .screen h1 .word2 { font-size: 16px; letter-spacing: 6px; }
+    .screen h1 .tagline { font-size: 16px; }
+    .screen h2 { font-size: 20px; }
+    .screen p { font-size: 19px; }
+    .screen .small { font-size: 9px; line-height: 1.9; }
+    .big-btn { font-size: 15px; padding: 18px 30px; }
+
+    /* Backdrop sun smaller so it doesn't dominate the narrow frame */
+    #sun { width: 230px; height: 230px; }
   }
 </style>
 </head>
@@ -1053,6 +1174,7 @@
     <button class="btn" data-cat="claude" aria-pressed="false" aria-label="Show Claude Code commands only">CLAUDE</button>
     <button class="btn" data-cat="mac" aria-pressed="false" aria-label="Show Mac terminal commands only">TERMINAL</button>
     <button class="btn" data-cat="git" aria-pressed="false" aria-label="Show Git commands only">GIT</button>
+    <button class="btn lifeline-btn" id="lifeline-btn" aria-label="Use 50/50 lifeline: remove two wrong answers">50/50</button>
     <button class="btn" id="pause">PAUSE</button>
     <button class="btn" id="restart">RESTART</button>
   </div>
@@ -1062,7 +1184,8 @@
     <h1><span class="word1">GHOST</span><span class="word2">CODE</span><span class="tagline">learn commands · haunt the terminal</span></h1>
     <p>Guide the Phantom. Capture the right command token. A wrong guess costs a spirit.</p>
     <p><span style="color:var(--neon-cyan);font-family:'Press Start 2P',monospace;font-size:10px;">LEARN MODE:</span> <span style="font-family:'VT323',monospace;font-size:22px;">No spirit loss · hint escalation · answer reveal</span></p>
-    <p class="small">MOUSE or 1·2·3·4 &nbsp;·&nbsp; H 50/50 &nbsp;·&nbsp; R RESTART &nbsp;·&nbsp; ESC PAUSE &nbsp;·&nbsp; C CATEGORY &nbsp;·&nbsp; L LEARN MODE</p>
+    <p class="small kbd-hint">MOUSE or 1·2·3·4 &nbsp;·&nbsp; H 50/50 &nbsp;·&nbsp; R RESTART &nbsp;·&nbsp; ESC PAUSE &nbsp;·&nbsp; C CATEGORY &nbsp;·&nbsp; L LEARN MODE</p>
+    <p class="small touch-hint">TAP or SWIPE toward a token &nbsp;·&nbsp; buttons below for 50/50 · PAUSE · RESTART · CATEGORY</p>
     <button class="big-btn blink" id="start-btn">PRESS START</button>
   </div>
 
@@ -1075,9 +1198,9 @@
   </div>
 
   <!-- Pause overlay -->
-  <div class="screen hidden" id="pauseScreen">
+  <div class="screen hidden" id="pauseScreen" tabindex="-1" aria-label="Game paused">
     <h1><span class="word1">PAUSED</span></h1>
-    <p>Press ESC or click PAUSE to resume.</p>
+    <p>Tap PAUSE or press Esc to resume.</p>
   </div>
 </div>
 
@@ -1103,6 +1226,7 @@ const DOM = {
   diffBadge:    document.getElementById('diff-badge'),
   lifelines:    document.getElementById('lifelines'),
   lifelinesStat: document.getElementById('lifelines-stat'),
+  lifelineBtn:  document.getElementById('lifeline-btn'),
   promptText:   document.getElementById('prompt-text'),
   hint:         document.getElementById('hint'),
   phantom:      document.getElementById('phantom'),
@@ -1196,6 +1320,13 @@ const miss     = () => { beep(150, 0.25, 'sawtooth', 0.12); setTimeout(()=>beep(
 const ding     = () => { beep(880, 0.08); setTimeout(()=>beep(1320, 0.1), 90); };
 const softDing = () => { beep(660, 0.06, 'sine', 0.06); };
 
+// ----- Haptics (mobile) — subtle; no-op on unsupported devices or reduced-motion -----
+const prefersReducedMotion = () =>
+  !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+function haptic(pattern) {
+  try { if (navigator.vibrate && !prefersReducedMotion()) navigator.vibrate(pattern); } catch {}
+}
+
 // ----- HUD -----
 function renderHUD() {
   DOM.score.textContent = String(state.score).padStart(2,'0');
@@ -1225,6 +1356,15 @@ function renderHUD() {
     DOM.lifelines.appendChild(pip);
   }
   DOM.lifelines.setAttribute('aria-label', `${state.lifelinesLeft} lifeline${state.lifelinesLeft !== 1 ? 's' : ''} remaining`);
+
+  // On-screen 50/50 button: usable only while playing with lifelines left (mobile parity for the H key)
+  if (DOM.lifelineBtn) {
+    const noLifeline = !state.playing || state.lifelinesLeft <= 0;
+    DOM.lifelineBtn.disabled = noLifeline;
+    DOM.lifelineBtn.setAttribute('aria-label', noLifeline
+      ? '50/50 lifeline: none remaining'
+      : `Use 50/50 lifeline: remove two wrong answers. ${state.lifelinesLeft} left.`);
+  }
 
   renderLearnProgress();
 }
@@ -1463,6 +1603,7 @@ function answer(tokenEl) {
   const chosen   = tokenEl.dataset.value;
   const correctVal = state.current.answer;
   const isRight  = chosen === correctVal;
+  haptic(isRight ? 14 : [10, 40, 10]);   // crisp tick on capture, double-buzz on miss
 
   state.busy = true;
   DOM.tokens.forEach(d => d.style.pointerEvents = 'none');
@@ -1647,11 +1788,10 @@ function togglePause() {
   if (!state.playing) return;
   state.paused = !state.paused;
   DOM.pauseScr.classList.toggle('hidden', !state.paused);
-  if (state.paused) {
-    document.body.classList.remove('playing-state');
-  } else {
-    document.body.classList.add('playing-state');
-  }
+  document.body.classList.toggle('playing-state', !state.paused);
+  // Announce via the live region; focus stays on the trigger (PAUSE button / token)
+  // so keyboard + SR users keep their place and Esc/PAUSE resumes from there.
+  if (DOM.announcer) DOM.announcer.textContent = state.paused ? 'Paused.' : 'Resumed.';
 }
 
 // ----- Events: mode toggle -----
@@ -1670,10 +1810,41 @@ DOM.tokens.forEach(d => {
   d.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); answer(d); } });
 });
 
+// ----- Touch: swipe-to-answer -----
+// Swipe up/right/down/left toward the N/E/S/W token (the Phantom aims that way).
+// Tapping a token still works; a sub-threshold swipe falls through to the tap so
+// nothing double-fires (answer() flips state.busy immediately). Single-finger only.
+(function attachSwipe() {
+  const arena = DOM.arena;
+  if (!arena) return;
+  let sx = 0, sy = 0, tracking = false;
+  const THRESHOLD = 28; // px — shorter drags are treated as taps
+  arena.addEventListener('touchstart', (e) => {
+    if (e.touches.length !== 1) { tracking = false; return; }
+    sx = e.touches[0].clientX;
+    sy = e.touches[0].clientY;
+    tracking = true;
+  }, { passive: true });
+  arena.addEventListener('touchend', (e) => {
+    if (!tracking) return;
+    tracking = false;
+    if (!state.playing || state.paused || state.busy || state.learnRevealed) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - sx;
+    const dy = t.clientY - sy;
+    const adx = Math.abs(dx), ady = Math.abs(dy);
+    if (Math.max(adx, ady) < THRESHOLD) return;   // a tap — let the token's own click fire
+    const pos = adx > ady ? (dx > 0 ? 'e' : 'w') : (dy > 0 ? 's' : 'n');
+    const token = DOM.tokens.find(d => d.dataset.pos === pos);
+    if (token && token.dataset.value && !token.classList.contains('eliminated')) answer(token);
+  }, { passive: true });
+})();
+
 document.getElementById('start-btn').addEventListener('click', startGame);
 document.getElementById('again-btn').addEventListener('click', startGame);
 document.getElementById('restart').addEventListener('click', startGame);
 document.getElementById('pause').addEventListener('click', togglePause);
+document.getElementById('lifeline-btn').addEventListener('click', useLifeline);
 
 document.querySelectorAll('[data-cat]').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -1716,6 +1887,11 @@ document.addEventListener('keydown', (e) => {
 });
 
 // ----- Init -----
+// Touch device? Swap the title-screen controls hint to tap/swipe wording.
+if ((window.matchMedia && window.matchMedia('(hover: none) and (pointer: coarse)').matches)
+    || ('ontouchstart' in window) || navigator.maxTouchPoints > 0) {
+  document.documentElement.classList.add('touch-device');
+}
 applyMode(state.persist.mode);
 renderHUD();
 </script>

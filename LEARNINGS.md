@@ -262,3 +262,45 @@ These guardrails exist because mistakes at scale are costly. A mis-merged commit
 - The Constitution wins, always.
 
 ---
+
+## Ghost Code Is a 4-Token Quiz, Not a Moving Maze
+
+**What we learned:**
+Despite the Pac-Man styling, there is **no maze, no continuous movement, no chasing ghosts, no arrow-key driving.** The Phantom sits at the centre of the arena; four command **tokens** sit at N/E/S/W; you pick the right command (tap, swipe toward it, press `1`–`4`, or Tab+Enter) and the Phantom *rotates to aim* at your choice. Input is `1`/`2`/`3`/`4` + letter shortcuts (`R`/`Esc`/`H`/`L`/`C`) — never arrow keys.
+
+**Why it matters:**
+Requests framed around classic Pac-Man ("swipe-to-turn", "d-pad", "queue the next turn", "responsive maze grid") don't map. The right adaptation is directional: a **swipe up/right/down/left selects the matching compass token**, and tapping a token is the primary input. A d-pad is redundant — the tokens *are* the directional targets.
+
+**How to apply it next time:**
+- Don't add maze/movement mechanics. The "game feel" is: read prompt → choose one of 4 compass tokens → Phantom aims → correct/wrong.
+- Any new input modality should resolve to `answer(tokenEl)` and respect the same guard as keydown (`!playing || paused || busy || learnRevealed`).
+
+---
+
+## Mobile: Fluid Base + One Portrait Media Query, Measured Not Eyeballed
+
+**What we learned:**
+The desktop layout is absolutely-positioned at fixed pixels. The clean way to make it phone-native without disturbing desktop:
+1. Make sizes **fluid with `clamp()`/`min()` where the desktop value is the upper bound** (e.g. `width: min(580px, 90vw)`, `clamp(110px, 36vw, 200px)`) — desktop resolves to its exact old value, phones shrink.
+2. Put the portrait re-anchoring in **one `@media (max-width: 600px)` block** (mode toggle, HUD wrap, diamond centre/scale, hint/bar, learn-panel re-anchor).
+3. **Tune by measuring `getBoundingClientRect()` in the live page, not by eye.** Collisions (HUD↔prompt, S-token↔hint↔bar, hint-panel↔N) were all found and fixed by reading rects under real 375/390 emulation — and stress-tested with the *longest* prompt and the *tallest* (reveal) learn panel.
+
+Learn mode is the tricky one: a taller HUD (LEARN badge) + progress bar + an opaque hint panel that covers the prompt. The panel is capped (`max-height: 44vh; overflow-y:auto`) so long reveal phases scroll instead of overflowing, and the diamond drops lower (`body.learning-mode #arena{top:62%}`) so the short pre-hint clears the N token.
+
+**How to apply it next time:**
+- Don't scale the whole cabinet with `transform: scale()` — it shrinks tap targets below the WCAG 2.5.8 floor. Scale dimensions/fonts instead.
+- After any layout change, re-measure rects in both modes before trusting a screenshot.
+
+---
+
+## Headless-Screenshot Gotchas (true phone shots for Sky)
+
+**What we learned:**
+Two traps when producing real phone-width PNGs:
+1. **`--window-size` below ~500px crops, not shrinks** (headless Chrome's min layout viewport). Use **`Emulation.setDeviceMetricsOverride`** via the DevTools Protocol (390×844 @2× = a true 780-wide image) for accurate phone layout — and it lets you `setTouchEmulationEnabled` so touch-only media (`.touch-device`, `pointer:coarse`) renders.
+2. **Chrome 148's HTTP `/json` endpoint can be unavailable**, but it always prints the browser WebSocket URL to **stderr** (`DevTools listening on ws://…`). Launch with `--remote-allow-origins=*`, parse that line from stderr, then `Target.createTarget` (flatten sessions). Polling `/json/version` over HTTP is flaky; parsing stderr is robust. (Reusable helper: `/tmp/ghostshot.py`.)
+
+**How to apply it next time:**
+- For any "send Sky a phone screenshot" task, use device-metrics emulation + stderr ws parsing, not raw `--window-size`. The Preview MCP `preview_resize mobile` is great for *verification* but doesn't emulate pointer type and can't hand you a file.
+
+---
