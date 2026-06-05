@@ -41,9 +41,12 @@ A11y baseline: `#a11y-announcer` aria-live · aria-labels · `aria-pressed` togg
 | P4 | 50/50 Lifeline (H key, 3 per game) | Dani, Shamus, QA | **DONE 2026-06-02** |
 | P5 | Card-validation test + CI adoption (infra) | Gary, Rory | **DONE 2026-06-02** |
 | P6 | GIT command cards fold-in (~16 cards + GIT category button) | Shamus, QA, Gary | **DONE 2026-06-02 — Design Compiler pending** |
-| P7 | Arcade game-over review + card-prompt announcements | Shamus, Alex, QA | queued |
+| P7 | Arcade game-over review + card-prompt announcements | Shamus, Alex, QA | **DONE 2026-06-03** |
+| P8 | Mobile-native + WCAG 2.2 AA + polish (Sky-direct) | Sky/Claude | **DONE 2026-06-05** |
 
 Strict sequence — never parallel (every phase edits the same 2 files). One commit per phase.
+
+> **Storage key note:** the live data layer is `localStorage['gc.v1']` (one-time migration from legacy `pmct.v1`). Older "pmct.v1" mentions below are historical — the rule (never rename keys; extend additively) is unchanged.
 
 ### P1 — Learning Mode Design Compiler gate + a11y fold-in
 Learning Mode is built + smoke-tested but never passed the 7-layer Design Compiler (its report
@@ -117,6 +120,20 @@ includes GIT cards automatically. Additive, no schema bump.
   (prompts are currently never announced; only hints/feedback are).
 
 Both parts are small, independent, and touch `index.html` only.
+
+---
+
+### P8 — Mobile-native + WCAG 2.2 AA + polish  ·  DONE 2026-06-05  ·  branch `feat/ghost-mobile-a11y-2026-06-05`
+
+Sky-direct pass (mirrors the Prompt Library run). 6 per-area commits, `index.html` only:
+1. **Touch foundation** — `viewport-fit=cover`, `touch-action`/`overscroll`/tap-highlight, safe-area insets; `#arena{touch-action:none}`; panels stay touch-scrollable.
+2. **Responsive scale** — arena/token/prompt fluid (`clamp/min`, desktop unchanged); portrait layout fixes the mode-toggle↔HUD overlap, centres + scales the compass diamond so N/E/S/W never clip, re-anchors the learn-mode panels.
+3. **Swipe-to-answer** — swipe up/right/down/left → N/E/S/W via existing `answer()`; tap still works; `:active` feedback + reduced-motion-aware haptics.
+4. **Control parity** — 50/50 lifeline button (was keyboard-only `H`); touch-aware title hint.
+5. **WCAG 2.2 AA** — 1.4.1 ✓/✗ glyph; 2.3.1 flash capped to one bloom; 2.5.8 targets ≥24px; pause announced via live region.
+6. **Polish + docs** — button `:active` press feedback; this report + PLAN/PROJECT_STATE/LEARNINGS.
+
+**Reality clarified:** Ghost Code is a 4-token directional *quiz*, not a moving maze. Full report: `qa-reports/2026-06-05_GhostCode_Mobile_A11y_Polish.md`. Open follow-up: learn mode hides the question behind the hint panel (pre-existing on desktop too).
 
 ---
 

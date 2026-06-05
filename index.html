@@ -649,6 +649,11 @@
   .btn.lifeline-btn:hover:not(:disabled) { background: var(--gold); color: #0a0118; box-shadow: 0 0 18px var(--gold); }
   /* Disabled control (e.g. 50/50 with none left) — dims + ignores pointer so no hover-fill */
   .btn:disabled { opacity: 0.38; box-shadow: none; pointer-events: none; }
+  /* Press feedback on buttons — consistent tactile cue with the tokens.
+     Transitions snap to instant under prefers-reduced-motion (global * rule). */
+  .btn:active:not(:disabled) { transform: translateY(1px) scale(0.98); filter: brightness(1.12); }
+  .big-btn:active { transform: scale(0.97); filter: brightness(1.12); }
+  .mode-btn:active { filter: brightness(1.15); }
 
   /* ==================== MODE TOGGLE ==================== */
   #mode-toggle {
