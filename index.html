@@ -325,7 +325,7 @@
   }
   #prompt-text {
     font-family: 'VT323', monospace;
-    font-size: 30px;
+    font-size: clamp(20px, 5.6vw, 30px);
     line-height: 1.4;
     color: var(--soft);
     text-shadow: 0 0 8px rgba(241,230,255,0.4);
@@ -340,7 +340,8 @@
   #arena {
     position: absolute;
     top: 52%; left: 50%;
-    width: 580px; height: 400px;
+    /* Fluid: desktop keeps 580x400; phones scale down so the diamond never clips */
+    width: min(580px, 90vw); height: min(400px, 48vh);
     transform: translate(-50%, -30%);
     z-index: 4;
     touch-action: none;          /* swipe-to-answer owns gestures here — no scroll/zoom */
@@ -463,7 +464,8 @@
      ====================================================== */
   .token {
     position: absolute;
-    width: 200px;
+    /* Fluid: desktop 200px; phones shrink so E/W tokens clear the Phantom + each other */
+    width: clamp(110px, 36vw, 200px);
     padding: 16px 14px 14px;
     background: linear-gradient(135deg, rgba(6,243,255,0.08) 0%, rgba(26,10,58,0.95) 100%);
     border: 2px solid var(--neon-cyan);
@@ -510,7 +512,7 @@
   /* Token command text — terminal prompt prefix via ::before */
   .token .txt {
     font-family: 'VT323', monospace;
-    font-size: 22px;
+    font-size: clamp(16px, 4.6vw, 22px);
     line-height: 1.4;
     color: var(--neon-cyan);
     text-shadow: 0 0 6px rgba(6,243,255,0.5);
@@ -970,17 +972,84 @@
     }
   }
 
-  /* Mobile-ish fallback */
-  @media (max-width: 700px) {
-    #arena { width: 340px; height: 360px; }
-    #phantom { width: 48px; height: 60px; }
-    .phantom-head { width: 33px; height: 39px; }
-    .token { width: 140px; padding: 12px 8px; }
-    .token .txt { font-size: 18px; }
-    #prompt-text { font-size: 22px; }
-    .screen h1 .word1 { font-size: 26px; }
-    .screen p { font-size: 20px; }
-    #sun { width: 240px; height: 240px; }
+  /* ====================================================================
+     PHONE LAYOUT (portrait) — the desktop layout is absolutely-positioned
+     at fixed pixels; on a narrow screen we re-anchor each cluster so the
+     HUD, prompt, compass diamond, hint and control bar stack without
+     overlapping or clipping. Arena/token/font sizes are already fluid
+     (clamp/min) in the base rules; here we tune the vertical rhythm.
+     ==================================================================== */
+  @media (max-width: 600px) {
+    /* Mode toggle pinned to the very top-centre, clear of the HUD */
+    #mode-toggle { top: 10px; }
+
+    /* HUD wraps + condenses below the toggle (no margin-auto push so it centres) */
+    #hud {
+      top: 44px;
+      padding: 0 10px;
+      gap: 4px 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    #hud #lives-stat { margin-left: 0; }
+    #hud .stat { min-width: 0; align-items: center; }
+    #hud .stat .label { font-size: 8px; letter-spacing: 0.5px; }
+    #hud .stat .val { font-size: 18px; }
+    #cat-badge { font-size: 9px; padding: 4px 7px; margin-top: 2px; }
+
+    /* Corner brackets are desktop ornaments — keep them as modest accents */
+    .corner.tl, .corner.tr { width: 110px; height: 52px; }
+
+    /* Prompt below the wrapped HUD */
+    #prompt { top: 128px; width: 92%; min-height: 58px; }
+    #prompt .tag { font-size: 10px; margin-bottom: 8px; padding: 5px 9px; }
+
+    /* Learning mode adds a LEARN badge (taller HUD) + progress bar + hint panel.
+       Re-anchor that stack and cap the panel so long reveal phases scroll
+       internally instead of overflowing. The panel covers the prompt (as on
+       desktop); the compass drops lower so the short pre-hint clears the N token. */
+    #learn-badge { font-size: 7px; padding: 3px 6px; }
+    body.learning-mode #learn-progress-bar { top: 150px; width: 88%; }
+    /* Prompt drops below the progress bar and is covered by the opaque hint panel
+       (matches desktop, where the panel fully overlaps the prompt). Hidden here so a
+       short one-line hint can't let the longer question text peek out beneath it. */
+    body.learning-mode #prompt { top: 174px; visibility: hidden; }
+    #learn-panel {
+      width: 92%; padding: 12px 14px;
+      max-height: 44vh; overflow-y: auto;
+      -webkit-overflow-scrolling: touch; touch-action: pan-y;
+    }
+    body.learning-mode #learn-panel.visible { top: 174px; }
+    #learn-panel .lp-status { font-size: 11px; }
+    #learn-panel .lp-hint { font-size: 18px; }
+    #learn-panel .lp-answer { font-size: 22px; }
+    #learn-panel .lp-explain { font-size: 17px; }
+    body.learning-mode #arena { top: 62%; height: min(330px, 42vh); }
+
+    /* Compass diamond: centre it in the cabinet and shrink the Phantom so N
+       clears the prompt and S clears the hint/bar */
+    #arena { top: 53%; transform: translate(-50%, -50%); height: min(370px, 47vh); }
+    #phantom { width: 44px; height: 56px; }
+    .phantom-head { width: 32px; height: 38px; }
+    .token { padding: 12px 9px; }
+    .token .key { font-size: 8px; margin-bottom: 5px; }
+
+    /* Hint sits above the control bar; bar pinned near the bottom */
+    #hint { bottom: 128px; font-size: 18px; padding: 0 16px; min-height: 22px; }
+    #bar { bottom: 14px; gap: 8px; padding: 0 8px; }
+
+    /* Screen (title / game-over / pause) type scales down */
+    .screen { padding: 32px 22px; gap: 18px; }
+    .screen h1 .word1 { font-size: 28px; letter-spacing: 4px; }
+    .screen h1 .word2 { font-size: 16px; letter-spacing: 6px; }
+    .screen h1 .tagline { font-size: 16px; }
+    .screen h2 { font-size: 20px; }
+    .screen p { font-size: 19px; }
+    .screen .small { font-size: 9px; line-height: 1.9; }
+    .big-btn { font-size: 15px; padding: 18px 30px; }
+
+    /* Backdrop sun smaller so it doesn't dominate the narrow frame */
+    #sun { width: 230px; height: 230px; }
   }
 </style>
 </head>
