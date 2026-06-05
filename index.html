@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Ghost Code</title>
 <meta name="description" content="A retro synthwave arcade game for muscle-memorizing CLI commands. Guide the Phantom, capture the right command token. 56 cards across Claude Code, macOS terminal, and Git. Zero dependencies, runs in any browser." />
 <meta name="theme-color" content="#0a0118" />
@@ -74,8 +74,15 @@
     overflow: hidden;
     user-select: none;
     -webkit-font-smoothing: none;
+    overscroll-behavior: none;                /* no rubber-band bounce on mobile */
+    -webkit-tap-highlight-color: transparent; /* no grey tap flash; focus-visible still shows */
+    touch-action: manipulation;               /* removes the legacy double-tap-zoom delay */
   }
-  body { display: flex; align-items: center; justify-content: center; }
+  body {
+    display: flex; align-items: center; justify-content: center;
+    /* keep content clear of notches / home indicator on modern phones */
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
 
   /* The big arcade font reserved for headers/HUD labels */
   .arcade { font-family: 'Press Start 2P', monospace; letter-spacing: -0.5px; }
@@ -336,6 +343,7 @@
     width: 580px; height: 400px;
     transform: translate(-50%, -30%);
     z-index: 4;
+    touch-action: none;          /* swipe-to-answer owns gestures here — no scroll/zoom */
   }
 
   /* ======================================================
@@ -786,6 +794,9 @@
     z-index: 20;
     text-align: center;
     padding: 40px;
+    overflow-y: auto;                  /* tall content (e.g. game-over review) scrolls on short phones */
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
     transition: opacity 0.35s ease, visibility 0.35s ease;
   }
   .screen.hidden {
@@ -875,6 +886,9 @@
     max-width: 560px;
     max-height: 220px;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;   /* momentum scroll on iOS */
+    touch-action: pan-y;                 /* this list stays scrollable by touch */
+    overscroll-behavior: contain;
     border: 1px solid var(--neon-purp);
     border-radius: 6px;
     padding: 10px 14px;
