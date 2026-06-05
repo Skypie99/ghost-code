@@ -534,6 +534,13 @@
   .token.e:hover { transform: translate(0, -50%) scale(1.04); }
   .token.s:hover { transform: translate(-50%, 0) scale(1.04); }
   .token.w:hover { transform: translate(0, -50%) scale(1.04); }
+  /* Touch press feedback (hover never fires on touch): instant brightness pop
+     + a subtle depress. Reduced-motion users get the brightness, no scale travel. */
+  .token:active { filter: brightness(1.22); }
+  .token.n:active { transform: translate(-50%, 0) scale(0.97); }
+  .token.e:active { transform: translate(0, -50%) scale(0.97); }
+  .token.s:active { transform: translate(-50%, 0) scale(0.97); }
+  .token.w:active { transform: translate(0, -50%) scale(0.97); }
 
   .token:focus-visible {
     outline: 3px solid var(--neon-cyan-glow);
@@ -1279,6 +1286,13 @@ const miss     = () => { beep(150, 0.25, 'sawtooth', 0.12); setTimeout(()=>beep(
 const ding     = () => { beep(880, 0.08); setTimeout(()=>beep(1320, 0.1), 90); };
 const softDing = () => { beep(660, 0.06, 'sine', 0.06); };
 
+// ----- Haptics (mobile) — subtle; no-op on unsupported devices or reduced-motion -----
+const prefersReducedMotion = () =>
+  !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+function haptic(pattern) {
+  try { if (navigator.vibrate && !prefersReducedMotion()) navigator.vibrate(pattern); } catch {}
+}
+
 // ----- HUD -----
 function renderHUD() {
   DOM.score.textContent = String(state.score).padStart(2,'0');
@@ -1546,6 +1560,7 @@ function answer(tokenEl) {
   const chosen   = tokenEl.dataset.value;
   const correctVal = state.current.answer;
   const isRight  = chosen === correctVal;
+  haptic(isRight ? 14 : [10, 40, 10]);   // crisp tick on capture, double-buzz on miss
 
   state.busy = true;
   DOM.tokens.forEach(d => d.style.pointerEvents = 'none');
@@ -1752,6 +1767,36 @@ DOM.tokens.forEach(d => {
   d.addEventListener('click', () => answer(d));
   d.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); answer(d); } });
 });
+
+// ----- Touch: swipe-to-answer -----
+// Swipe up/right/down/left toward the N/E/S/W token (the Phantom aims that way).
+// Tapping a token still works; a sub-threshold swipe falls through to the tap so
+// nothing double-fires (answer() flips state.busy immediately). Single-finger only.
+(function attachSwipe() {
+  const arena = DOM.arena;
+  if (!arena) return;
+  let sx = 0, sy = 0, tracking = false;
+  const THRESHOLD = 28; // px — shorter drags are treated as taps
+  arena.addEventListener('touchstart', (e) => {
+    if (e.touches.length !== 1) { tracking = false; return; }
+    sx = e.touches[0].clientX;
+    sy = e.touches[0].clientY;
+    tracking = true;
+  }, { passive: true });
+  arena.addEventListener('touchend', (e) => {
+    if (!tracking) return;
+    tracking = false;
+    if (!state.playing || state.paused || state.busy || state.learnRevealed) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - sx;
+    const dy = t.clientY - sy;
+    const adx = Math.abs(dx), ady = Math.abs(dy);
+    if (Math.max(adx, ady) < THRESHOLD) return;   // a tap — let the token's own click fire
+    const pos = adx > ady ? (dx > 0 ? 'e' : 'w') : (dy > 0 ? 's' : 'n');
+    const token = DOM.tokens.find(d => d.dataset.pos === pos);
+    if (token && token.dataset.value && !token.classList.contains('eliminated')) answer(token);
+  }, { passive: true });
+})();
 
 document.getElementById('start-btn').addEventListener('click', startGame);
 document.getElementById('again-btn').addEventListener('click', startGame);
