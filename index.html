@@ -195,10 +195,11 @@
   /* ==================== HUD ==================== */
   #hud {
     position: absolute; top: 28px; left: 0; right: 0;
-    display: flex; justify-content: space-between; align-items: flex-start;
+    display: flex; justify-content: flex-start; align-items: flex-start; gap: 20px;
     padding: 0 50px;
     z-index: 6;
   }
+  #hud #lives-stat { margin-left: auto; }
   #hud .stat { display: flex; flex-direction: column; gap: 4px; min-width: 70px; }
   #hud .stat .label {
     font-family: 'Press Start 2P', monospace;
@@ -490,9 +491,9 @@
   .token .txt::before { content: "> "; opacity: 0.5; }
 
   /* token positions */
-  .token.n { top: 0;    left: 50%; transform: translate(-50%, 0); }
+  .token.n { top: 24px;    left: 50%; transform: translate(-50%, 0); }
   .token.e { top: 50%;  right: 0;  transform: translate(0, -50%); }
-  .token.s { bottom: 0; left: 50%; transform: translate(-50%, 0); }
+  .token.s { bottom: 24px; left: 50%; transform: translate(-50%, 0); }
   .token.w { top: 50%;  left: 0;   transform: translate(0, -50%); }
   .token.n:hover { transform: translate(-50%, 0) scale(1.04); }
   .token.e:hover { transform: translate(0, -50%) scale(1.04); }
@@ -633,9 +634,12 @@
     display: none;
     white-space: nowrap;
   }
-  body.learning-mode #learn-badge { display: inline-block; }
+  body.learning-mode #learn-badge { display: block; }
   /* In learning mode hide the spirits HUD stat */
   body.learning-mode #lives-stat { visibility: hidden; }
+  /* In learning mode lift the answer panel to the prompt anchor so it doesn't cover the N token,
+     and make it fully opaque so the prompt + difficulty pills behind it don't ghost through. */
+  body.learning-mode #learn-panel.visible { top: 130px; background: var(--bg-deep); }
 
   /* ==================== LEARNING PANEL ==================== */
   /* Panel that shows pre-hint, retry state, reveal explanation */
@@ -975,8 +979,7 @@
     <div class="stat" id="streak"><span class="label">STREAK</span><span class="val">0</span></div>
     <div class="stat" id="lives-stat"><span class="label">SPIRITS</span><div id="lives"></div></div>
     <div class="stat" id="lifelines-stat"><span class="label">50/50</span><div id="lifelines" aria-label="Lifelines remaining"></div></div>
-    <div class="stat"><span class="label">CATEGORY</span><span id="cat-badge">ALL</span></div>
-    <span id="learn-badge" aria-label="Learning Mode active">LEARN MODE</span>
+    <div class="stat"><span class="label">CATEGORY</span><span id="cat-badge">ALL</span><span id="learn-badge" aria-label="Learning Mode active">LEARN MODE</span></div>
   </div>
 
   <!-- Learning Mode progress bar -->
