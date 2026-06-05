@@ -630,6 +630,11 @@
     border-color: var(--neon-pink);
     box-shadow: 0 0 18px var(--neon-pink);
   }
+  /* 50/50 lifeline button — gold accent to match the lifeline pips */
+  .btn.lifeline-btn { border-color: var(--gold); color: var(--gold); box-shadow: 0 0 8px rgba(255,215,0,0.3); }
+  .btn.lifeline-btn:hover:not(:disabled) { background: var(--gold); color: #0a0118; box-shadow: 0 0 18px var(--gold); }
+  /* Disabled control (e.g. 50/50 with none left) — dims + ignores pointer so no hover-fill */
+  .btn:disabled { opacity: 0.38; box-shadow: none; pointer-events: none; }
 
   /* ==================== MODE TOGGLE ==================== */
   #mode-toggle {
@@ -889,6 +894,12 @@
   .blink { animation: blink 1s infinite; }
   @keyframes blink { 50% { opacity: 0.25; } }
 
+  /* Title-screen controls hint: keyboard line on desktop, tap/swipe line on touch.
+     Driven by a JS-set .touch-device class (covers ontouchstart + coarse pointer). */
+  .touch-hint { display: none; }
+  html.touch-device .kbd-hint { display: none; }
+  html.touch-device .touch-hint { display: block; }
+
   /* ---- Missed-tokens review block ---- */
   .missed-review {
     width: 100%;
@@ -1143,6 +1154,7 @@
     <button class="btn" data-cat="claude" aria-pressed="false" aria-label="Show Claude Code commands only">CLAUDE</button>
     <button class="btn" data-cat="mac" aria-pressed="false" aria-label="Show Mac terminal commands only">TERMINAL</button>
     <button class="btn" data-cat="git" aria-pressed="false" aria-label="Show Git commands only">GIT</button>
+    <button class="btn lifeline-btn" id="lifeline-btn" aria-label="Use 50/50 lifeline: remove two wrong answers">50/50</button>
     <button class="btn" id="pause">PAUSE</button>
     <button class="btn" id="restart">RESTART</button>
   </div>
@@ -1152,7 +1164,8 @@
     <h1><span class="word1">GHOST</span><span class="word2">CODE</span><span class="tagline">learn commands · haunt the terminal</span></h1>
     <p>Guide the Phantom. Capture the right command token. A wrong guess costs a spirit.</p>
     <p><span style="color:var(--neon-cyan);font-family:'Press Start 2P',monospace;font-size:10px;">LEARN MODE:</span> <span style="font-family:'VT323',monospace;font-size:22px;">No spirit loss · hint escalation · answer reveal</span></p>
-    <p class="small">MOUSE or 1·2·3·4 &nbsp;·&nbsp; H 50/50 &nbsp;·&nbsp; R RESTART &nbsp;·&nbsp; ESC PAUSE &nbsp;·&nbsp; C CATEGORY &nbsp;·&nbsp; L LEARN MODE</p>
+    <p class="small kbd-hint">MOUSE or 1·2·3·4 &nbsp;·&nbsp; H 50/50 &nbsp;·&nbsp; R RESTART &nbsp;·&nbsp; ESC PAUSE &nbsp;·&nbsp; C CATEGORY &nbsp;·&nbsp; L LEARN MODE</p>
+    <p class="small touch-hint">TAP or SWIPE toward a token &nbsp;·&nbsp; buttons below for 50/50 · PAUSE · RESTART · CATEGORY</p>
     <button class="big-btn blink" id="start-btn">PRESS START</button>
   </div>
 
@@ -1193,6 +1206,7 @@ const DOM = {
   diffBadge:    document.getElementById('diff-badge'),
   lifelines:    document.getElementById('lifelines'),
   lifelinesStat: document.getElementById('lifelines-stat'),
+  lifelineBtn:  document.getElementById('lifeline-btn'),
   promptText:   document.getElementById('prompt-text'),
   hint:         document.getElementById('hint'),
   phantom:      document.getElementById('phantom'),
@@ -1322,6 +1336,15 @@ function renderHUD() {
     DOM.lifelines.appendChild(pip);
   }
   DOM.lifelines.setAttribute('aria-label', `${state.lifelinesLeft} lifeline${state.lifelinesLeft !== 1 ? 's' : ''} remaining`);
+
+  // On-screen 50/50 button: usable only while playing with lifelines left (mobile parity for the H key)
+  if (DOM.lifelineBtn) {
+    const noLifeline = !state.playing || state.lifelinesLeft <= 0;
+    DOM.lifelineBtn.disabled = noLifeline;
+    DOM.lifelineBtn.setAttribute('aria-label', noLifeline
+      ? '50/50 lifeline: none remaining'
+      : `Use 50/50 lifeline: remove two wrong answers. ${state.lifelinesLeft} left.`);
+  }
 
   renderLearnProgress();
 }
@@ -1802,6 +1825,7 @@ document.getElementById('start-btn').addEventListener('click', startGame);
 document.getElementById('again-btn').addEventListener('click', startGame);
 document.getElementById('restart').addEventListener('click', startGame);
 document.getElementById('pause').addEventListener('click', togglePause);
+document.getElementById('lifeline-btn').addEventListener('click', useLifeline);
 
 document.querySelectorAll('[data-cat]').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -1844,6 +1868,11 @@ document.addEventListener('keydown', (e) => {
 });
 
 // ----- Init -----
+// Touch device? Swap the title-screen controls hint to tap/swipe wording.
+if ((window.matchMedia && window.matchMedia('(hover: none) and (pointer: coarse)').matches)
+    || ('ontouchstart' in window) || navigator.maxTouchPoints > 0) {
+  document.documentElement.classList.add('touch-device');
+}
 applyMode(state.persist.mode);
 renderHUD();
 </script>
