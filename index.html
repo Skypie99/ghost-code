@@ -4,6 +4,30 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Ghost Code</title>
+<meta name="description" content="A retro synthwave arcade game for muscle-memorizing CLI commands. Guide the Phantom, capture the right command token. 56 cards across Claude Code, macOS terminal, and Git. Zero dependencies, runs in any browser." />
+<meta name="theme-color" content="#0a0118" />
+
+<!-- Favicon -->
+<link rel="icon" href="favicon.svg" type="image/svg+xml" />
+
+<!-- Open Graph (Facebook, LinkedIn) -->
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Ghost Code" />
+<meta property="og:title" content="Ghost Code — guide the Phantom, learn the terminal" />
+<meta property="og:description" content="A retro synthwave arcade game for muscle-memorizing CLI commands. 56 cards across Claude Code, macOS, and Git. Zero dependencies." />
+<meta property="og:url" content="https://ghostcode.skypistudio.com/" />
+<meta property="og:image" content="https://ghostcode.skypistudio.com/og-image.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="Ghost Code start screen — neon GHOST CODE title with the Phantom mascot in a synthwave arcade cabinet" />
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Ghost Code — guide the Phantom, learn the terminal" />
+<meta name="twitter:description" content="A retro synthwave arcade game for muscle-memorizing CLI commands. 56 cards across Claude Code, macOS, and Git. Zero dependencies." />
+<meta name="twitter:image" content="https://ghostcode.skypistudio.com/og-image.png" />
+<meta name="twitter:image:alt" content="Ghost Code start screen — neon GHOST CODE title with the Phantom mascot in a synthwave arcade cabinet" />
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <!-- Press Start 2P for big arcade headers, VT323 for readable body text -->
@@ -187,8 +211,9 @@
     border: 3px solid var(--neon-pink);
     box-shadow: 0 0 12px var(--neon-pink);
   }
-  .corner.tl { top: 16px; left: 16px; border-right: none; border-bottom: none; border-top-left-radius: 16px; }
-  .corner.tr { top: 16px; right: 16px; border-left: none; border-bottom: none; border-top-right-radius: 16px; }
+  /* Top brackets grow wider to frame the full HUD clusters: left = 1UP/HI-SCORE/STREAK, right = SPIRITS/50-50/CATEGORY(+LEARN MODE) */
+  .corner.tl { top: 16px; left: 16px;   width: 320px; height: 80px; border-right: none; border-bottom: none; border-top-left-radius: 16px; }
+  .corner.tr { top: 16px; right: 16px;  width: 320px; height: 80px; border-left: none;  border-bottom: none; border-top-right-radius: 16px; }
   .corner.bl { bottom: 16px; left: 16px; border-right: none; border-top: none; border-bottom-left-radius: 16px; }
   .corner.br { bottom: 16px; right: 16px; border-left: none; border-top: none; border-bottom-right-radius: 16px; }
 

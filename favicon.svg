@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" fill="#0a0118"/>
+  <!-- The Phantom: cyan teardrop body, smooth (NOT a Pac-Man ghost shape) -->
+  <path d="M32 7 C17 7 13 21 13 32 c0 9 5 16 9 20 c3 3 6 4 10 4 s7-1 10-4 c4-4 9-11 9-20 c0-11-4-25-19-25z" fill="#06f3ff"/>
+  <!-- Tail wisp drip -->
+  <ellipse cx="32" cy="59" rx="7" ry="3.5" fill="#06f3ff" opacity="0.45"/>
+  <!-- Cursor-bar eyes (white) -->
+  <rect x="21" y="24" width="6" height="12" rx="1" fill="#ffffff"/>
+  <rect x="37" y="24" width="6" height="12" rx="1" fill="#ffffff"/>
+  <!-- Cyan pupils -->
+  <rect x="23" y="28" width="2" height="4" fill="#06f3ff"/>
+  <rect x="39" y="28" width="2" height="4" fill="#06f3ff"/>
+</svg>
