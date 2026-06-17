@@ -819,9 +819,12 @@
   /* ==================== SCREENS (title / game-over / pause) ==================== */
   .screen {
     position: absolute; inset: 0;
+    /* Fully opaque base so the live HUD / prompt / tokens behind a screen
+       can't bleed through (title / game-over / pause). The pink radial is a
+       tint ON TOP of the opaque base, not a transparency. */
     background:
       radial-gradient(ellipse at top, rgba(255,46,149,0.25) 0%, transparent 60%),
-      rgba(10,1,24,0.94);
+      var(--bg-deep);
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
     gap: 28px;
@@ -1466,48 +1469,81 @@ function renderExplain(card) {
   return p;
 }
 
+// All card-derived text below is set via textContent, NEVER innerHTML
+// (CLAUDE.md load-bearing gotcha #1). Building with innerHTML template
+// strings silently DROPPED angle-bracket placeholders — `git clone <url>`
+// rendered as "git clone" because `<url>` parsed as an empty HTML element.
+// createElement + textContent renders the literal command intact.
 function showLearningPanel({ phase }) {
   const card = state.current;
   if (!card) return;
 
-  DOM.learnPanel.innerHTML = '';
-  DOM.learnPanel.classList.add('visible');
+  const panel = DOM.learnPanel;
+  panel.replaceChildren();             // clear without innerHTML
+  panel.classList.add('visible');
+
+  // Small builders — textContent only, so card text can neither inject markup
+  // nor be parsed away.
+  const p = (cls, text) => {
+    const node = document.createElement('p');
+    node.className = cls;
+    if (text != null) node.textContent = text;
+    return node;
+  };
+  const btn = (id, label, text) => {
+    const b = document.createElement('button');
+    b.className = 'btn';
+    b.id = id;
+    b.setAttribute('aria-label', label);
+    b.textContent = text;
+    return b;
+  };
+  const actions = (...btns) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'lp-actions';
+    btns.forEach(b => wrap.appendChild(b));
+    return wrap;
+  };
+  // A hint line with a leading element/text and the card hint on its own line.
+  const hintLine = (cls, leadEl, leadText) => {
+    const node = p(cls);
+    if (leadEl) node.appendChild(leadEl);
+    else if (leadText != null) node.appendChild(document.createTextNode(leadText));
+    node.appendChild(document.createElement('br'));
+    node.appendChild(document.createTextNode(card.hint));
+    return node;
+  };
 
   if (phase === 'pre') {
-    // Hint shown before first attempt
-    DOM.learnPanel.innerHTML = `
-      <p class="lp-hint lp-hint--cyan">
-        <span class="lp-kicker">HINT</span><br>
-        ${card.hint}
-      </p>`;
+    // Hint shown before first attempt: "HINT" kicker, then the hint.
+    const kicker = document.createElement('span');
+    kicker.className = 'lp-kicker';
+    kicker.textContent = 'HINT';
+    panel.appendChild(hintLine('lp-hint lp-hint--cyan', kicker));
     return;
   }
 
   if (phase === 'retry1') {
-    DOM.learnPanel.innerHTML = `
-      <p class="lp-status">NOT QUITE — TRY AGAIN</p>
-      <p class="lp-hint">Think carefully: ${card.hint}</p>
-      <div class="lp-actions">
-        <button class="btn" id="lp-retry" aria-label="Try this card again">TRY AGAIN</button>
-        <button class="btn" id="lp-reveal" aria-label="Show me the answer">SHOW ANSWER</button>
-      </div>`;
-    document.getElementById('lp-retry').addEventListener('click', () => learningRetry());
-    document.getElementById('lp-reveal').addEventListener('click', () => learningReveal());
-    document.getElementById('lp-retry').focus();
+    panel.appendChild(p('lp-status', 'NOT QUITE — TRY AGAIN'));
+    panel.appendChild(p('lp-hint', 'Think carefully: ' + card.hint));
+    const retry  = btn('lp-retry',  'Try this card again', 'TRY AGAIN');
+    const reveal = btn('lp-reveal', 'Show me the answer',  'SHOW ANSWER');
+    panel.appendChild(actions(retry, reveal));
+    retry.addEventListener('click', () => learningRetry());
+    reveal.addEventListener('click', () => learningReveal());
+    retry.focus();
     return;
   }
 
   if (phase === 'retry2') {
-    DOM.learnPanel.innerHTML = `
-      <p class="lp-status">STILL NOT IT</p>
-      <p class="lp-hint">The command is one of the 4 tokens.<br>${card.hint}</p>
-      <div class="lp-actions">
-        <button class="btn" id="lp-retry" aria-label="Try this card again">TRY AGAIN</button>
-        <button class="btn" id="lp-reveal" aria-label="Show me the answer">SHOW ANSWER</button>
-      </div>`;
-    document.getElementById('lp-retry').addEventListener('click', () => learningRetry());
-    document.getElementById('lp-reveal').addEventListener('click', () => learningReveal());
-    document.getElementById('lp-retry').focus();
+    panel.appendChild(p('lp-status', 'STILL NOT IT'));
+    panel.appendChild(hintLine('lp-hint', null, 'The command is one of the 4 tokens.'));
+    const retry  = btn('lp-retry',  'Try this card again', 'TRY AGAIN');
+    const reveal = btn('lp-reveal', 'Show me the answer',  'SHOW ANSWER');
+    panel.appendChild(actions(retry, reveal));
+    retry.addEventListener('click', () => learningRetry());
+    reveal.addEventListener('click', () => learningReveal());
+    retry.focus();
     return;
   }
 
@@ -1516,29 +1552,26 @@ function showLearningPanel({ phase }) {
     const correctToken = DOM.tokens.find(d => d.dataset.value === card.answer);
     if (correctToken) correctToken.classList.add('correct');
 
-    DOM.learnPanel.innerHTML = `
-      <p class="lp-status lp-status--cyan">THE ANSWER IS</p>
-      <p class="lp-answer">${card.answer}</p>
-      <p class="lp-hint">${card.hint}</p>
-      <div class="lp-actions">
-        <button class="btn" id="lp-next" aria-label="Next card">NEXT CARD</button>
-      </div>`;
-    document.getElementById('lp-next').addEventListener('click', () => {
+    panel.appendChild(p('lp-status lp-status--cyan', 'THE ANSWER IS'));
+    panel.appendChild(p('lp-answer', card.answer));   // e.g. "git clone <url>" renders intact
+    panel.appendChild(p('lp-hint', card.hint));
+    // Optional "why" explanation, before the action button
+    const ex = renderExplain(card);
+    if (ex) panel.appendChild(ex);
+    const next = btn('lp-next', 'Next card', 'NEXT CARD');
+    panel.appendChild(actions(next));
+    next.addEventListener('click', () => {
       hideLearningPanel();
       state.busy = false;
       nextCard();
     });
-    // Optional "why" explanation, inserted above the action button
-    const ex = renderExplain(card);
-    if (ex) DOM.learnPanel.insertBefore(ex, DOM.learnPanel.querySelector('.lp-actions'));
-    document.getElementById('lp-next').focus();
+    next.focus();
     return;
   }
 
   if (phase === 'correct') {
-    DOM.learnPanel.innerHTML = `
-      <p class="lp-status lp-status--gold">CORRECT!</p>
-      <p class="lp-hint">${card.hint}</p>`;
+    panel.appendChild(p('lp-status lp-status--gold', 'CORRECT!'));
+    panel.appendChild(p('lp-hint', card.hint));
     return;
   }
 }
@@ -1894,6 +1927,22 @@ if ((window.matchMedia && window.matchMedia('(hover: none) and (pointer: coarse)
 }
 applyMode(state.persist.mode);
 renderHUD();
+
+// ----- Deck-load guard -----
+// cards.js is a plain <script>; if it failed to load (or is empty) window.CARDS
+// is undefined and the first nextCard() would throw on activeDeck(). Surface a
+// calm, accessible message and disable START instead of presenting a frozen board.
+if (!Array.isArray(window.CARDS) || window.CARDS.length === 0) {
+  const promptText = document.getElementById('prompt-text');
+  if (promptText) promptText.textContent = 'Couldn’t load the command deck — refresh the page to retry.';
+  const startBtn = document.getElementById('start-btn');
+  if (startBtn) {
+    startBtn.disabled = true;
+    startBtn.classList.remove('blink');
+    startBtn.textContent = 'DECK UNAVAILABLE';
+  }
+  if (DOM.announcer) DOM.announcer.textContent = 'Error: the command deck failed to load. Refresh the page to retry.';
+}
 </script>
 </body>
 </html>
