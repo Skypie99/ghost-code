@@ -200,6 +200,19 @@
     width: min(1080px, 96vw);
     height: min(780px, 94vh);
     position: relative;
+    /* Pass 2: flow layout. The play regions stack as a flex COLUMN so they can
+       never overlap at any viewport (the old absolute fixed-px layout collapsed
+       on wide-but-short screens and small phones). The arena (order 6) grows to
+       absorb leftover height; everything else is shrink-to-content. Decorative
+       .corner brackets and the .screen overlays stay absolutely positioned and
+       are out of flow, so they don't affect the column. */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    --cab-pad-y: clamp(14px, 2.6vh, 30px);
+    --cab-pad-x: clamp(12px, 3vw, 44px);
+    gap: clamp(6px, 1.5vh, 16px);
+    padding: var(--cab-pad-y) var(--cab-pad-x);
     border: 4px solid var(--neon-cyan);
     border-radius: 22px;
     box-shadow:
@@ -212,6 +225,15 @@
       linear-gradient(180deg, rgba(10,1,24,0.85) 0%, rgba(26,10,58,0.85) 100%);
     backdrop-filter: blur(4px);
   }
+  /* Flow order of the play regions (DOM order differs; absolute overlays ignore it) */
+  #mode-toggle       { order: 1; flex: 0 0 auto; }
+  #hud               { order: 2; flex: 0 0 auto; }
+  #learn-progress-bar{ order: 3; flex: 0 0 auto; }
+  #prompt            { order: 4; flex: 0 0 auto; }
+  #learn-panel       { order: 5; flex: 0 0 auto; }
+  #arena             { order: 6; }
+  #hint              { order: 7; flex: 0 0 auto; }
+  #bar               { order: 8; flex: 0 0 auto; }
   /* Neon corner pieces */
   .corner {
     position: absolute; width: 70px; height: 70px;
@@ -226,9 +248,9 @@
 
   /* ==================== HUD ==================== */
   #hud {
-    position: absolute; top: 28px; left: 0; right: 0;
+    width: 100%;
     display: flex; justify-content: flex-start; align-items: flex-start; gap: 20px;
-    padding: 0 50px;
+    padding: 0 22px;
     z-index: 6;
   }
   #hud #lives-stat { margin-left: auto; }
@@ -306,10 +328,10 @@
 
   /* ==================== PROMPT (THE QUESTION) ==================== */
   #prompt {
-    position: absolute; top: 130px; left: 50%; transform: translateX(-50%);
-    width: 80%;
+    width: 100%;
+    max-width: 680px;
     text-align: center;
-    min-height: 80px;
+    min-height: 64px;
     z-index: 6;
   }
   #prompt .tag {
@@ -338,11 +360,11 @@
 
   /* ==================== ARENA ==================== */
   #arena {
-    position: absolute;
-    top: 52%; left: 50%;
-    /* Fluid: desktop keeps 580x400; phones scale down so the diamond never clips */
-    width: min(580px, 90vw); height: min(400px, 48vh);
-    transform: translate(-50%, -30%);
+    position: relative;          /* containing block for the absolute N/E/S/W tokens + Phantom */
+    flex: 1 1 auto;              /* absorb leftover column height */
+    min-height: clamp(240px, 36vh, 380px);
+    width: min(580px, 100%);
+    margin: 0 auto;
     z-index: 4;
     touch-action: none;          /* swipe-to-answer owns gestures here — no scroll/zoom */
   }
@@ -601,7 +623,7 @@
 
   /* ==================== HINT + BOTTOM BAR ==================== */
   #hint {
-    position: absolute; bottom: 92px; left: 0; right: 0;
+    width: 100%;
     text-align: center;
     font-family: 'VT323', monospace;
     font-size: 22px;
@@ -612,7 +634,7 @@
     z-index: 6;
   }
   #bar {
-    position: absolute; bottom: 28px; left: 0; right: 0;
+    width: 100%;
     display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; align-items: center;
     z-index: 6;
   }
@@ -657,7 +679,6 @@
 
   /* ==================== MODE TOGGLE ==================== */
   #mode-toggle {
-    position: absolute; top: 28px; left: 50%; transform: translateX(-50%);
     display: flex; align-items: center; gap: 0;
     border: 2px solid var(--neon-cyan);
     border-radius: 6px;
@@ -704,16 +725,15 @@
   body.learning-mode #learn-badge { display: block; }
   /* In learning mode hide the spirits HUD stat */
   body.learning-mode #lives-stat { visibility: hidden; }
-  /* In learning mode lift the answer panel to the prompt anchor so it doesn't cover the N token,
-     and make it fully opaque so the prompt + difficulty pills behind it don't ghost through. */
-  body.learning-mode #learn-panel.visible { top: 130px; background: var(--bg-deep); }
+  /* Pass 2 (D6): the panel now FLOWS directly below the prompt (order 5) instead of
+     covering it, so the learner sees the question AND the hint together. Solid fill. */
+  body.learning-mode #learn-panel.visible { background: var(--bg-deep); }
 
   /* ==================== LEARNING PANEL ==================== */
   /* Panel that shows pre-hint, retry state, reveal explanation */
   #learn-panel {
-    position: absolute;
-    top: 220px; left: 50%; transform: translateX(-50%);
-    width: 82%;
+    width: 100%;
+    max-width: 640px;
     background: rgba(10,1,24,0.96);
     border: 2px solid var(--neon-cyan);
     border-radius: 10px;
@@ -780,7 +800,6 @@
   }
   /* progress bar for learning session */
   #learn-progress-bar {
-    position: absolute; top: 110px; left: 50%; transform: translateX(-50%);
     width: 70%; max-width: 500px;
     display: none;
     align-items: center;
@@ -818,7 +837,11 @@
 
   /* ==================== SCREENS (title / game-over / pause) ==================== */
   .screen {
-    position: absolute; inset: 0;
+    position: absolute;
+    /* Extend over the cabinet's padding to cover the full frame (the cabinet is a
+       padded flex column; inset:0 would leave a strip of cabinet bg showing). */
+    top: calc(-1 * var(--cab-pad-y)); bottom: calc(-1 * var(--cab-pad-y));
+    left: calc(-1 * var(--cab-pad-x)); right: calc(-1 * var(--cab-pad-x));
     /* Fully opaque base so the live HUD / prompt / tokens behind a screen
        can't bleed through (title / game-over / pause). The pink radial is a
        tint ON TOP of the opaque base, not a transparency. */
@@ -1014,20 +1037,15 @@
   }
 
   /* ====================================================================
-     PHONE LAYOUT (portrait) — the desktop layout is absolutely-positioned
-     at fixed pixels; on a narrow screen we re-anchor each cluster so the
-     HUD, prompt, compass diamond, hint and control bar stack without
-     overlapping or clipping. Arena/token/font sizes are already fluid
-     (clamp/min) in the base rules; here we tune the vertical rhythm.
+     PHONE LAYOUT (portrait) — Pass 2: the cabinet is now a flex COLUMN, so
+     positioning is handled by flow at every size. This block only tunes the
+     vertical rhythm: condense the HUD, shrink the Phantom/fonts, and cap the
+     learn panel so long reveal phases scroll internally. No absolute re-anchor.
      ==================================================================== */
   @media (max-width: 600px) {
-    /* Mode toggle pinned to the very top-centre, clear of the HUD */
-    #mode-toggle { top: 10px; }
-
-    /* HUD wraps + condenses below the toggle (no margin-auto push so it centres) */
+    /* HUD condenses + wraps, centred */
     #hud {
-      top: 44px;
-      padding: 0 10px;
+      padding: 0 6px;
       gap: 4px 10px;
       flex-wrap: wrap;
       justify-content: center;
@@ -1041,43 +1059,38 @@
     /* Corner brackets are desktop ornaments — keep them as modest accents */
     .corner.tl, .corner.tr { width: 110px; height: 52px; }
 
-    /* Prompt below the wrapped HUD */
-    #prompt { top: 128px; width: 92%; min-height: 58px; }
+    #prompt { min-height: 44px; }
     #prompt .tag { font-size: 10px; margin-bottom: 8px; padding: 5px 9px; }
 
-    /* Learning mode adds a LEARN badge (taller HUD) + progress bar + hint panel.
-       Re-anchor that stack and cap the panel so long reveal phases scroll
-       internally instead of overflowing. The panel covers the prompt (as on
-       desktop); the compass drops lower so the short pre-hint clears the N token. */
+    /* Learn mode: badge + progress bar + panel all flow; cap the panel so long
+       reveal phases scroll internally instead of pushing the diamond off-screen. */
     #learn-badge { font-size: 7px; padding: 3px 6px; }
-    body.learning-mode #learn-progress-bar { top: 150px; width: 88%; }
-    /* Prompt drops below the progress bar and is covered by the opaque hint panel
-       (matches desktop, where the panel fully overlaps the prompt). Hidden here so a
-       short one-line hint can't let the longer question text peek out beneath it. */
-    body.learning-mode #prompt { top: 174px; visibility: hidden; }
+    body.learning-mode #learn-progress-bar { width: 92%; }
     #learn-panel {
-      width: 92%; padding: 12px 14px;
-      max-height: 44vh; overflow-y: auto;
+      padding: 12px 14px;
+      max-height: 38vh; overflow-y: auto;
       -webkit-overflow-scrolling: touch; touch-action: pan-y;
     }
-    body.learning-mode #learn-panel.visible { top: 174px; }
     #learn-panel .lp-status { font-size: 11px; }
     #learn-panel .lp-hint { font-size: 18px; }
     #learn-panel .lp-answer { font-size: 22px; }
     #learn-panel .lp-explain { font-size: 17px; }
-    body.learning-mode #arena { top: 62%; height: min(330px, 42vh); }
 
-    /* Compass diamond: centre it in the cabinet and shrink the Phantom so N
-       clears the prompt and S clears the hint/bar */
-    #arena { top: 53%; transform: translate(-50%, -50%); height: min(370px, 47vh); }
-    #phantom { width: 44px; height: 56px; }
-    .phantom-head { width: 32px; height: 38px; }
-    .token { padding: 12px 9px; }
-    .token .key { font-size: 8px; margin-bottom: 5px; }
+    /* Compass diamond: shrink the Phantom + tokens, and push N/S to the arena
+       edges so even a 3-line command (e.g. "git reset HEAD index.html") clears
+       the vertically-centred E/W tokens on the smallest phones. */
+    #arena { min-height: clamp(230px, 42vh, 360px); }
+    #phantom { width: 42px; height: 52px; }
+    .phantom-head { width: 30px; height: 36px; }
+    .token { padding: 9px 8px; }
+    .token .key { font-size: 8px; margin-bottom: 3px; }
+    .token .txt { font-size: clamp(13px, 4vw, 17px); line-height: 1.3; }
+    .token.n { top: 0; }
+    .token.s { bottom: 0; }
 
-    /* Hint sits above the control bar; bar pinned near the bottom */
-    #hint { bottom: 128px; font-size: 18px; padding: 0 16px; min-height: 22px; }
-    #bar { bottom: 14px; gap: 8px; padding: 0 8px; }
+    #hint { font-size: 18px; padding: 0 16px; min-height: 20px; }
+    #bar { gap: 8px 8px; padding: 0 8px; }
+    #bar .btn { padding: 9px 11px; font-size: 10px; }
 
     /* Screen (title / game-over / pause) type scales down */
     .screen { padding: 32px 22px; gap: 18px; }
@@ -1091,6 +1104,43 @@
 
     /* Backdrop sun smaller so it doesn't dominate the narrow frame */
     #sun { width: 230px; height: 230px; }
+  }
+
+  /* ====================================================================
+     VERY SHORT VIEWPORTS (landscape phone, split-screen) — height-keyed,
+     independent of width (this is the band the old layout collapsed in,
+     e.g. 740x380, because the only breakpoint was width<=600). A vertical
+     compass diamond + full HUD + control bar genuinely can't all fit at
+     ~380px tall, so the cabinet SCROLLS instead of clipping — nothing is
+     ever unreachable — and the chrome condenses. The overlays cover the
+     whole viewport so they still fully mask the board.
+     ==================================================================== */
+  @media (max-height: 500px) {
+    #cabinet {
+      height: auto;
+      min-height: min(440px, 96vh);
+      max-height: 96vh;
+      overflow-y: auto;
+      gap: 6px;
+      --cab-pad-y: 10px;
+    }
+    /* Diamond gets a full-size arena (the cabinet scrolls to it) and N/S sit at
+       the arena edges so even a 3-line command clears the centred E/W tokens —
+       the desktop token rules (N at top:24, large arena) don't apply at <=600px
+       width but DO at, e.g., 740px wide, which is exactly this short-landscape band. */
+    #arena { min-height: 360px; }
+    .token.n { top: 0; }
+    .token.s { bottom: 0; }
+    .token { padding: 11px 12px; }
+    .token .txt { font-size: clamp(14px, 2.2vw, 18px); line-height: 1.3; }
+    #hud { gap: 4px 12px; flex-wrap: wrap; justify-content: center; }
+    #hud #lives-stat { margin-left: 0; }
+    #hud .stat .val { font-size: 18px; }
+    #hud .stat .label, #cat-badge { font-size: 8px; }
+    #prompt-text { font-size: clamp(17px, 3vw, 22px); }
+    /* Overlays cover the viewport (not just the scrolling cabinet) so the board
+       behind them is fully masked regardless of scroll position. */
+    .screen { position: fixed; inset: 0; }
   }
 </style>
 </head>
