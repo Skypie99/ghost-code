@@ -1156,6 +1156,61 @@
        behind them is fully masked regardless of scroll position. */
     .screen { position: fixed; inset: 0; }
   }
+
+  /* ==================== PASS 4: RESULTS SCREEN + TITLE STATS ==================== */
+  .results-stats {
+    display: flex; gap: var(--space-6); justify-content: center; flex-wrap: wrap;
+    margin: 2px 0;
+  }
+  .results-stat { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .results-stat__val {
+    font-family: var(--font-mono); font-weight: 600; font-size: 26px;
+    color: var(--accent); line-height: 1; font-variant-numeric: tabular-nums;
+  }
+  .results-stat__label {
+    font-family: var(--font-ui); font-weight: 600; font-size: 11px;
+    letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-secondary);
+  }
+  .mastery {
+    display: flex; flex-direction: column; gap: 10px;
+    width: 100%; max-width: 460px; margin: 2px 0;
+  }
+  .mastery__row { display: flex; align-items: center; gap: 12px; }
+  .mastery__label {
+    font-family: var(--font-ui); font-weight: 600; font-size: 11px;
+    letter-spacing: 0.04em; color: var(--text-secondary);
+    width: 108px; text-align: left; flex: 0 0 auto;
+  }
+  .mastery__track {
+    flex: 1; height: 8px; background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border-subtle); border-radius: 999px; overflow: hidden;
+  }
+  .mastery__fill { height: 100%; background: var(--accent); border-radius: 999px; transition: width 0.4s ease; }
+  .mastery__count {
+    font-family: var(--font-mono); font-size: 13px; color: var(--text-primary);
+    width: 46px; text-align: right; flex: 0 0 auto; font-variant-numeric: tabular-nums;
+  }
+  /* Title lifetime-stats strip */
+  .title-stats {
+    display: flex; gap: var(--space-6); justify-content: center; flex-wrap: wrap;
+    margin: 2px 0;
+  }
+  .title-stat { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .title-stat__val {
+    font-family: var(--font-mono); font-weight: 600; font-size: 20px;
+    color: var(--text-primary); line-height: 1; font-variant-numeric: tabular-nums;
+  }
+  .title-stat__label {
+    font-family: var(--font-ui); font-weight: 600; font-size: 11px;
+    letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-secondary);
+  }
+  @media (max-width: 600px) {
+    .results-stats { gap: var(--space-5); }
+    .results-stat__val { font-size: 22px; }
+    .mastery__label { width: 90px; font-size: 10px; }
+    .title-stats { gap: var(--space-5); }
+    .title-stat__val { font-size: 18px; }
+  }
 </style>
 </head>
 <body>
@@ -1262,6 +1317,7 @@
     <h1 id="final-score"><span class="word1">00</span></h1>
     <p>HI-SCORE: <span id="final-hi">00</span></p>
     <button class="big-btn blink" id="again-btn">PLAY AGAIN [R]</button>
+    <button class="btn" id="copy-result-btn">COPY RESULT</button>
   </div>
 
   <!-- Pause overlay -->
@@ -1331,6 +1387,7 @@ const persist = Object.assign({
   category: 'all',
   cardStats: {},
   mode: 'arcade',   // 'arcade' | 'learn'
+  bestStreak: 0,    // [PERSIST-ADDITIVE] longest streak ever (Pass 4) — old saves default to 0
 }, loadPersist());
 
 const state = {
@@ -1342,6 +1399,10 @@ const state = {
   busy: false,
   paused: false,
   playing: false,
+  // Pass 4: per-run results tally (arcade) — feeds the end-of-run results screen
+  runCorrect: 0,
+  runTotal: 0,
+  runStreakMax: 0,
   // Learning Mode per-card state
   learnAttempt: 0,          // 0-indexed wrong attempts on current card
   learnRevealed: false,     // has the answer been revealed?
@@ -1702,6 +1763,9 @@ function answer(tokenEl) {
   const isRight  = chosen === correctVal;
   haptic(isRight ? 14 : [10, 40, 10]);   // crisp tick on capture, double-buzz on miss
 
+  // Pass 4: per-run accuracy tally (arcade only — learn mode has retries + no game-over)
+  if (!isLearnMode()) { state.runTotal++; if (isRight) state.runCorrect++; }
+
   state.busy = true;
   DOM.tokens.forEach(d => d.style.pointerEvents = 'none');
 
@@ -1717,6 +1781,8 @@ function answer(tokenEl) {
     stats[state.current.id].c++;
     state.score += 10 + state.streak;
     state.streak++;
+    if (state.streak > state.runStreakMax) state.runStreakMax = state.streak;
+    if (state.streak > (state.persist.bestStreak || 0)) state.persist.bestStreak = state.streak;
     if (state.streak % 5 === 0) ding();
     zap();
 
@@ -1806,6 +1872,9 @@ function startGame() {
   state.score    = 0;
   state.lives    = 3;
   state.streak   = 0;
+  state.runCorrect = 0;
+  state.runTotal = 0;
+  state.runStreakMax = 0;
   state.playing  = true;
   state.paused   = false;
   state.learnMastered  = new Set();
@@ -1826,9 +1895,55 @@ function gameOver() {
   DOM.finalScore.textContent = String(state.score).padStart(2,'0');
   DOM.finalHi.textContent    = String(state.persist.hi).padStart(2,'0');
 
-  // Remove any prior missed-commands review (so replays don't stack them)
-  const oldReview = DOM.gameover.querySelector('.missed-review');
-  if (oldReview) oldReview.remove();
+  // Remove prior dynamic blocks so replays don't stack them
+  ['.results-stats', '.mastery', '.missed-review'].forEach(sel => {
+    const el = DOM.gameover.querySelector(sel);
+    if (el) el.remove();
+  });
+  const againBtn = document.getElementById('again-btn');
+
+  // ----- Pass 4: this-run results — accuracy + correct count + best streak -----
+  const acc = state.runTotal > 0 ? Math.round((state.runCorrect / state.runTotal) * 100) : 0;
+  const statsRow = document.createElement('div');
+  statsRow.className = 'results-stats';
+  const mkStat = (val, label) => {
+    const cell = document.createElement('div'); cell.className = 'results-stat';
+    const v = document.createElement('span'); v.className = 'results-stat__val'; v.textContent = val;
+    const l = document.createElement('span'); l.className = 'results-stat__label'; l.textContent = label;
+    cell.appendChild(v); cell.appendChild(l); return cell;
+  };
+  statsRow.appendChild(mkStat(acc + '%', 'ACCURACY'));
+  statsRow.appendChild(mkStat(state.runCorrect + '/' + state.runTotal, 'CORRECT'));
+  statsRow.appendChild(mkStat(String(state.runStreakMax), 'BEST STREAK'));
+  DOM.gameover.insertBefore(statsRow, againBtn);
+
+  // ----- Per-category mastery bars (read-only, derived from cardStats c>=3) -----
+  const CATS = [['claude', 'CLAUDE CODE'], ['mac', 'MAC TERMINAL'], ['git', 'GIT']];
+  const masteryWrap = document.createElement('div');
+  masteryWrap.className = 'mastery';
+  masteryWrap.setAttribute('role', 'group');
+  masteryWrap.setAttribute('aria-label', 'Mastery by category');
+  for (const [cat, label] of CATS) {
+    const deck = CARDS.filter(c => c.category === cat);
+    const total = deck.length;
+    if (!total) continue;
+    const mastered = deck.filter(c => (state.persist.cardStats[c.id]?.c || 0) >= 3).length;
+    const pct = Math.round(mastered / total * 100);
+    const row = document.createElement('div'); row.className = 'mastery__row';
+    const lab = document.createElement('span'); lab.className = 'mastery__label'; lab.textContent = label;
+    const track = document.createElement('div'); track.className = 'mastery__track';
+    track.setAttribute('role', 'progressbar');
+    track.setAttribute('aria-label', label + ' mastery');
+    track.setAttribute('aria-valuenow', String(mastered));
+    track.setAttribute('aria-valuemin', '0');
+    track.setAttribute('aria-valuemax', String(total));
+    const fill = document.createElement('div'); fill.className = 'mastery__fill'; fill.style.width = pct + '%';
+    track.appendChild(fill);
+    const count = document.createElement('span'); count.className = 'mastery__count'; count.textContent = mastered + '/' + total;
+    row.appendChild(lab); row.appendChild(track); row.appendChild(count);
+    masteryWrap.appendChild(row);
+  }
+  DOM.gameover.insertBefore(masteryWrap, againBtn);
 
   // Build scrollable missed-commands review block (up to last 8 misses)
   if (state.missedThisRun.size > 0) {
@@ -1871,8 +1986,7 @@ function gameOver() {
     }
 
     section.appendChild(list);
-    // Insert before the PLAY AGAIN button
-    const againBtn = document.getElementById('again-btn');
+    // Insert before the PLAY AGAIN button (againBtn declared above)
     DOM.gameover.insertBefore(section, againBtn);
   }
 
@@ -1943,6 +2057,33 @@ document.getElementById('restart').addEventListener('click', startGame);
 document.getElementById('pause').addEventListener('click', togglePause);
 document.getElementById('lifeline-btn').addEventListener('click', useLifeline);
 
+// ----- Pass 4: Copy Result (clipboard only — user-initiated, never an external send) -----
+const copyResultBtn = document.getElementById('copy-result-btn');
+if (copyResultBtn) {
+  const fallbackCopy = (text, done) => {
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = text; ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed'; ta.style.top = '-1000px'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      document.execCommand('copy'); document.body.removeChild(ta); done();
+    } catch {}
+  };
+  copyResultBtn.addEventListener('click', () => {
+    const acc = state.runTotal > 0 ? Math.round(state.runCorrect / state.runTotal * 100) : 0;
+    const cat = (state.persist.category || 'all').toUpperCase();
+    const text = `GHOST CODE — ${state.score} pts · ${acc}% accuracy · best streak ${state.runStreakMax} · ${cat} deck\nhttps://ghostcode.skypistudio.com`;
+    const done = () => {
+      copyResultBtn.textContent = 'COPIED!';
+      if (DOM.announcer) DOM.announcer.textContent = 'Result copied to the clipboard.';
+      setTimeout(() => { copyResultBtn.textContent = 'COPY RESULT'; }, 1600);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
+    } else { fallbackCopy(text, done); }
+  });
+}
+
 document.querySelectorAll('[data-cat]').forEach(btn => {
   btn.addEventListener('click', () => {
     state.persist.category = btn.dataset.cat;
@@ -1991,6 +2132,30 @@ if ((window.matchMedia && window.matchMedia('(hover: none) and (pointer: coarse)
 }
 applyMode(state.persist.mode);
 renderHUD();
+
+// ----- Pass 4: lifetime stats strip on the title (read-only — derives from existing
+//        cardStats + hi; adds NO new persist keys) -----
+(function renderTitleStats() {
+  const titleEl = document.getElementById('title');
+  if (!titleEl || !Array.isArray(window.CARDS) || !window.CARDS.length) return;
+  const total = window.CARDS.length;
+  const mastered = window.CARDS.filter(c => (state.persist.cardStats[c.id]?.c || 0) >= 3).length;
+  const seen = window.CARDS.filter(c => (state.persist.cardStats[c.id]?.total || 0) > 0).length;
+  const strip = document.createElement('div');
+  strip.className = 'title-stats';
+  const mk = (val, label) => {
+    const cell = document.createElement('div'); cell.className = 'title-stat';
+    const v = document.createElement('span'); v.className = 'title-stat__val'; v.textContent = val;
+    const l = document.createElement('span'); l.className = 'title-stat__label'; l.textContent = label;
+    cell.appendChild(v); cell.appendChild(l); return cell;
+  };
+  strip.appendChild(mk(mastered + '/' + total, 'MASTERED'));
+  strip.appendChild(mk(String(state.persist.hi || 0), 'BEST SCORE'));
+  strip.appendChild(mk(seen + '/' + total, 'SEEN'));
+  const h1 = titleEl.querySelector('h1');
+  if (h1 && h1.nextSibling) titleEl.insertBefore(strip, h1.nextSibling);
+  else titleEl.appendChild(strip);
+})();
 
 // ----- Deck-load guard -----
 // cards.js is a plain <script>; if it failed to load (or is empty) window.CARDS
