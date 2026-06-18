@@ -133,20 +133,15 @@
      twinkling stars. One quiet near-flat dark surface; no animation, no neon. */
   #stars, #sun, #grid, #scanlines, #vignette { display: none !important; }
   #sky {
+    position: fixed; inset: 0; z-index: -3;
     background:
       radial-gradient(ellipse 120% 80% at 50% -10%, rgba(61,216,196,0.05) 0%, transparent 55%),
       var(--surface-base);
   }
 
-  /* ==================== SYNTHWAVE BACKDROP ==================== */
-  /* Layered behind the cabinet: sunset, stars, terminal grid horizon */
-  #sky {
-    position: fixed; inset: 0;
-    background:
-      radial-gradient(ellipse 80% 60% at 50% 70%, rgba(255,46,149,0.18) 0%, transparent 60%),
-      linear-gradient(180deg, #1a0033 0%, #2a0050 40%, #3d0070 60%, #0a0118 100%);
-    z-index: -3;
-  }
+  /* The old synthwave #sky rule was removed (Design Compiler regression fix): it
+     duplicated this selector and, being later, overrode the calm backdrop — the purple
+     gradient showed at large-viewport edges. #stars/#sun/#grid below stay display:none. */
   /* Stars */
   #stars {
     position: fixed; inset: 0 0 50% 0;
@@ -2035,7 +2030,9 @@ function startGame(opts) {
 function gameOver() {
   state.playing = false;
   document.body.classList.remove('playing-state');
-  DOM.finalScore.textContent = String(state.score).padStart(2,'0');
+  // Set the inner .word1 span (which carries the gradient) — replacing the element's
+  // textContent would destroy that span and flatten the score's treatment.
+  (DOM.finalScore.querySelector('.word1') || DOM.finalScore).textContent = String(state.score).padStart(2,'0');
   DOM.finalHi.textContent    = String(state.persist.hi).padStart(2,'0');
 
   // Remove prior dynamic blocks so replays don't stack them
@@ -2102,7 +2099,7 @@ function gameOver() {
     section.setAttribute('aria-label', 'Commands you missed this run');
     section.setAttribute('tabindex', '0');
 
-    const heading = document.createElement('p');
+    const heading = document.createElement('h3');
     heading.className = 'missed-review__heading';
     heading.textContent = 'REVIEW MISSED COMMANDS';
     section.appendChild(heading);
@@ -2368,7 +2365,17 @@ document.addEventListener('keydown', (e) => {
   // and every game shortcut is swallowed.
   if (settingsOpen()) {
     if (e.key === 'Escape') { e.preventDefault(); closeSettings(); }
-    else if (e.key === 'Tab') { e.preventDefault(); const c = document.getElementById('set-close'); if (c) c.focus(); }
+    else if (e.key === 'Tab') {
+      // Cycle focus through ALL the dialog's controls (the seg buttons + CLOSE), not
+      // just CLOSE — otherwise Tab locks keyboard users out of Sound/Motion/Difficulty.
+      const f = Array.from(setModal.querySelectorAll('button')).filter(b => !b.disabled);
+      if (f.length) {
+        const i = f.indexOf(document.activeElement);
+        const next = (i + (e.shiftKey ? -1 : 1) + f.length) % f.length;
+        e.preventDefault();
+        f[next].focus();
+      }
+    }
     return;
   }
   // While the shortcuts dialog is open: trap focus on its close button and only
@@ -2433,6 +2440,8 @@ setBoardInert(true);   // title screen is up at load — keep Tab out of the boa
   const seen = window.CARDS.filter(c => (state.persist.cardStats[c.id]?.total || 0) > 0).length;
   const strip = document.createElement('div');
   strip.className = 'title-stats';
+  strip.setAttribute('role', 'group');
+  strip.setAttribute('aria-label', 'Lifetime stats');
   const mk = (val, label) => {
     const cell = document.createElement('div'); cell.className = 'title-stat';
     const v = document.createElement('span'); v.className = 'title-stat__val'; v.textContent = val;
