@@ -4,8 +4,8 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Ghost Code</title>
-<meta name="description" content="A retro synthwave arcade game for muscle-memorizing CLI commands. Guide the Phantom, capture the right command token. 56 cards across Claude Code, macOS terminal, and Git. Zero dependencies, runs in any browser." />
-<meta name="theme-color" content="#0a0118" />
+<meta name="description" content="A calm, modern terminal-command trainer. Guide the Phantom, capture the right command token. 56 cards across Claude Code, macOS terminal, and Git. Zero dependencies, runs in any browser." />
+<meta name="theme-color" content="#0E1116" />
 
 <!-- Favicon -->
 <link rel="icon" href="favicon.svg" type="image/svg+xml" />
@@ -14,19 +14,19 @@
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="Ghost Code" />
 <meta property="og:title" content="Ghost Code — guide the Phantom, learn the terminal" />
-<meta property="og:description" content="A retro synthwave arcade game for muscle-memorizing CLI commands. 56 cards across Claude Code, macOS, and Git. Zero dependencies." />
+<meta property="og:description" content="A calm, modern terminal-command trainer. 56 cards across Claude Code, macOS, and Git. Zero dependencies." />
 <meta property="og:url" content="https://ghostcode.skypistudio.com/" />
 <meta property="og:image" content="https://ghostcode.skypistudio.com/og-image.png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
-<meta property="og:image:alt" content="Ghost Code start screen — neon GHOST CODE title with the Phantom mascot in a synthwave arcade cabinet" />
+<meta property="og:image:alt" content="Ghost Code start screen — the GHOST CODE title with the Phantom mascot on a calm, dark terminal-style background" />
 
 <!-- Twitter Card -->
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="Ghost Code — guide the Phantom, learn the terminal" />
-<meta name="twitter:description" content="A retro synthwave arcade game for muscle-memorizing CLI commands. 56 cards across Claude Code, macOS, and Git. Zero dependencies." />
+<meta name="twitter:description" content="A calm, modern terminal-command trainer. 56 cards across Claude Code, macOS, and Git. Zero dependencies." />
 <meta name="twitter:image" content="https://ghostcode.skypistudio.com/og-image.png" />
-<meta name="twitter:image:alt" content="Ghost Code start screen — neon GHOST CODE title with the Phantom mascot in a synthwave arcade cabinet" />
+<meta name="twitter:image:alt" content="Ghost Code start screen — the GHOST CODE title with the Phantom mascot on a calm, dark terminal-style background" />
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1023,6 +1023,49 @@
     outline-offset: 3px;
   }
 
+  /* ==================== KEYBOARD SHORTCUTS MODAL (Pass 5) ==================== */
+  /* Accessible help dialog (opened with "?"). Flat, tokenised, no backdrop blur —
+     matches the Pass 3 calm materiality. Focus is trapped while open (the rest of
+     the cabinet is set inert in JS) and restored to the trigger on close. */
+  #shortcuts-modal {
+    position: fixed; inset: 0; z-index: 50;
+    display: none;
+    align-items: center; justify-content: center;
+    padding: 24px;
+    background: rgba(8, 11, 16, 0.82);
+  }
+  #shortcuts-modal.visible { display: flex; }
+  #shortcuts-modal .sc-dialog {
+    width: 100%; max-width: 420px;
+    max-height: 86vh; overflow-y: auto;
+    background: var(--surface-raised);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow);
+    padding: 24px;
+    text-align: left;
+  }
+  #shortcuts-modal h2 {
+    font-family: var(--font-ui); font-weight: 700; font-size: 18px;
+    color: var(--text-primary); margin: 0 0 16px; letter-spacing: 0.04em;
+  }
+  #shortcuts-modal dl {
+    display: grid; grid-template-columns: auto 1fr; gap: 10px 16px;
+    margin: 0; align-items: baseline;
+  }
+  #shortcuts-modal dt { margin: 0; }
+  #shortcuts-modal dd {
+    margin: 0; font-family: var(--font-ui); font-size: 14px;
+    color: var(--text-secondary); line-height: 1.4;
+  }
+  #shortcuts-modal kbd {
+    font-family: var(--font-mono); font-size: 13px;
+    background: var(--surface-token); color: var(--text-primary);
+    border: 1px solid var(--border-strong); border-radius: 6px;
+    padding: 2px 8px; white-space: nowrap;
+  }
+  #shortcuts-modal .sc-close { margin-top: 22px; }
+
   body.playing-state #grid::before,
   body.playing-state #grid::after {
     animation-play-state: paused;
@@ -1046,6 +1089,29 @@
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
     }
+    html { scroll-behavior: auto !important; }
+  }
+
+  /* ====================================================================
+     WCAG 2.2 — Windows High Contrast / forced-colors. The OS replaces the
+     calm graphite palette here, so re-assert visible borders, focus rings,
+     and selected states with system colour keywords. Outcome (correct/wrong)
+     still carries the ✓/✗ glyph, so meaning survives the colour loss.
+     ==================================================================== */
+  @media (forced-colors: active) {
+    .token, .btn, .mode-btn, #mode-toggle, #learn-panel,
+    .mastery__track, #shortcuts-modal .sc-dialog {
+      border: 1px solid CanvasText;
+    }
+    .token:focus-visible, .btn:focus-visible, .mode-btn:focus-visible,
+    .big-btn:focus-visible, #sc-close:focus-visible {
+      outline: 2px solid Highlight;
+      outline-offset: 2px;
+    }
+    .btn.active, .mode-btn.active { background: Highlight; color: HighlightText; }
+    .token.correct, .token.wrong { border-color: CanvasText; }
+    .mastery__fill, #learn-fill { background: Highlight; }
+    .token.correct::after, .token.wrong::after { color: CanvasText; }
   }
 
   /* ====================================================================
@@ -1306,7 +1372,7 @@
     <h1><span class="word1">GHOST</span><span class="word2">CODE</span><span class="tagline">learn commands · haunt the terminal</span></h1>
     <p>Guide the Phantom. Capture the right command token. A wrong guess costs a spirit.</p>
     <p><span style="color:var(--accent);font-family:var(--font-ui);font-weight:600;font-size:14px;letter-spacing:0.04em;">LEARN MODE</span> <span style="font-family:var(--font-ui);font-size:17px;color:var(--text-secondary);">— no spirit loss · hint escalation · answer reveal</span></p>
-    <p class="small kbd-hint">MOUSE or 1·2·3·4 &nbsp;·&nbsp; H 50/50 &nbsp;·&nbsp; R RESTART &nbsp;·&nbsp; ESC PAUSE &nbsp;·&nbsp; C CATEGORY &nbsp;·&nbsp; L LEARN MODE</p>
+    <p class="small kbd-hint">MOUSE or 1·2·3·4 &nbsp;·&nbsp; ↑→↓← AIM &nbsp;·&nbsp; H 50/50 &nbsp;·&nbsp; R RESTART &nbsp;·&nbsp; ESC PAUSE &nbsp;·&nbsp; C CATEGORY &nbsp;·&nbsp; L LEARN &nbsp;·&nbsp; ? HELP</p>
     <p class="small touch-hint">TAP or SWIPE toward a token &nbsp;·&nbsp; buttons below for 50/50 · PAUSE · RESTART · CATEGORY</p>
     <button class="big-btn blink" id="start-btn">PRESS START</button>
   </div>
@@ -1324,6 +1390,25 @@
   <div class="screen hidden" id="pauseScreen" tabindex="-1" aria-label="Game paused">
     <h1><span class="word1">PAUSED</span></h1>
     <p>Tap PAUSE or press Esc to resume.</p>
+  </div>
+</div>
+
+<!-- Keyboard shortcuts help modal (Pass 5) — opened with "?" -->
+<div id="shortcuts-modal" role="dialog" aria-modal="true" aria-labelledby="sc-title">
+  <div class="sc-dialog">
+    <h2 id="sc-title">Keyboard shortcuts</h2>
+    <dl>
+      <dt><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd></dt><dd>Capture that answer token</dd>
+      <dt><kbd>↑</kbd> <kbd>→</kbd> <kbd>↓</kbd> <kbd>←</kbd></dt><dd>Move focus to a token, then Enter</dd>
+      <dt><kbd>Enter</kbd> / <kbd>Space</kbd></dt><dd>Capture the focused token</dd>
+      <dt><kbd>H</kbd></dt><dd>Use the 50/50 lifeline</dd>
+      <dt><kbd>C</kbd></dt><dd>Cycle the command category</dd>
+      <dt><kbd>L</kbd></dt><dd>Toggle Learn / Arcade mode</dd>
+      <dt><kbd>Esc</kbd></dt><dd>Pause or resume</dd>
+      <dt><kbd>R</kbd></dt><dd>Restart the game</dd>
+      <dt><kbd>?</kbd></dt><dd>Open or close this help</dd>
+    </dl>
+    <button class="big-btn sc-close" id="sc-close">CLOSE</button>
   </div>
 </div>
 
@@ -1354,6 +1439,8 @@ const DOM = {
   hint:         document.getElementById('hint'),
   phantom:      document.getElementById('phantom'),
   arena:        document.getElementById('arena'),
+  bar:          document.getElementById('bar'),
+  cabinet:      document.getElementById('cabinet'),
   title:        document.getElementById('title'),
   gameover:     document.getElementById('gameover'),
   pauseScr:     document.getElementById('pauseScreen'),
@@ -1886,6 +1973,7 @@ function startGame() {
   DOM.pauseScr.classList.add('hidden');
   hideLearningPanel();
   document.body.classList.add('playing-state');
+  setBoardInert(false);                 // board is live again
   renderHUD();
   nextCard();
 }
@@ -1906,6 +1994,8 @@ function gameOver() {
   const acc = state.runTotal > 0 ? Math.round((state.runCorrect / state.runTotal) * 100) : 0;
   const statsRow = document.createElement('div');
   statsRow.className = 'results-stats';
+  statsRow.setAttribute('role', 'group');
+  statsRow.setAttribute('aria-label', 'This run');
   const mkStat = (val, label) => {
     const cell = document.createElement('div'); cell.className = 'results-stat';
     const v = document.createElement('span'); v.className = 'results-stat__val'; v.textContent = val;
@@ -1991,6 +2081,7 @@ function gameOver() {
   }
 
   DOM.gameover.classList.remove('hidden');
+  setBoardInert(true);                  // overlay up — keep Tab out of the board behind it
   hideLearningPanel();
   // Move focus to PLAY AGAIN button so keyboard/SR users land somewhere sensible
   document.getElementById('again-btn').focus();
@@ -2003,6 +2094,38 @@ function togglePause() {
   // Announce via the live region; focus stays on the trigger (PAUSE button / token)
   // so keyboard + SR users keep their place and Esc/PAUSE resumes from there.
   if (DOM.announcer) DOM.announcer.textContent = state.paused ? 'Paused.' : 'Resumed.';
+}
+
+// ----- Pass 5 a11y: keep keyboard focus OUT of the board while a full-screen
+//        overlay (title / game-over) covers it; restore it during play. Pause
+//        is left interactive on purpose (the PAUSE button resumes; answer() and
+//        the lifeline already guard on state.paused). -----
+function setBoardInert(on) {
+  if (DOM.arena) DOM.arena.inert = on;
+  if (DOM.bar)   DOM.bar.inert   = on;
+}
+
+// ----- Pass 5 a11y: keyboard-shortcuts help dialog (opened with "?") -----
+const scModal = document.getElementById('shortcuts-modal');
+let scLastFocus = null;
+function shortcutsOpen() { return !!scModal && scModal.classList.contains('visible'); }
+function openShortcuts() {
+  if (!scModal || shortcutsOpen()) return;
+  scLastFocus = document.activeElement;
+  scModal.classList.add('visible');
+  if (DOM.cabinet) DOM.cabinet.inert = true;   // trap focus inside the dialog
+  const closeBtn = document.getElementById('sc-close');
+  if (closeBtn) closeBtn.focus();
+  if (DOM.announcer) DOM.announcer.textContent = 'Keyboard shortcuts dialog opened.';
+}
+function closeShortcuts() {
+  if (!scModal || !shortcutsOpen()) return;
+  scModal.classList.remove('visible');
+  if (DOM.cabinet) DOM.cabinet.inert = false;
+  if (scLastFocus && typeof scLastFocus.focus === 'function') {
+    try { scLastFocus.focus(); } catch {}
+  }
+  scLastFocus = null;
 }
 
 // ----- Events: mode toggle -----
@@ -2057,6 +2180,13 @@ document.getElementById('restart').addEventListener('click', startGame);
 document.getElementById('pause').addEventListener('click', togglePause);
 document.getElementById('lifeline-btn').addEventListener('click', useLifeline);
 
+// ----- Pass 5 a11y: shortcuts dialog wiring (close button + scrim click) -----
+if (scModal) {
+  const scCloseBtn = document.getElementById('sc-close');
+  if (scCloseBtn) scCloseBtn.addEventListener('click', closeShortcuts);
+  scModal.addEventListener('click', (e) => { if (e.target === scModal) closeShortcuts(); });
+}
+
 // ----- Pass 4: Copy Result (clipboard only — user-initiated, never an external send) -----
 const copyResultBtn = document.getElementById('copy-result-btn');
 if (copyResultBtn) {
@@ -2102,6 +2232,14 @@ document.querySelectorAll('[data-cat]').forEach(btn => {
 });
 
 document.addEventListener('keydown', (e) => {
+  // While the shortcuts dialog is open: trap focus on its close button and only
+  // allow Esc / ? to dismiss it. Swallow every game shortcut so nothing fires behind it.
+  if (shortcutsOpen()) {
+    if (e.key === 'Escape' || e.key === '?') { e.preventDefault(); closeShortcuts(); }
+    else if (e.key === 'Tab') { e.preventDefault(); const c = document.getElementById('sc-close'); if (c) c.focus(); }
+    return;
+  }
+  if (e.key === '?') { e.preventDefault(); return openShortcuts(); }
   if (e.key === 'r' || e.key === 'R') return startGame();
   if (e.key === 'Escape')              return togglePause();
   if (e.key === 'h' || e.key === 'H') return useLifeline();
@@ -2121,6 +2259,17 @@ document.addEventListener('keydown', (e) => {
   if (map[e.key]) {
     const token = DOM.tokens.find(d => d.dataset.pos === map[e.key]);
     if (token) answer(token);
+    return;
+  }
+  // Arrow keys MOVE focus to the N/E/S/W token (then Enter/Space captures it) —
+  // keyboard parity with swipe/tap, without auto-answering like the number keys do.
+  const arrowMap = { ArrowUp: 'n', ArrowRight: 'e', ArrowDown: 's', ArrowLeft: 'w' };
+  if (arrowMap[e.key]) {
+    const token = DOM.tokens.find(d => d.dataset.pos === arrowMap[e.key]);
+    if (token && token.dataset.value && !token.classList.contains('eliminated')) {
+      e.preventDefault();
+      token.focus();
+    }
   }
 });
 
@@ -2132,6 +2281,7 @@ if ((window.matchMedia && window.matchMedia('(hover: none) and (pointer: coarse)
 }
 applyMode(state.persist.mode);
 renderHUD();
+setBoardInert(true);   // title screen is up at load — keep Tab out of the board behind it
 
 // ----- Pass 4: lifetime stats strip on the title (read-only — derives from existing
 //        cardStats + hi; adds NO new persist keys) -----
