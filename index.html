@@ -30,38 +30,68 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<!-- Press Start 2P for big arcade headers, VT323 for readable body text -->
-<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<!-- Pass 3: Inter for UI/prose, JetBrains Mono for command/code text -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-  /* ==================== 80s SYNTHWAVE PALETTE ==================== */
+  /* ============ "TERMINAL, NOT ARCADE" — calm dark developer-tool palette ============
+     Pass 3: ~90% quiet graphite, color reserved for MEANING (one teal accent for
+     focus/mascot/interactive; green/red/amber for outcome+progress). Old token NAMES
+     are remapped to the new values at the bottom so the existing references throughout
+     the sheet adopt the calm palette automatically. */
   :root {
-    --bg-deep:    #0a0118;          /* deep purple-black, easier than pure black */
-    --bg-mid:     #1a0a3a;
-    --neon-pink:  #e6237f;
-    --neon-mag:   #b01d99;
-    --neon-cyan:  #1ed4e6;
-    --neon-purp:  #a855e1;  /* lightened from #9d4edd → WCAG AA pass (4.53:1 vs bg-deep) */
-    --neon-blue:  #3550e6;
-    --sun-top:    #ffea00;
-    --sun-mid:    #ff6ec7;
-    --sun-bot:    #ff2d95;
-    --gold:       #ffd700;
-    --soft:       #f1e6ff;          /* off-white text — easier on eyes than #fff */
-    --dim:        #b59dde;
-    --danger:          #ff3b3b;
-    --danger-glow:     rgba(255,59,59,0.6);
-    --neon-pink-soft: #f58db5;
-    --neon-pink-glow: #ff2d95;
-    --neon-cyan-soft: #7ee6f5;
-    --neon-cyan-glow: #06f3ff;
-    --shadow-sm:   0 2px 6px rgba(0,0,0,0.55);
-    --shadow-md:   0 0 18px rgba(255,110,199,0.55);
-    --shadow-glow: 0 0 28px var(--neon-cyan);
+    /* Surfaces (low-chroma graphite) */
+    --surface-base:   #0E1116;
+    --surface-raised: #161B22;
+    --surface-token:  #1C232E;
+    --border-subtle:  #2A323D;
+    --border-strong:  #3A4453;
+    /* Text */
+    --text-primary:   #E6EDF3;   /* ~14:1 on base (AAA) */
+    --text-secondary: #9DA7B3;   /* ~6.5:1 on base (AA)  */
+    /* One accent — phosphor teal (the Phantom/cursor color, tamed) */
+    --accent:         #3DD8C4;   /* ~9.8:1 on base */
+    --accent-quiet:   #1E6F66;   /* muted accent for filled bg / progress track */
+    /* Semantic only — never decoration */
+    --success:        #4ADE80;
+    --warning:        #FBBF24;
+    --danger:         #F87171;
+    /* Fonts */
+    --font-ui:   'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+    /* 4px spacing scale + radii */
+    --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px; --space-6:32px; --space-8:48px;
+    --radius-sm:6px; --radius-md:10px; --radius-lg:14px;
+    /* ONE elevation shadow (no glow); a single soft accent halo for "alive/answer" */
+    --shadow:       0 1px 2px rgba(0,0,0,.45), 0 8px 24px rgba(0,0,0,.30);
+    --accent-halo:  0 0 16px rgba(61,216,196,.35);
 
-    /* === GHOST CODE MASCOT TOKENS === */
-    --phantom-core:    #06f3ff;
-    --phantom-glow:    rgba(6,243,255,0.6);
-    --phantom-tail:    rgba(6,243,255,0.22);
+    /* ---- Back-compat remap: old names → new system ---- */
+    --bg-deep:    var(--surface-base);
+    --bg-mid:     var(--surface-raised);
+    --neon-cyan:  var(--accent);
+    --neon-cyan-soft: var(--accent);
+    --neon-cyan-glow: var(--accent);
+    --neon-purp:  var(--accent);          /* direction no longer encoded by hue */
+    --neon-blue:  var(--accent);
+    --neon-pink:  var(--border-strong);   /* decorative pink (tags/corners) → quiet border */
+    --neon-pink-soft: var(--text-secondary);
+    --neon-pink-glow: var(--accent);
+    --neon-mag:   var(--border-strong);
+    --gold:       var(--warning);         /* streak / lifeline → amber */
+    --sun-top:    var(--warning);
+    --sun-mid:    var(--accent);
+    --sun-bot:    var(--accent-quiet);
+    --soft:       var(--text-primary);
+    --dim:        var(--text-secondary);
+    --danger-glow: rgba(248,113,113,0.55);
+    --shadow-sm:   var(--shadow);
+    --shadow-md:   var(--shadow);
+    --shadow-glow: var(--accent-halo);
+
+    /* === Phantom mascot = accent, flattened (no heavy glow) === */
+    --phantom-core:    var(--accent);
+    --phantom-glow:    rgba(61,216,196,0.35);
+    --phantom-tail:    rgba(61,216,196,0.16);
     --phantom-eye:     #ffffff;
     --phantom-eye-dim: rgba(255,255,255,0.55);
   }
@@ -70,10 +100,11 @@
     margin: 0; padding: 0; height: 100%;
     background: var(--bg-deep);
     color: var(--soft);
-    font-family: 'VT323', 'Press Start 2P', monospace;
+    font-family: var(--font-ui);
     overflow: hidden;
     user-select: none;
-    -webkit-font-smoothing: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     overscroll-behavior: none;                /* no rubber-band bounce on mobile */
     -webkit-tap-highlight-color: transparent; /* no grey tap flash; focus-visible still shows */
     touch-action: manipulation;               /* removes the legacy double-tap-zoom delay */
@@ -84,10 +115,28 @@
     padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
   }
 
-  /* The big arcade font reserved for headers/HUD labels */
-  .arcade { font-family: 'Press Start 2P', monospace; letter-spacing: -0.5px; }
-  /* The chunky readable terminal font for everything else */
-  .term   { font-family: 'VT323', monospace; letter-spacing: 0.5px; }
+  /* Pass 3: UI sans for prose/labels, mono for commands */
+  .arcade { font-family: var(--font-ui); letter-spacing: 0; }
+  .term   { font-family: var(--font-mono); letter-spacing: 0; }
+
+  /* ---- Pass 3 GLOW POLICY ----------------------------------------------------
+     Text glow (text-shadow) is the #1 eye-strain + "cheap" driver here, applied
+     to ~32 elements. Kill ALL of it in one rule; the new design conveys hierarchy
+     with weight/size/color, not halation. Box-shadow glow is removed per-component
+     below; the only surviving glow is one soft accent halo on the Phantom and the
+     focused/correct token. */
+  * { text-shadow: none !important; }
+
+  /* ---- Pass 3 BACKDROP -------------------------------------------------------
+     Remove the CRT scanlines (a multiply layer over ALL text — a top eye-strain
+     driver), the vignette, and the animated 80s synthwave sun / neon grid /
+     twinkling stars. One quiet near-flat dark surface; no animation, no neon. */
+  #stars, #sun, #grid, #scanlines, #vignette { display: none !important; }
+  #sky {
+    background:
+      radial-gradient(ellipse 120% 80% at 50% -10%, rgba(61,216,196,0.05) 0%, transparent 55%),
+      var(--surface-base);
+  }
 
   /* ==================== SYNTHWAVE BACKDROP ==================== */
   /* Layered behind the cabinet: sunset, stars, terminal grid horizon */
@@ -213,17 +262,11 @@
     --cab-pad-x: clamp(12px, 3vw, 44px);
     gap: clamp(6px, 1.5vh, 16px);
     padding: var(--cab-pad-y) var(--cab-pad-x);
-    border: 4px solid var(--neon-cyan);
-    border-radius: 22px;
-    box-shadow:
-      0 0 28px var(--neon-cyan),
-      0 0 80px rgba(6, 243, 255, 0.15),
-      inset 0 0 30px rgba(199, 36, 177, 0.15);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
     overflow: hidden;
-    background:
-      radial-gradient(ellipse at top, rgba(157, 78, 221, 0.18) 0%, transparent 60%),
-      linear-gradient(180deg, rgba(10,1,24,0.85) 0%, rgba(26,10,58,0.85) 100%);
-    backdrop-filter: blur(4px);
+    background: var(--surface-raised);
   }
   /* Flow order of the play regions (DOM order differs; absolute overlays ignore it) */
   #mode-toggle       { order: 1; flex: 0 0 auto; }
@@ -234,12 +277,9 @@
   #arena             { order: 6; }
   #hint              { order: 7; flex: 0 0 auto; }
   #bar               { order: 8; flex: 0 0 auto; }
-  /* Neon corner pieces */
-  .corner {
-    position: absolute; width: 70px; height: 70px;
-    border: 3px solid var(--neon-pink);
-    box-shadow: 0 0 12px var(--neon-pink);
-  }
+  /* Pass 3: the arcade-cabinet corner brackets are removed (shed the skin) — the
+     cabinet is now a quiet bordered card. */
+  .corner { display: none; }
   /* Top brackets grow wider to frame the full HUD clusters: left = 1UP/HI-SCORE/STREAK, right = SPIRITS/50-50/CATEGORY(+LEARN MODE) */
   .corner.tl { top: 16px; left: 16px;   width: 320px; height: 80px; border-right: none; border-bottom: none; border-top-left-radius: 16px; }
   .corner.tr { top: 16px; right: 16px;  width: 320px; height: 80px; border-left: none;  border-bottom: none; border-top-right-radius: 16px; }
@@ -256,18 +296,20 @@
   #hud #lives-stat { margin-left: auto; }
   #hud .stat { display: flex; flex-direction: column; gap: 4px; min-width: 70px; }
   #hud .stat .label {
-    font-family: 'Press Start 2P', monospace;
-    font-size: 9px;
-    color: var(--neon-cyan);
-    letter-spacing: 1px;
-    text-shadow: 0 0 6px var(--neon-cyan);
+    font-family: var(--font-ui);
+    font-weight: 600;
+    font-size: 11px;
+    color: var(--text-secondary);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
   }
   #hud .stat .val {
-    font-family: 'VT323', monospace;
-    font-size: 28px;
-    color: var(--neon-cyan);
-    text-shadow: 0 0 10px var(--phantom-glow);
+    font-family: var(--font-mono);
+    font-weight: 500;
+    font-size: 24px;
+    color: var(--text-primary);
     line-height: 1;
+    font-variant-numeric: tabular-nums;
   }
   #lives { display: flex; gap: 6px; margin-top: 4px; }
 
@@ -279,13 +321,9 @@
      ====================================================== */
   .spirit-pip {
     width: 8px; height: 16px;
-    background: var(--phantom-core);
+    background: var(--accent);
     border-radius: 2px;
-    box-shadow:
-      0 0 6px var(--phantom-glow),
-      0 0 12px rgba(6,243,255,0.35);
     position: relative;
-    animation: spirit-blink 1.1s infinite;
   }
   .spirit-pip::after {
     content: "";
@@ -307,7 +345,6 @@
     width: 16px; height: 22px;
     background: var(--gold);
     clip-path: polygon(50% 0%,65% 40%,100% 40%,70% 62%,85% 100%,50% 72%,15% 100%,30% 62%,0% 40%,35% 40%);
-    box-shadow: 0 0 6px rgba(255,215,0,0.7);
   }
   .token.eliminated {
     opacity: 0.12;
@@ -316,13 +353,13 @@
   }
   #streak .val { color: var(--gold); text-shadow: 0 0 10px rgba(255,215,0,0.7); }
   #cat-badge {
-    font-family: 'Press Start 2P', monospace;
-    border: 2px solid var(--neon-cyan);
-    color: var(--neon-cyan);
-    padding: 8px 12px;
-    font-size: 11px;
-    text-shadow: 0 0 4px var(--neon-cyan);
-    box-shadow: 0 0 8px rgba(6,243,255,0.4);
+    font-family: var(--font-ui);
+    font-weight: 600;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    padding: 5px 10px;
+    font-size: 12px;
     margin-top: 4px;
   }
 
@@ -336,17 +373,18 @@
   }
   #prompt .tag {
     display: inline-block;
-    margin-bottom: 14px;
-    font-family: 'Press Start 2P', monospace;
-    font-size: 11px;
-    color: var(--neon-pink);
-    text-shadow: 0 0 8px var(--neon-pink);
-    padding: 6px 12px;
-    border: 2px solid var(--neon-pink);
-    border-radius: 6px;
+    margin-bottom: 12px;
+    font-family: var(--font-ui);
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    color: var(--text-secondary);
+    padding: 4px 10px;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
   }
   #prompt-text {
-    font-family: 'VT323', monospace;
+    font-family: var(--font-ui);
     font-size: clamp(20px, 5.6vw, 30px);
     line-height: 1.4;
     color: var(--soft);
@@ -354,9 +392,9 @@
   }
   /* Difficulty badge — token colors, never color-only (text label + aria-label) */
   #diff-badge { margin-left: 8px; }
-  #diff-badge.easy   { color: var(--neon-cyan); border-color: var(--neon-cyan); text-shadow: 0 0 8px var(--neon-cyan); }
-  #diff-badge.medium { color: var(--gold);      border-color: var(--gold);      text-shadow: 0 0 8px rgba(255,215,0,0.6); }
-  #diff-badge.hard   { color: var(--neon-pink);  border-color: var(--neon-pink);  text-shadow: 0 0 8px var(--neon-pink); }
+  #diff-badge.easy   { color: var(--accent);  border-color: var(--accent); }
+  #diff-badge.medium { color: var(--warning); border-color: var(--warning); }
+  #diff-badge.hard   { color: var(--danger);  border-color: var(--danger); }
 
   /* ==================== ARENA ==================== */
   #arena {
@@ -390,8 +428,8 @@
     top: 0; left: 50%;
     transform: translateX(-50%);
     width: 44px; height: 52px;
-    background: radial-gradient(ellipse at 38% 35%,
-      #a8faff 0%, var(--phantom-core) 45%, #0aa8bb 100%);
+    background: radial-gradient(ellipse at 38% 32%,
+      #BFF5EE 0%, var(--accent) 52%, var(--accent-quiet) 100%);
     border-radius: 50% 50% 45% 45% / 55% 55% 50% 50%;
     /* Pointed chin via clip-path — teardrop, NOT Pac-Man arc */
     clip-path: polygon(
@@ -405,10 +443,7 @@
       0% 65%,
       0% 30%
     );
-    box-shadow:
-      0 0 24px var(--phantom-glow),
-      0 0 50px rgba(6,243,255,0.3);
-    animation: phantom-float 1.8s ease-in-out infinite alternate;
+    box-shadow: var(--accent-halo);
   }
 
   /* Eyes: white ovals with cyan cursor-square pupils */
@@ -419,7 +454,6 @@
     background: #fff;
     border-radius: 50%;
     top: 16px;
-    box-shadow: 0 0 5px rgba(255,255,255,0.6);
   }
   .phantom-eye-l { left: 8px; }
   .phantom-eye-r { right: 8px; }
@@ -444,12 +478,12 @@
     transform: translateX(-50%);
     width: 30px; height: 34px;
     background: radial-gradient(ellipse at 50% 0%,
-      rgba(6,243,255,0.55) 0%,
-      rgba(6,243,255,0.18) 50%,
+      rgba(61,216,196,0.42) 0%,
+      rgba(61,216,196,0.14) 55%,
       transparent 100%);
     /* Tapered plume — smooth, not bumpy */
     clip-path: polygon(20% 0%, 80% 0%, 100% 40%, 60% 100%, 40% 100%, 0% 40%);
-    animation: phantom-tail-pulse 1.8s ease-in-out infinite alternate;
+    opacity: 0.9;
   }
 
   /* Cursor bar — blinks above the Phantom head */
@@ -458,9 +492,8 @@
     top: -14px; left: 50%;
     transform: translateX(-50%);
     width: 3px; height: 10px;
-    background: var(--phantom-core);
+    background: var(--accent);
     border-radius: 1px;
-    box-shadow: 0 0 6px var(--phantom-glow);
     animation: cursor-blink 0.95s infinite;
   }
 
@@ -479,108 +512,82 @@
   }
 
   /* ======================================================
-     COMMAND TOKENS — replace answer dots.
-     Shape: rectangular code-pill chips. 8px border-radius
-     (NOT blob-round). Monospace VT323 text with "> " prefix.
-     4 directional color variants: cyan/N, pink/E, purple/S, gold/W.
+     COMMAND TOKENS — Pass 3: all four share ONE neutral surface.
+     Direction is encoded by POSITION + the number key (1-4), never by
+     colour (the old cyan/pink/purple/gold rainbow carried no meaning).
+     Near-white monospace command text is the hero; a teal "> " prefix is
+     the only colour. Colour is reserved for state: green=correct, red=wrong,
+     teal=focus. Flat surface, 1px border, no glow.
      ====================================================== */
   .token {
     position: absolute;
     /* Fluid: desktop 200px; phones shrink so E/W tokens clear the Phantom + each other */
     width: clamp(110px, 36vw, 200px);
-    padding: 16px 14px 14px;
-    background: linear-gradient(135deg, rgba(6,243,255,0.08) 0%, rgba(26,10,58,0.95) 100%);
-    border: 2px solid var(--neon-cyan);
-    border-radius: 8px;
+    padding: 14px 14px 12px;
+    background: var(--surface-token);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
     text-align: center;
     cursor: pointer;
-    box-shadow:
-      0 0 14px rgba(6,243,255,0.35),
-      inset 0 0 10px rgba(6,243,255,0.06);
-    transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.4, 1), box-shadow 0.18s, background 0.3s, opacity 0.3s ease-out;
+    transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.4, 1), border-color 0.15s, box-shadow 0.15s, background 0.2s, opacity 0.3s ease-out;
     word-break: break-word;
   }
-  .token.n {
-    border-color: var(--neon-cyan);
-    box-shadow: 0 0 18px rgba(6,243,255,0.5), inset 0 0 10px rgba(6,243,255,0.08);
-  }
-  .token.e {
-    border-color: var(--neon-pink);
-    box-shadow: 0 0 18px rgba(230,35,127,0.45), inset 0 0 10px rgba(230,35,127,0.06);
-    background: linear-gradient(135deg, rgba(230,35,127,0.08) 0%, rgba(26,10,58,0.95) 100%);
-  }
-  .token.s {
-    border-color: var(--neon-purp);
-    box-shadow: 0 0 18px rgba(168,85,225,0.5), inset 0 0 10px rgba(168,85,225,0.06);
-    background: linear-gradient(135deg, rgba(168,85,225,0.08) 0%, rgba(26,10,58,0.95) 100%);
-  }
-  .token.w {
-    border-color: var(--gold);
-    box-shadow: 0 0 18px rgba(255,215,0,0.4), inset 0 0 10px rgba(255,215,0,0.06);
-    background: linear-gradient(135deg, rgba(255,215,0,0.07) 0%, rgba(26,10,58,0.95) 100%);
-  }
-
-  .token:hover {
-    z-index: 6;
-  }
+  .token:hover { z-index: 6; border-color: var(--border-strong); }
   .token .key {
     display: block;
-    font-family: 'Press Start 2P', monospace;
-    color: var(--dim);
-    font-size: 9px;
-    margin-bottom: 8px;
-    text-shadow: 0 0 4px rgba(181,157,222,0.5);
+    font-family: var(--font-ui);
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-size: 11px;
+    margin-bottom: 6px;
   }
-  /* Token command text — terminal prompt prefix via ::before */
+  /* Command text — the hero. Near-white mono with a teal terminal prefix. */
   .token .txt {
-    font-family: 'VT323', monospace;
-    font-size: clamp(16px, 4.6vw, 22px);
-    line-height: 1.4;
-    color: var(--neon-cyan);
-    text-shadow: 0 0 6px rgba(6,243,255,0.5);
-    letter-spacing: 0.5px;
+    font-family: var(--font-mono);
+    font-weight: 500;
+    font-size: clamp(15px, 4vw, 19px);
+    line-height: 1.35;
+    color: var(--text-primary);
+    letter-spacing: 0;
   }
-  .token.e .txt { color: var(--neon-pink);  text-shadow: 0 0 6px rgba(230,35,127,0.5); }
-  .token.s .txt { color: var(--neon-purp);  text-shadow: 0 0 6px rgba(168,85,225,0.5); }
-  .token.w .txt { color: var(--gold);       text-shadow: 0 0 6px rgba(255,215,0,0.5); }
-
-  /* Terminal prompt prefix on command text */
-  .token .txt::before { content: "> "; opacity: 0.5; }
+  .token .txt::before { content: "> "; color: var(--accent); opacity: 0.85; }
 
   /* token positions */
   .token.n { top: 24px;    left: 50%; transform: translate(-50%, 0); }
   .token.e { top: 50%;  right: 0;  transform: translate(0, -50%); }
   .token.s { bottom: 24px; left: 50%; transform: translate(-50%, 0); }
   .token.w { top: 50%;  left: 0;   transform: translate(0, -50%); }
-  .token.n:hover { transform: translate(-50%, 0) scale(1.04); }
-  .token.e:hover { transform: translate(0, -50%) scale(1.04); }
-  .token.s:hover { transform: translate(-50%, 0) scale(1.04); }
-  .token.w:hover { transform: translate(0, -50%) scale(1.04); }
-  /* Touch press feedback (hover never fires on touch): instant brightness pop
-     + a subtle depress. Reduced-motion users get the brightness, no scale travel. */
-  .token:active { filter: brightness(1.22); }
-  .token.n:active { transform: translate(-50%, 0) scale(0.97); }
-  .token.e:active { transform: translate(0, -50%) scale(0.97); }
-  .token.s:active { transform: translate(-50%, 0) scale(0.97); }
-  .token.w:active { transform: translate(0, -50%) scale(0.97); }
+  .token.n:hover { transform: translate(-50%, 0) scale(1.03); }
+  .token.e:hover { transform: translate(0, -50%) scale(1.03); }
+  .token.s:hover { transform: translate(-50%, 0) scale(1.03); }
+  .token.w:hover { transform: translate(0, -50%) scale(1.03); }
+  /* Touch press feedback (hover never fires on touch): a subtle depress + brightness.
+     Reduced-motion users get the brightness, no scale travel (global * rule). */
+  .token:active { filter: brightness(1.12); }
+  .token.n:active { transform: translate(-50%, 0) scale(0.98); }
+  .token.e:active { transform: translate(0, -50%) scale(0.98); }
+  .token.s:active { transform: translate(-50%, 0) scale(0.98); }
+  .token.w:active { transform: translate(0, -50%) scale(0.98); }
 
   .token:focus-visible {
-    outline: 3px solid var(--neon-cyan-glow);
-    outline-offset: 4px;
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-color: var(--accent);
+    box-shadow: var(--accent-halo);
     z-index: 7;
   }
 
   .token.correct {
-    background: linear-gradient(135deg, rgba(255,215,0,0.2), rgba(255,157,0,0.1)) !important;
-    border-color: var(--gold) !important;
-    box-shadow: 0 0 28px var(--gold), inset 0 0 14px rgba(255,215,0,0.15) !important;
-    /* WCAG 2.3.1: one bloom, not 3 in 0.4s (~7.5/s) — stays under 3 flashes/sec */
+    background: rgba(74,222,128,0.12) !important;
+    border-color: var(--success) !important;
+    box-shadow: 0 0 16px rgba(74,222,128,0.35) !important;
+    /* WCAG 2.3.1: one bloom, not 3 in 0.4s — stays under 3 flashes/sec */
     animation: flash 0.5s 1;
   }
   .token.wrong {
-    background: linear-gradient(135deg, #8b0000, #5a0010) !important;
+    background: rgba(248,113,113,0.12) !important;
     border-color: var(--danger) !important;
-    box-shadow: 0 0 24px var(--danger-glow), inset 0 0 12px rgba(255,255,255,0.08) !important;
+    box-shadow: 0 0 14px rgba(248,113,113,0.30) !important;
   }
   /* WCAG 1.4.1: outcome is not signalled by colour alone — a ✓ / ✗ glyph (shape)
      marks correct vs wrong. White for contrast on either token background; the
@@ -593,8 +600,8 @@
     font-size: 14px; font-weight: 700; line-height: 1;
     color: #fff;
   }
-  .token.correct::after { content: "\2713"; text-shadow: 0 0 6px var(--gold), 0 0 2px #000; }   /* ✓ */
-  .token.wrong::after   { content: "\2717"; text-shadow: 0 0 6px var(--danger), 0 0 2px #000; }  /* ✗ */
+  .token.correct::after { content: "\2713"; color: var(--success); }   /* ✓ */
+  .token.wrong::after   { content: "\2717"; color: var(--danger); }    /* ✗ */
   /* Captured (correct) state — dissolves upward */
   .token.captured {
     opacity: 0;
@@ -602,7 +609,7 @@
     transition: all 0.35s ease-out;
   }
   @keyframes flash {
-    50% { box-shadow: 0 0 40px var(--gold), inset 0 0 20px rgba(255,255,255,0.4); }
+    50% { box-shadow: 0 0 24px rgba(74,222,128,0.55); }
   }
 
   /* ======================================================
@@ -611,9 +618,9 @@
      the cabinet border strobes. No creature shape.
      ====================================================== */
   @keyframes danger-pulse {
-    0%   { box-shadow: 0 0 14px var(--danger-glow); }
-    40%  { box-shadow: 0 0 48px rgba(255,59,59,0.9); }
-    100% { box-shadow: 0 0 14px var(--danger-glow); }
+    0%   { box-shadow: 0 0 10px rgba(248,113,113,0.35); }
+    40%  { box-shadow: 0 0 22px rgba(248,113,113,0.60); }
+    100% { box-shadow: 0 0 10px rgba(248,113,113,0.35); }
   }
   .danger-flash { animation: danger-pulse 0.4s ease-out; }
   .danger-flash-cabinet {
@@ -625,11 +632,10 @@
   #hint {
     width: 100%;
     text-align: center;
-    font-family: 'VT323', monospace;
-    font-size: 22px;
-    color: var(--gold);
-    text-shadow: 0 0 8px rgba(255,215,0,0.6);
-    min-height: 26px;
+    font-family: var(--font-mono);
+    font-size: 18px;
+    color: var(--text-secondary);
+    min-height: 24px;
     padding: 0 30px;
     z-index: 6;
   }
@@ -640,35 +646,34 @@
   }
   .btn {
     background: transparent;
-    color: var(--soft);
-    border: 2px solid var(--neon-cyan);
-    padding: 12px 16px;
-    font-family: 'Press Start 2P', monospace;
-    font-size: 11px;
-    letter-spacing: 1px;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    font-family: var(--font-ui);
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.02em;
     cursor: pointer;
     transition: all 0.15s;
-    text-shadow: 0 0 4px rgba(241,230,255,0.4);
-    box-shadow: 0 0 8px rgba(6,243,255,0.25);
   }
   .btn:hover {
-    background: var(--neon-cyan); color: #0a0118;
-    box-shadow: 0 0 18px var(--neon-cyan);
-    text-shadow: none;
+    border-color: var(--border-strong); color: var(--text-primary);
+    background: rgba(255,255,255,0.03);
   }
   .btn:focus-visible {
-    outline: 3px solid var(--neon-cyan);
-    outline-offset: 4px;
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
   }
+  /* Active category = the accent (the one "selected/interactive" colour) */
   .btn.active {
-    background: var(--neon-pink);
-    color: #fff;
-    border-color: var(--neon-pink);
-    box-shadow: 0 0 18px var(--neon-pink);
+    background: var(--accent-quiet);
+    color: var(--text-primary);
+    border-color: var(--accent);
   }
-  /* 50/50 lifeline button — gold accent to match the lifeline pips */
-  .btn.lifeline-btn { border-color: var(--gold); color: var(--gold); box-shadow: 0 0 8px rgba(255,215,0,0.3); }
-  .btn.lifeline-btn:hover:not(:disabled) { background: var(--gold); color: #0a0118; box-shadow: 0 0 18px var(--gold); }
+  /* 50/50 lifeline — amber (the progress/streak semantic), no glow */
+  .btn.lifeline-btn { border-color: var(--warning); color: var(--warning); }
+  .btn.lifeline-btn:hover:not(:disabled) { background: rgba(251,191,36,0.12); color: var(--warning); }
   /* Disabled control (e.g. 50/50 with none left) — dims + ignores pointer so no hover-fill */
   .btn:disabled { opacity: 0.38; box-shadow: none; pointer-events: none; }
   /* Press feedback on buttons — consistent tactile cue with the tokens.
@@ -680,39 +685,38 @@
   /* ==================== MODE TOGGLE ==================== */
   #mode-toggle {
     display: flex; align-items: center; gap: 0;
-    border: 2px solid var(--neon-cyan);
-    border-radius: 6px;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
     overflow: hidden;
     z-index: 8;
-    box-shadow: 0 0 10px rgba(6,243,255,0.3);
   }
   .mode-btn {
     background: transparent;
-    color: var(--dim);
+    color: var(--text-secondary);
     border: none;
-    padding: 8px 14px;
-    min-height: 28px;            /* WCAG 2.5.8 target size (>=24px) */
-    font-family: 'Press Start 2P', monospace;
-    font-size: 9px;
-    letter-spacing: 0.5px;
+    padding: 8px 16px;
+    min-height: 32px;            /* WCAG 2.5.8 target size */
+    font-family: var(--font-ui);
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.02em;
     cursor: pointer;
     transition: background 0.15s, color 0.15s;
     line-height: 1.2;
   }
-  .mode-btn:hover { background: rgba(6,243,255,0.12); color: var(--soft); }
+  .mode-btn:hover { background: rgba(255,255,255,0.04); color: var(--text-primary); }
   .mode-btn.active {
-    background: var(--neon-cyan);
-    color: #0a0118;
-    text-shadow: none;
+    background: var(--accent);
+    color: var(--surface-base);
   }
   .mode-btn:focus-visible {
-    outline: 3px solid var(--neon-pink);
+    outline: 2px solid var(--accent);
     outline-offset: 2px;
     z-index: 1;
   }
   /* Learning mode badge on HUD */
   #learn-badge {
-    font-family: 'Press Start 2P', monospace;
+    font-family: var(--font-ui);
     font-size: 8px;
     color: var(--neon-cyan);
     text-shadow: 0 0 6px var(--neon-cyan);
@@ -734,13 +738,13 @@
   #learn-panel {
     width: 100%;
     max-width: 640px;
-    background: rgba(10,1,24,0.96);
-    border: 2px solid var(--neon-cyan);
-    border-radius: 10px;
+    background: var(--surface-raised);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
     padding: 18px 22px;
     z-index: 7;
     text-align: center;
-    box-shadow: 0 0 20px rgba(6,243,255,0.2), inset 0 0 20px rgba(6,243,255,0.04);
+    box-shadow: var(--shadow);
     display: none;
     gap: 12px;
     flex-direction: column;
@@ -748,51 +752,51 @@
   }
   #learn-panel.visible { display: flex; }
   #learn-panel .lp-status {
-    font-family: 'Press Start 2P', monospace;
-    font-size: 12px;
-    color: var(--neon-pink);
-    text-shadow: 0 0 8px var(--neon-pink);
+    font-family: var(--font-ui);
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    color: var(--warning);
     margin: 0;
   }
   #learn-panel .lp-hint {
-    font-family: 'VT323', monospace;
-    font-size: 22px;
-    color: var(--gold);
-    text-shadow: 0 0 6px rgba(255,215,0,0.5);
+    font-family: var(--font-ui);
+    font-size: 18px;
+    color: var(--text-secondary);
     margin: 0;
-    line-height: 1.4;
+    line-height: 1.45;
   }
   #learn-panel .lp-answer {
-    font-family: 'VT323', monospace;
-    font-size: 26px;
-    color: var(--neon-cyan);
-    text-shadow: 0 0 10px var(--neon-cyan);
+    font-family: var(--font-mono);
+    font-weight: 600;
+    font-size: 22px;
+    color: var(--accent);
     margin: 2px 0;
-    letter-spacing: 1px;
+    letter-spacing: 0;
   }
   #learn-panel .lp-explain {
-    font-family: 'VT323', monospace;
-    font-size: 20px;
-    color: var(--soft);
-    line-height: 1.4;
+    font-family: var(--font-ui);
+    font-size: 16px;
+    color: var(--text-secondary);
+    line-height: 1.5;
     margin: 0;
     max-width: 540px;
     text-align: left;
   }
   /* learn-panel text modifiers */
   #learn-panel .lp-kicker {
-    font-family: 'Press Start 2P', monospace;
-    font-size: 9px;
-    color: var(--neon-cyan);
+    font-family: var(--font-ui);
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    color: var(--accent);
   }
   #learn-panel .lp-hint.lp-hint--cyan { color: var(--neon-cyan-soft); }
   #learn-panel .lp-status.lp-status--cyan {
-    color: var(--neon-cyan);
-    text-shadow: 0 0 8px var(--neon-cyan);
+    color: var(--accent);
   }
   #learn-panel .lp-status.lp-status--gold {
-    color: var(--gold);
-    text-shadow: 0 0 8px var(--gold);
+    color: var(--success);
   }
   #learn-panel .lp-actions {
     display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;
@@ -808,28 +812,29 @@
   }
   body.learning-mode #learn-progress-bar { display: flex; }
   #learn-progress-bar .lp-label {
-    font-family: 'Press Start 2P', monospace;
-    font-size: 8px;
-    color: var(--neon-cyan);
+    font-family: var(--font-ui);
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    color: var(--text-secondary);
     white-space: nowrap;
   }
   #learn-progress-bar .lp-track {
     flex: 1; height: 8px;
-    background: rgba(6,243,255,0.15);
-    border: 1px solid var(--neon-cyan);
-    border-radius: 4px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border-subtle);
+    border-radius: 999px;
     overflow: hidden;
   }
   #learn-progress-bar .lp-fill {
     height: 100%;
-    background: linear-gradient(90deg, var(--neon-cyan), var(--neon-purp));
-    border-radius: 4px;
+    background: var(--accent);
+    border-radius: 999px;
     transition: width 0.4s ease;
-    box-shadow: 0 0 8px var(--neon-cyan);
     width: 0%;
   }
   #learn-progress-bar .lp-count {
-    font-family: 'VT323', monospace;
+    font-family: var(--font-mono);
     font-size: 20px;
     color: var(--gold);
     white-space: nowrap;
@@ -846,7 +851,7 @@
        can't bleed through (title / game-over / pause). The pink radial is a
        tint ON TOP of the opaque base, not a transparency. */
     background:
-      radial-gradient(ellipse at top, rgba(255,46,149,0.25) 0%, transparent 60%),
+      radial-gradient(ellipse 100% 60% at 50% 0%, rgba(61,216,196,0.06) 0%, transparent 60%),
       var(--bg-deep);
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
@@ -869,76 +874,77 @@
   /* "GHOST" cyan→pink gradient lockup */
   .screen h1 .word1 {
     display: block;
-    font-family: 'Press Start 2P', monospace;
-    font-size: 38px;
-    letter-spacing: 6px;
-    background: linear-gradient(90deg, var(--neon-cyan) 0%, #b4f8ff 40%, var(--neon-pink) 100%);
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 40px;
+    letter-spacing: 3px;
+    background: linear-gradient(135deg, #BFF5EE 0%, var(--accent) 60%, var(--accent-quiet) 100%);
     -webkit-background-clip: text;
             background-clip: text;
     -webkit-text-fill-color: transparent;
-    filter: drop-shadow(0 0 14px rgba(6,243,255,0.7));
-    line-height: 1.2;
+    line-height: 1.15;
     margin: 0;
   }
-  /* "CODE" smaller, neon-cyan */
+  /* "CODE" smaller, accent */
   .screen h1 .word2 {
     display: block;
-    font-family: 'Press Start 2P', monospace;
-    font-size: 22px;
-    letter-spacing: 10px;
-    color: var(--neon-cyan);
-    text-shadow: 0 0 8px var(--neon-cyan);
+    font-family: var(--font-ui);
+    font-weight: 600;
+    font-size: 20px;
+    letter-spacing: 7px;
+    color: var(--accent);
     margin-top: 4px;
-    opacity: 0.85;
-    -webkit-text-fill-color: var(--neon-cyan);
+    opacity: 0.9;
+    -webkit-text-fill-color: var(--accent);
   }
   /* Tagline below title */
   .screen h1 .tagline {
     display: block;
-    font-family: 'VT323', monospace;
-    font-size: 20px;
+    font-family: var(--font-ui);
+    font-size: 16px;
     color: var(--dim);
-    letter-spacing: 2px;
-    margin-top: 8px;
+    letter-spacing: 0.04em;
+    margin-top: 10px;
     -webkit-text-fill-color: var(--dim);
     filter: none;
   }
   .screen h1 {
-    font-family: 'Press Start 2P', monospace;
+    font-family: var(--font-ui);
     margin: 0;
     letter-spacing: 3px;
   }
 
   .screen h2 {
-    font-family: 'Press Start 2P', monospace;
-    font-size: 24px;
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 22px;
+    letter-spacing: 0.04em;
     color: var(--danger);
     margin: 0;
-    text-shadow: 0 0 12px var(--danger);
   }
   .screen p {
-    font-family: 'VT323', monospace;
+    font-family: var(--font-ui);
     font-size: 26px; line-height: 1.4;
     max-width: 640px;
     color: var(--soft);
     margin: 0;
   }
   #pauseScreen h1 .word1 {
-    background: linear-gradient(180deg, var(--neon-cyan), var(--neon-purp));
+    background: linear-gradient(180deg, var(--text-primary), var(--accent));
     -webkit-background-clip: text;
             background-clip: text;
     -webkit-text-fill-color: transparent;
     filter: none;
   }
   .screen .small {
-    font-family: 'Press Start 2P', monospace;
-    font-size: 10px;
-    color: var(--neon-cyan);
-    line-height: 2;
-    text-shadow: 0 0 4px var(--neon-cyan);
+    font-family: var(--font-ui);
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.9;
+    letter-spacing: 0.02em;
   }
-  .blink { animation: blink 1s infinite; }
-  @keyframes blink { 50% { opacity: 0.25; } }
+  .blink { animation: blink 1.4s ease-in-out infinite; }
+  @keyframes blink { 50% { opacity: 0.6; } }
 
   /* Title-screen controls hint: keyboard line on desktop, tap/swipe line on touch.
      Driven by a JS-set .touch-device class (covers ontouchstart + coarse pointer). */
@@ -955,18 +961,19 @@
     -webkit-overflow-scrolling: touch;   /* momentum scroll on iOS */
     touch-action: pan-y;                 /* this list stays scrollable by touch */
     overscroll-behavior: contain;
-    border: 1px solid var(--neon-purp);
-    border-radius: 6px;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
     padding: 10px 14px;
-    background: rgba(30, 0, 60, 0.72);
+    background: var(--surface-base);
     scrollbar-width: thin;
-    scrollbar-color: var(--neon-purp) transparent;
+    scrollbar-color: var(--border-strong) transparent;
   }
   .missed-review__heading {
-    font-family: 'Press Start 2P', monospace;
-    font-size: 9px;
-    color: var(--neon-pink);
-    text-shadow: 0 0 6px var(--neon-pink);
+    font-family: var(--font-ui);
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    color: var(--text-secondary);
     margin: 0 0 8px 0;
     text-align: center;
   }
@@ -976,39 +983,44 @@
     gap: 10px;
   }
   .missed-review__item {
-    border-bottom: 1px solid rgba(168,85,225,0.3);
+    border-bottom: 1px solid var(--border-subtle);
     padding-bottom: 8px;
   }
   .missed-review__item:last-child { border-bottom: none; padding-bottom: 0; }
   .missed-review__prompt {
-    font-family: 'VT323', monospace;
-    font-size: 20px;
-    color: var(--neon-cyan);
-    margin: 0 0 2px 0;
-    line-height: 1.2;
+    font-family: var(--font-ui);
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--text-primary);
+    margin: 0 0 4px 0;
+    line-height: 1.3;
   }
   /* explicit 20px so explain text matches learn-panel's 20px */
   .missed-review .lp-explain {
     font-size: 20px;
   }
 
-  /* ===== BIG BUTTON — spectral cyan (Phantom's color) ===== */
+  /* ===== PRIMARY BUTTON — filled accent (the one bright CTA) ===== */
   .big-btn {
-    font-family: 'Press Start 2P', monospace;
-    font-size: 18px;
-    padding: 22px 38px;
-    border: 3px solid var(--neon-cyan);
-    color: var(--neon-cyan);
-    background: transparent;
+    font-family: var(--font-ui);
+    font-weight: 600;
+    font-size: 17px;
+    padding: 15px 34px;
+    border: 1px solid var(--accent);
+    border-radius: var(--radius-sm);
+    color: var(--surface-base);
+    background: var(--accent);
     cursor: pointer;
-    letter-spacing: 2px;
-    text-shadow: 0 0 8px var(--phantom-glow);
-    box-shadow: 0 0 18px var(--phantom-glow), inset 0 0 10px rgba(6,243,255,0.1);
+    letter-spacing: 0.02em;
     transition: all 0.15s;
   }
   .big-btn:hover {
-    background: var(--neon-cyan); color: #0a0118; text-shadow: none;
-    box-shadow: 0 0 30px var(--neon-cyan);
+    background: #5fe6d4; border-color: #5fe6d4;
+    box-shadow: var(--accent-halo);
+  }
+  .big-btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
   }
 
   body.playing-state #grid::before,
@@ -1021,7 +1033,7 @@
 
   @keyframes hud-pop {
     0%   { transform: scale(1); }
-    50%  { transform: scale(1.25); }
+    50%  { transform: scale(1.12); }
     100% { transform: scale(1); }
   }
   .popping {
@@ -1082,9 +1094,11 @@
     #arena { min-height: clamp(230px, 42vh, 360px); }
     #phantom { width: 42px; height: 52px; }
     .phantom-head { width: 30px; height: 36px; }
-    .token { padding: 9px 8px; }
-    .token .key { font-size: 8px; margin-bottom: 3px; }
-    .token .txt { font-size: clamp(13px, 4vw, 17px); line-height: 1.3; }
+    /* Wider tokens + smaller mono so the longest command (JetBrains Mono is wider
+       than the old VT323) wraps to fewer lines and the diamond clears on small phones. */
+    .token { width: clamp(124px, 41vw, 200px); padding: 7px 8px; }
+    .token .key { font-size: 10px; margin-bottom: 2px; }
+    .token .txt { font-size: clamp(11px, 3.4vw, 16px); line-height: 1.18; overflow-wrap: anywhere; }
     .token.n { top: 0; }
     .token.s { bottom: 0; }
 
@@ -1236,7 +1250,7 @@
   <div class="screen" id="title">
     <h1><span class="word1">GHOST</span><span class="word2">CODE</span><span class="tagline">learn commands · haunt the terminal</span></h1>
     <p>Guide the Phantom. Capture the right command token. A wrong guess costs a spirit.</p>
-    <p><span style="color:var(--neon-cyan);font-family:'Press Start 2P',monospace;font-size:10px;">LEARN MODE:</span> <span style="font-family:'VT323',monospace;font-size:22px;">No spirit loss · hint escalation · answer reveal</span></p>
+    <p><span style="color:var(--accent);font-family:var(--font-ui);font-weight:600;font-size:14px;letter-spacing:0.04em;">LEARN MODE</span> <span style="font-family:var(--font-ui);font-size:17px;color:var(--text-secondary);">— no spirit loss · hint escalation · answer reveal</span></p>
     <p class="small kbd-hint">MOUSE or 1·2·3·4 &nbsp;·&nbsp; H 50/50 &nbsp;·&nbsp; R RESTART &nbsp;·&nbsp; ESC PAUSE &nbsp;·&nbsp; C CATEGORY &nbsp;·&nbsp; L LEARN MODE</p>
     <p class="small touch-hint">TAP or SWIPE toward a token &nbsp;·&nbsp; buttons below for 50/50 · PAUSE · RESTART · CATEGORY</p>
     <button class="big-btn blink" id="start-btn">PRESS START</button>
