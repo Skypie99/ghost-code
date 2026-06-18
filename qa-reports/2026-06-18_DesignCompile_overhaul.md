@@ -41,3 +41,18 @@ Plus: promote `--accent-subtle` (#BFF5EE), `--surface-track/-hover` alpha tokens
 
 ## Outcome
 **BLOCK** → blocker + the two regressions proposed as fixes on `fix/ghost-code-designcompile-fixes-2026-06-18` (see that commit). Re-compile after merge expected **PASS** (with the polish list optional). Cross-engine/real-device checks above remain required before UI-DONE / deploy.
+
+---
+
+## RE-COMPILE — 2026-06-18 (after the fixes + polish landed on main `6a5d685`)
+**Re-run on an Opus agent. DECISION: 🟢 PASS · Luxury 8/10 · prior BLOCKER resolved.**
+
+Verified in current code:
+- **Blocker cleared** — the Settings dialog Tab handler now cycles focus through all 8 dialog buttons (7 `.seg__btn` + CLOSE) with shift-aware wrap-around (`index.html` ~2373–2383). All Sound/Motion/Difficulty controls are keyboard-reachable → WCAG 2.1.1 satisfied.
+- **Regression 1 fixed** — exactly one calm `#sky` rule remains (the synthwave purple duplicate is gone).
+- **Regression 2 fixed** — `gameOver()` writes into the `.word1` span, preserving the score gradient.
+- **Polish all confirmed** — new tokens defined + consumed (no stray painted-UI hex), finite 3-pulse CTA, `#learn-badge` 11/10px, dead text-shadows removed, `.title-stats role=group`, missed-review `<h3>`, forced-colors covers `.big-btn`/`.missed-review`. The one extra token-drift nit the re-compile caught (`.phantom-head` gradient still raw `#BFF5EE`) was then fixed → `var(--accent-subtle)` (this commit), so painted UI is fully tokenized.
+
+Per layer: L1 PASS · L2 PASS (Chromium) · L3 POLISH (deferred component-consistency debt — non-blocking) · L4 PASS · L5 8/10 · L6 PASS. **No remaining blockers.**
+
+Remaining = optional follow-on (factor the duplicated modal logic / shared `.btn` base for `.seg__btn`; broad `--space-*` adoption) + the standing **Sky-gated real-device checks** (VoiceOver/iOS, Windows High Contrast, Safari/WebKit, TalkBack) before deploy. **UI-DONE for Chromium.**
