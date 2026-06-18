@@ -1027,15 +1027,15 @@
   /* Accessible help dialog (opened with "?"). Flat, tokenised, no backdrop blur —
      matches the Pass 3 calm materiality. Focus is trapped while open (the rest of
      the cabinet is set inert in JS) and restored to the trigger on close. */
-  #shortcuts-modal {
+  #shortcuts-modal, #settings-modal {
     position: fixed; inset: 0; z-index: 50;
     display: none;
     align-items: center; justify-content: center;
     padding: 24px;
     background: rgba(8, 11, 16, 0.82);
   }
-  #shortcuts-modal.visible { display: flex; }
-  #shortcuts-modal .sc-dialog {
+  #shortcuts-modal.visible, #settings-modal.visible { display: flex; }
+  #shortcuts-modal .sc-dialog, #settings-modal .sc-dialog {
     width: 100%; max-width: 420px;
     max-height: 86vh; overflow-y: auto;
     background: var(--surface-raised);
@@ -1045,7 +1045,7 @@
     padding: 24px;
     text-align: left;
   }
-  #shortcuts-modal h2 {
+  #shortcuts-modal h2, #settings-modal h2 {
     font-family: var(--font-ui); font-weight: 700; font-size: 18px;
     color: var(--text-primary); margin: 0 0 16px; letter-spacing: 0.04em;
   }
@@ -1064,7 +1064,27 @@
     border: 1px solid var(--border-strong); border-radius: 6px;
     padding: 2px 8px; white-space: nowrap;
   }
-  #shortcuts-modal .sc-close { margin-top: 22px; }
+  #shortcuts-modal .sc-close, #settings-modal .sc-close { margin-top: 22px; }
+
+  /* Pass 4b: Settings dialog — rows + segmented controls */
+  #settings-body { display: flex; flex-direction: column; gap: 18px; }
+  .set-row { display: flex; flex-direction: column; gap: 8px; }
+  .set-row__label {
+    font-family: var(--font-ui); font-weight: 600; font-size: 12px;
+    letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-secondary);
+  }
+  .seg { display: inline-flex; flex-wrap: wrap; gap: 6px; }
+  .seg__btn {
+    font-family: var(--font-ui); font-weight: 600; font-size: 13px;
+    color: var(--text-secondary); background: transparent;
+    border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);
+    padding: 8px 14px; min-height: 36px; cursor: pointer; transition: all 0.15s;
+  }
+  .seg__btn:hover { border-color: var(--border-strong); color: var(--text-primary); }
+  .seg__btn[aria-pressed="true"] {
+    background: var(--accent-quiet); border-color: var(--accent); color: var(--text-primary);
+  }
+  .seg__btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
   body.playing-state #grid::before,
   body.playing-state #grid::after {
@@ -1091,6 +1111,12 @@
     }
     html { scroll-behavior: auto !important; }
   }
+  /* Pass 4b: in-app "Reduce motion" override (Settings) — mirrors the OS query above */
+  body.reduce-motion *, body.reduce-motion *::before, body.reduce-motion *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 
   /* ====================================================================
      WCAG 2.2 — Windows High Contrast / forced-colors. The OS replaces the
@@ -1100,14 +1126,15 @@
      ==================================================================== */
   @media (forced-colors: active) {
     .token, .btn, .mode-btn, #mode-toggle, #learn-panel,
-    .mastery__track, #shortcuts-modal .sc-dialog {
+    .mastery__track, #shortcuts-modal .sc-dialog, #settings-modal .sc-dialog, .seg__btn {
       border: 1px solid CanvasText;
     }
     .token:focus-visible, .btn:focus-visible, .mode-btn:focus-visible,
-    .big-btn:focus-visible, #sc-close:focus-visible {
+    .big-btn:focus-visible, #sc-close:focus-visible, #set-close:focus-visible, .seg__btn:focus-visible {
       outline: 2px solid Highlight;
       outline-offset: 2px;
     }
+    .seg__btn[aria-pressed="true"] { background: Highlight; color: HighlightText; }
     .btn.active, .mode-btn.active { background: Highlight; color: HighlightText; }
     .token.correct, .token.wrong { border-color: CanvasText; }
     .mastery__fill, #learn-fill { background: Highlight; }
@@ -1365,6 +1392,7 @@
     <button class="btn lifeline-btn" id="lifeline-btn" aria-label="Use 50/50 lifeline: remove two wrong answers">50/50</button>
     <button class="btn" id="pause">PAUSE</button>
     <button class="btn" id="restart">RESTART</button>
+    <button class="btn" id="settings-btn" aria-label="Open settings">SETTINGS</button>
   </div>
 
   <!-- Title screen -->
@@ -1409,6 +1437,15 @@
       <dt><kbd>?</kbd></dt><dd>Open or close this help</dd>
     </dl>
     <button class="big-btn sc-close" id="sc-close">CLOSE</button>
+  </div>
+</div>
+
+<!-- Settings dialog (Pass 4b) — opened from the SETTINGS button; mirrors the shortcuts modal -->
+<div id="settings-modal" role="dialog" aria-modal="true" aria-labelledby="set-title">
+  <div class="sc-dialog">
+    <h2 id="set-title">Settings</h2>
+    <div id="settings-body"><!-- rows built by JS (createElement) --></div>
+    <button class="big-btn sc-close" id="set-close">CLOSE</button>
   </div>
 </div>
 
@@ -1475,6 +1512,9 @@ const persist = Object.assign({
   cardStats: {},
   mode: 'arcade',   // 'arcade' | 'learn'
   bestStreak: 0,    // [PERSIST-ADDITIVE] longest streak ever (Pass 4) — old saves default to 0
+  soundOn: true,           // [PERSIST-ADDITIVE] Pass 4b — sound effects on/off
+  reduceMotion: false,     // [PERSIST-ADDITIVE] Pass 4b — in-app reduce-motion override
+  difficultyFilter: 'all', // [PERSIST-ADDITIVE] Pass 4b — 'all' | 'easy' | 'medium' | 'hard'
 }, loadPersist());
 
 const state = {
@@ -1490,6 +1530,7 @@ const state = {
   runCorrect: 0,
   runTotal: 0,
   runStreakMax: 0,
+  reviewDeck: null,         // Pass 4b: session-only id list for the "review missed" drill
   // Learning Mode per-card state
   learnAttempt: 0,          // 0-indexed wrong attempts on current card
   learnRevealed: false,     // has the answer been revealed?
@@ -1518,6 +1559,7 @@ function applyMode(mode) {
 // ----- Audio -----
 let actx = null;
 function beep(freq, dur=0.08, type='square', gain=0.08) {
+  if (state.persist.soundOn === false) return;   // Pass 4b: sound toggle (default on)
   try {
     if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
     const o = actx.createOscillator();
@@ -1601,8 +1643,17 @@ const DIFF_WEIGHT = { easy: 1.2, medium: 1.0, hard: 0.7 };
 
 // ----- Card selection -----
 function activeDeck() {
-  const cat = state.persist.category;
-  return window.CARDS.filter(c => cat === 'all' || c.category === cat);
+  // Pass 4b: a focused "review missed" drill overrides the normal filters.
+  if (state.reviewDeck && state.reviewDeck.length) {
+    const set = new Set(state.reviewDeck);
+    return window.CARDS.filter(c => set.has(c.id));
+  }
+  const cat  = state.persist.category;
+  const diff = state.persist.difficultyFilter || 'all';
+  return window.CARDS.filter(c =>
+    (cat === 'all' || c.category === cat) &&
+    (diff === 'all' || DIFF(c) === diff)
+  );
 }
 function masteredScore(card) {
   return (state.persist.cardStats[card.id]?.c) || 0;
@@ -1955,7 +2006,11 @@ function nextCard() {
 }
 
 // ----- Lifecycle -----
-function startGame() {
+function startGame(opts) {
+  // Pass 4b: keep the review deck ONLY when explicitly starting a review drill.
+  // Normal start/restart/mode-change clears it (click handlers pass a MouseEvent,
+  // whose .review is undefined → cleared, which is correct — no leak into normal runs).
+  if (!opts || !opts.review) state.reviewDeck = null;
   state.score    = 0;
   state.lives    = 3;
   state.streak   = 0;
@@ -1984,7 +2039,7 @@ function gameOver() {
   DOM.finalHi.textContent    = String(state.persist.hi).padStart(2,'0');
 
   // Remove prior dynamic blocks so replays don't stack them
-  ['.results-stats', '.mastery', '.missed-review'].forEach(sel => {
+  ['.results-stats', '.mastery', '.missed-review', '#drill-missed-btn'].forEach(sel => {
     const el = DOM.gameover.querySelector(sel);
     if (el) el.remove();
   });
@@ -2080,6 +2135,20 @@ function gameOver() {
     DOM.gameover.insertBefore(section, againBtn);
   }
 
+  // Pass 4b: "DRILL MISSED" — replay just the missed cards as a focused review run
+  if (state.missedThisRun.size > 0) {
+    const drillBtn = document.createElement('button');
+    drillBtn.className = 'btn';
+    drillBtn.id = 'drill-missed-btn';
+    drillBtn.textContent = `DRILL MISSED (${state.missedThisRun.size})`;
+    drillBtn.setAttribute('aria-label', `Drill the ${state.missedThisRun.size} command${state.missedThisRun.size !== 1 ? 's' : ''} you missed this run`);
+    drillBtn.addEventListener('click', () => {
+      state.reviewDeck = Array.from(state.missedThisRun);
+      startGame({ review: true });
+    });
+    DOM.gameover.insertBefore(drillBtn, againBtn);
+  }
+
   DOM.gameover.classList.remove('hidden');
   setBoardInert(true);                  // overlay up — keep Tab out of the board behind it
   hideLearningPanel();
@@ -2126,6 +2195,69 @@ function closeShortcuts() {
     try { scLastFocus.focus(); } catch {}
   }
   scLastFocus = null;
+}
+
+// ----- Pass 4b: Settings dialog (sound / motion / difficulty) — mirrors the Pass 5
+//        shortcuts modal: cabinet set inert to trap focus, Esc/scrim/CLOSE dismiss,
+//        focus restored to the trigger. -----
+const setModal = document.getElementById('settings-modal');
+let setLastFocus = null;
+function settingsOpen() { return !!setModal && setModal.classList.contains('visible'); }
+function buildSettings() {
+  const body = document.getElementById('settings-body');
+  if (!body) return;
+  body.replaceChildren();
+  const segRow = (label, options, current, onPick) => {
+    const row = document.createElement('div'); row.className = 'set-row';
+    const lab = document.createElement('span'); lab.className = 'set-row__label'; lab.textContent = label;
+    const group = document.createElement('div'); group.className = 'seg';
+    group.setAttribute('role', 'group'); group.setAttribute('aria-label', label);
+    const btns = [];
+    options.forEach(([val, text]) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'seg__btn'; b.textContent = text;
+      b.setAttribute('aria-pressed', String(val === current));
+      b.addEventListener('click', () => {
+        btns.forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+        onPick(val);
+      });
+      btns.push(b); group.appendChild(b);
+    });
+    row.appendChild(lab); row.appendChild(group);
+    return row;
+  };
+  body.appendChild(segRow('Sound', [['on','On'],['off','Off']],
+    state.persist.soundOn === false ? 'off' : 'on',
+    v => { state.persist.soundOn = (v === 'on'); save(); }));
+  body.appendChild(segRow('Motion', [['full','Full'],['calm','Reduced']],
+    state.persist.reduceMotion ? 'calm' : 'full',
+    v => { state.persist.reduceMotion = (v === 'calm'); document.body.classList.toggle('reduce-motion', state.persist.reduceMotion); save(); }));
+  body.appendChild(segRow('Difficulty', [['all','All'],['easy','Easy'],['medium','Medium'],['hard','Hard']],
+    state.persist.difficultyFilter || 'all',
+    v => { state.persist.difficultyFilter = v; save(); if (state.playing && !state.reviewDeck) nextCard(); }));
+}
+function openSettings() {
+  if (!setModal || settingsOpen()) return;
+  setLastFocus = document.activeElement;
+  buildSettings();
+  setModal.classList.add('visible');
+  if (DOM.cabinet) DOM.cabinet.inert = true;
+  const c = document.getElementById('set-close'); if (c) c.focus();
+  if (DOM.announcer) DOM.announcer.textContent = 'Settings dialog opened.';
+}
+function closeSettings() {
+  if (!setModal || !settingsOpen()) return;
+  setModal.classList.remove('visible');
+  if (DOM.cabinet) DOM.cabinet.inert = false;
+  if (setLastFocus && typeof setLastFocus.focus === 'function') { try { setLastFocus.focus(); } catch {} }
+  setLastFocus = null;
+}
+{
+  const sBtn = document.getElementById('settings-btn');
+  if (sBtn) sBtn.addEventListener('click', openSettings);
+  const sClose = document.getElementById('set-close');
+  if (sClose) sClose.addEventListener('click', closeSettings);
+  if (setModal) setModal.addEventListener('click', (e) => { if (e.target === setModal) closeSettings(); });
 }
 
 // ----- Events: mode toggle -----
@@ -2232,6 +2364,13 @@ document.querySelectorAll('[data-cat]').forEach(btn => {
 });
 
 document.addEventListener('keydown', (e) => {
+  // While the Settings dialog is open: Esc closes, Tab traps on its close button,
+  // and every game shortcut is swallowed.
+  if (settingsOpen()) {
+    if (e.key === 'Escape') { e.preventDefault(); closeSettings(); }
+    else if (e.key === 'Tab') { e.preventDefault(); const c = document.getElementById('set-close'); if (c) c.focus(); }
+    return;
+  }
   // While the shortcuts dialog is open: trap focus on its close button and only
   // allow Esc / ? to dismiss it. Swallow every game shortcut so nothing fires behind it.
   if (shortcutsOpen()) {
@@ -2280,6 +2419,7 @@ if ((window.matchMedia && window.matchMedia('(hover: none) and (pointer: coarse)
   document.documentElement.classList.add('touch-device');
 }
 applyMode(state.persist.mode);
+if (state.persist.reduceMotion) document.body.classList.add('reduce-motion');  // Pass 4b
 renderHUD();
 setBoardInert(true);   // title screen is up at load — keep Tab out of the board behind it
 
