@@ -1492,6 +1492,7 @@ const DOM = {
   phantom:      document.getElementById('phantom'),
   arena:        document.getElementById('arena'),
   bar:          document.getElementById('bar'),
+  modeToggle:   document.getElementById('mode-toggle'),
   cabinet:      document.getElementById('cabinet'),
   title:        document.getElementById('title'),
   gameover:     document.getElementById('gameover'),
@@ -1550,7 +1551,6 @@ const state = {
   learnAttempt: 0,          // 0-indexed wrong attempts on current card
   learnRevealed: false,     // has the answer been revealed?
   learnMastered: new Set(), // card ids mastered this session
-  learnSeen: new Set(),     // card ids seen this session
   missedThisRun: new Set(), // card ids answered wrong (arcade) this run
   // Lifeline (50/50)
   lifelinesLeft: 3,         // resets each game; both modes
@@ -1725,7 +1725,6 @@ function renderCard(card) {
     d.setAttribute('aria-label', `Answer ${i + 1} of 4: ${options[i]}`);
   });
 
-  if (isLearnMode()) state.learnSeen.add(card.id);
   renderLearnProgress();
 }
 
@@ -2035,7 +2034,6 @@ function startGame(opts) {
   state.playing  = true;
   state.paused   = false;
   state.learnMastered  = new Set();
-  state.learnSeen      = new Set();
   state.missedThisRun  = new Set();
   state.lifelinesLeft  = 3;
   DOM.title.classList.add('hidden');
@@ -2187,8 +2185,9 @@ function togglePause() {
 //        is left interactive on purpose (the PAUSE button resumes; answer() and
 //        the lifeline already guard on state.paused). -----
 function setBoardInert(on) {
-  if (DOM.arena) DOM.arena.inert = on;
-  if (DOM.bar)   DOM.bar.inert   = on;
+  if (DOM.arena)      DOM.arena.inert      = on;
+  if (DOM.bar)        DOM.bar.inert        = on;
+  if (DOM.modeToggle) DOM.modeToggle.inert = on;
 }
 
 // ----- Pass 5 a11y: keyboard-shortcuts help dialog (opened with "?") -----
