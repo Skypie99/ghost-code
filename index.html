@@ -280,7 +280,7 @@
   /* Pass 3: the arcade-cabinet corner brackets are removed (shed the skin) — the
      cabinet is now a quiet bordered card. */
   .corner { display: none; }
-  /* Top brackets grow wider to frame the full HUD clusters: left = 1UP/HI-SCORE/STREAK, right = SPIRITS/50-50/CATEGORY(+LEARN MODE) */
+  /* Top brackets grow wider to frame the full HUD clusters: left = SCORE/BEST/STREAK, right = SPIRITS/50-50/CATEGORY(+LEARN MODE) */
   .corner.tl { top: 16px; left: 16px;   width: 320px; height: 80px; border-right: none; border-bottom: none; border-top-left-radius: 16px; }
   .corner.tr { top: 16px; right: 16px;  width: 320px; height: 80px; border-left: none;  border-bottom: none; border-top-right-radius: 16px; }
   .corner.bl { bottom: 16px; left: 16px; border-right: none; border-top: none; border-bottom-left-radius: 16px; }
@@ -884,6 +884,15 @@
     line-height: 1.15;
     margin: 0;
   }
+  /* Fallback: if background-clip:text is unsupported, the gradient + transparent
+     fill would render the wordmark INVISIBLE. Force a solid accent fill instead.
+     Covers every .word1 (title GHOST, game-over score, PAUSED). */
+  @supports not (background-clip: text) and not (-webkit-background-clip: text) {
+    .word1 {
+      -webkit-text-fill-color: var(--accent);
+      color: var(--accent);
+    }
+  }
   /* "CODE" smaller, accent */
   .screen h1 .word2 {
     display: block;
@@ -1336,8 +1345,8 @@
 
   <!-- HUD -->
   <div id="hud">
-    <div class="stat"><span class="label">1UP</span><span class="val" id="score">00</span></div>
-    <div class="stat"><span class="label">HI-SCORE</span><span class="val" id="hi">00</span></div>
+    <div class="stat"><span class="label">SCORE</span><span class="val" id="score">00</span></div>
+    <div class="stat"><span class="label">BEST</span><span class="val" id="hi">00</span></div>
     <div class="stat" id="streak"><span class="label">STREAK</span><span class="val">0</span></div>
     <div class="stat" id="lives-stat"><span class="label">SPIRITS</span><div id="lives"></div></div>
     <div class="stat" id="lifelines-stat"><span class="label">50/50</span><div id="lifelines" aria-label="Lifelines remaining"></div></div>
