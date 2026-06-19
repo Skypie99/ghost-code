@@ -1042,7 +1042,7 @@
     display: none;
     align-items: center; justify-content: center;
     padding: 24px;
-    background: rgba(8, 11, 16, 0.82);
+    background: rgba(8, 11, 16, 0.72);  /* eased so the board keeps spatial context behind the modal */
   }
   #shortcuts-modal.visible, #settings-modal.visible { display: flex; }
   #shortcuts-modal .sc-dialog, #settings-modal .sc-dialog {
@@ -1086,6 +1086,7 @@
   .seg { display: inline-flex; flex-wrap: wrap; gap: 6px; }
   .seg__btn {
     font-family: var(--font-ui); font-weight: 600; font-size: 13px;
+    letter-spacing: 0.04em; text-transform: uppercase;   /* match the terminal-label aesthetic (SOUND/CATEGORY/ALL…) */
     color: var(--text-secondary); background: transparent;
     border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);
     padding: 8px 14px; min-height: 36px; cursor: pointer; transition: all 0.15s;
@@ -1094,6 +1095,7 @@
   .seg__btn[aria-pressed="true"] {
     background: var(--accent-quiet); border-color: var(--accent); color: var(--text-primary);
   }
+  .seg__btn[aria-pressed="true"]:hover { border-color: var(--accent); filter: brightness(1.1); }  /* keep the accent edge + a responsive cue on the selected segment */
   .seg__btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
   body.playing-state #grid::before,
@@ -1325,7 +1327,7 @@
 <div id="grid"></div>
 
 <!-- Visually hidden aria-live region for announcements -->
-<div id="a11y-announcer" aria-live="polite" aria-atomic="true" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;"></div>
+<div id="a11y-announcer" aria-live="polite" aria-atomic="true" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);clip-path:inset(100%);white-space:nowrap;border:0;"></div>
 
 <div id="cabinet">
   <span class="corner tl"></span>
@@ -1414,9 +1416,9 @@
     <p class="small touch-hint">TAP or SWIPE toward a token &nbsp;·&nbsp; buttons below for 50/50 · PAUSE · RESTART · CATEGORY</p>
     <button class="big-btn blink" id="start-btn">PRESS START</button>
     <p class="small" style="margin-top:26px;padding-top:14px;border-top:1px solid var(--border-subtle);font-family:var(--font-ui);font-size:13px;letter-spacing:0.02em;color:var(--text-secondary);">
-      Built by <a href="https://skypistudio.com" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:underline;text-underline-offset:3px;">Sky Halisky</a>
+      Built by <a href="https://skypistudio.com" target="_blank" rel="noopener" aria-label="Sky Halisky — portfolio (opens in new tab)" style="color:var(--accent);text-decoration:underline;text-underline-offset:3px;">Sky Halisky</a>
       &nbsp;·&nbsp;
-      <a href="https://github.com/Skypie99/ghost-code" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:underline;text-underline-offset:3px;">Source</a>
+      <a href="https://github.com/Skypie99/ghost-code" target="_blank" rel="noopener" aria-label="Ghost Code source code on GitHub (opens in new tab)" style="color:var(--accent);text-decoration:underline;text-underline-offset:3px;">Source</a>
     </p>
   </div>
 
