@@ -27,6 +27,7 @@
 <meta name="twitter:description" content="A calm, modern terminal-command trainer. 56 cards across Claude Code, macOS, and Git. Zero dependencies." />
 <meta name="twitter:image" content="https://ghostcode.skypistudio.com/og-image.png" />
 <meta name="twitter:image:alt" content="Ghost Code start screen — the GHOST CODE title with the Phantom mascot on a calm, dark terminal-style background" />
+<meta name="author" content="Sky Halisky" />
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -279,7 +280,7 @@
   /* Pass 3: the arcade-cabinet corner brackets are removed (shed the skin) — the
      cabinet is now a quiet bordered card. */
   .corner { display: none; }
-  /* Top brackets grow wider to frame the full HUD clusters: left = 1UP/HI-SCORE/STREAK, right = SPIRITS/50-50/CATEGORY(+LEARN MODE) */
+  /* Top brackets grow wider to frame the full HUD clusters: left = SCORE/BEST/STREAK, right = SPIRITS/50-50/CATEGORY(+LEARN MODE) */
   .corner.tl { top: 16px; left: 16px;   width: 320px; height: 80px; border-right: none; border-bottom: none; border-top-left-radius: 16px; }
   .corner.tr { top: 16px; right: 16px;  width: 320px; height: 80px; border-left: none;  border-bottom: none; border-top-right-radius: 16px; }
   .corner.bl { bottom: 16px; left: 16px; border-right: none; border-top: none; border-bottom-left-radius: 16px; }
@@ -883,6 +884,15 @@
     line-height: 1.15;
     margin: 0;
   }
+  /* Fallback: if background-clip:text is unsupported, the gradient + transparent
+     fill would render the wordmark INVISIBLE. Force a solid accent fill instead.
+     Covers every .word1 (title GHOST, game-over score, PAUSED). */
+  @supports not (background-clip: text) and not (-webkit-background-clip: text) {
+    .word1 {
+      -webkit-text-fill-color: var(--accent);
+      color: var(--accent);
+    }
+  }
   /* "CODE" smaller, accent */
   .screen h1 .word2 {
     display: block;
@@ -1335,8 +1345,8 @@
 
   <!-- HUD -->
   <div id="hud">
-    <div class="stat"><span class="label">1UP</span><span class="val" id="score">00</span></div>
-    <div class="stat"><span class="label">HI-SCORE</span><span class="val" id="hi">00</span></div>
+    <div class="stat"><span class="label">SCORE</span><span class="val" id="score">00</span></div>
+    <div class="stat"><span class="label">BEST</span><span class="val" id="hi">00</span></div>
     <div class="stat" id="streak"><span class="label">STREAK</span><span class="val">0</span></div>
     <div class="stat" id="lives-stat"><span class="label">SPIRITS</span><div id="lives"></div></div>
     <div class="stat" id="lifelines-stat"><span class="label">50/50</span><div id="lifelines" aria-label="Lifelines remaining"></div></div>
@@ -1403,13 +1413,18 @@
     <p class="small kbd-hint">MOUSE or 1·2·3·4 &nbsp;·&nbsp; ↑→↓← AIM &nbsp;·&nbsp; H 50/50 &nbsp;·&nbsp; R RESTART &nbsp;·&nbsp; ESC PAUSE &nbsp;·&nbsp; C CATEGORY &nbsp;·&nbsp; L LEARN &nbsp;·&nbsp; ? HELP</p>
     <p class="small touch-hint">TAP or SWIPE toward a token &nbsp;·&nbsp; buttons below for 50/50 · PAUSE · RESTART · CATEGORY</p>
     <button class="big-btn blink" id="start-btn">PRESS START</button>
+    <p class="small" style="margin-top:26px;padding-top:14px;border-top:1px solid var(--border-subtle);font-family:var(--font-ui);font-size:13px;letter-spacing:0.02em;color:var(--text-secondary);">
+      Built by <a href="https://skypistudio.com" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:underline;text-underline-offset:3px;">Sky Halisky</a>
+      &nbsp;·&nbsp;
+      <a href="https://github.com/Skypie99/ghost-code" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:underline;text-underline-offset:3px;">Source</a>
+    </p>
   </div>
 
   <!-- Game over screen -->
   <div class="screen hidden" id="gameover">
     <h2>GAME OVER</h2>
     <h1 id="final-score"><span class="word1">00</span></h1>
-    <p>HI-SCORE: <span id="final-hi">00</span></p>
+    <p>BEST: <span id="final-hi">00</span></p>
     <button class="big-btn blink" id="again-btn">PLAY AGAIN [R]</button>
     <button class="btn" id="copy-result-btn">COPY RESULT</button>
   </div>

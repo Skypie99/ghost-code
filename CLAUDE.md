@@ -1,12 +1,12 @@
-# Pac-Man Code Trainer — Agent & Developer Guide
+# Ghost Code — Agent & Developer Guide
 
-A vanilla HTML/JS **flashcard game** (Pac-Man themed) for memorizing **Claude Code**, **Mac terminal**, and **Git commands**. Built so Sky learns by doing — keep diffs small and understandable, don't over-engineer, don't add unasked features.
+A vanilla HTML/JS **terminal-command trainer** for memorizing **Claude Code**, **Mac terminal**, and **Git commands**. The "terminal, not arcade" redesign shipped — keep the calm, modern identity. Built so Sky learns by doing — keep diffs small and understandable, don't over-engineer, don't add unasked features.
 
 ## The Game
 
-Users click the right command-dot, Pac-Man chomps it. Click the wrong one, a ghost takes a life. Two modes: **Arcade** (survive 10 rounds) and **Learn** (drill cards with explanations). Single-player, browser-based, zero dependencies.
+Guide the Phantom — a spectral terminal cursor — and capture the right command token. Capture the correct one and it's chomped; aim at a wrong one and a spirit is lost. Two modes: **Arcade** (survive on 3 spirits) and **Learn** (drill cards with explanations). Single-player, browser-based, zero dependencies.
 
-**Play it:** Double-click `index.html` or run `open ~/Games/pacman-code-trainer/index.html`.
+**Play it:** Live at https://ghostcode.skypistudio.com. To run locally, serve the folder (e.g. `cd ~/Games/pacman-code-trainer && python3 -m http.server 8000`) and open `http://localhost:8000`.
 
 ---
 
@@ -18,7 +18,7 @@ Users click the right command-dot, Pac-Man chomps it. Click the wrong one, a gho
 - **Card deck:** `cards.js` (56 cards, `window.CARDS` array, 284 lines)
 - **Test:** `test/cards.test.js` (zero-dependency validator, catches card integrity bugs)
 - **CI:** `.github/workflows/ci.yml` (mirrors the local green gate)
-- **Data layer:** `localStorage['pmct.v1']` only (no network, no DB, no auth, no PII)
+- **Data layer:** `localStorage['gc.v1']` only (no network, no DB, no auth, no PII)
 
 ---
 
@@ -26,7 +26,7 @@ Users click the right command-dot, Pac-Man chomps it. Click the wrong one, a gho
 
 | File | Role |
 |---|---|
-| `index.html` | Whole game: HTML structure, inline CSS (80s synthwave palette), inline JS game loop |
+| `index.html` | Whole game: HTML structure, inline CSS (calm dark terminal palette), inline JS game loop |
 | `cards.js` | Flashcard deck: 56 card objects. Add a card by copying a `{}` block, change the fields, save. Refresh the tab. |
 | `test/cards.test.js` | Card validator: checks for missing fields, duplicate IDs, bad decoys, empty strings, unknown categories, bad difficulty values. Run `node test/cards.test.js`. |
 | `.github/workflows/ci.yml` | Automated green gate: runs on every push to the repo. Mirrors the local gate. |
@@ -60,7 +60,7 @@ node test/cards.test.js
 #    - Press 'C' to cycle category
 #    - Press 'L' to switch to Learn mode
 #    - Check localStorage: open DevTools → Application → Storage → Local Storage
-#      You should see 'pmct.v1' with keys: hi, category, cardStats, mode
+#      You should see 'gc.v1' with keys: hi, category, cardStats, mode
 ```
 
 **Run the green gate after every change.** It's cheap, it's fast, and it's the only safety net we have.
@@ -80,9 +80,11 @@ node test/cards.test.js
 **Shadows & Glow:**
 - `--shadow-sm` `0 2px 6px rgba(0,0,0,0.55)` · `--shadow-md` `0 0 18px rgba(255,110,199,0.55)` · `--shadow-glow` `0 0 28px var(--neon-cyan)`
 
-**Fonts:**
-- `Press Start 2P` — big arcade headers (headings, titles)
-- `VT323` — readable retro body text (prompts, hints, answers)
+**Fonts** (loaded from Google Fonts, line ~35; tokens at `:root`):
+- `--font-ui` → `Inter` (UI, headings, titles, prose) — falls back to `system-ui`, `-apple-system`, `Segoe UI`, sans-serif
+- `--font-mono` → `JetBrains Mono` (command / code text) — falls back to `ui-monospace`, `SFMono-Regular`, `Menlo`, monospace
+
+> Note: the color tokens listed above are from the pre-redesign synthwave palette and are stale after the "terminal, not arcade" redesign. The live palette is a calm dark terminal theme keyed off `--accent` (`#3DD8C4`). Treat `:root` in `index.html` as the source of truth, not this list, until it's refreshed.
 
 **A11y Baseline:**
 - `#a11y-announcer` (an `aria-live="polite"` div that announces card prompts, feedback, game state)
@@ -120,9 +122,9 @@ div.appendChild(line1);
 div.appendChild(line2);
 ```
 
-### 2. **localStorage Stays Additive at `pmct.v1` — Never Rename Keys**
+### 2. **localStorage Stays Additive at `gc.v1` — Never Rename Keys**
 
-The persist schema is `localStorage['pmct.v1']` with these keys:
+The persist schema is `localStorage['gc.v1']` with these keys:
 ```javascript
 {
   hi: string,              // player's name
@@ -138,7 +140,7 @@ The persist schema is `localStorage['pmct.v1']` with these keys:
 **To add a new field:** Add it to the default object in the load function:
 ```javascript
 const loadPersist = () => {
-  const saved = localStorage.getItem('pmct.v1');
+  const saved = localStorage.getItem('gc.v1');
   return saved ? JSON.parse(saved) : {};
 };
 
@@ -155,10 +157,10 @@ const state = Object.assign({
 
 Old saves won't have `myNewField` — the default fills it in automatically.
 
-**If a rename is ever forced:** bump the version to `pmct.v2` and write a migration:
+**If a rename is ever forced:** bump the version to `gc.v2` and write a migration:
 ```javascript
-const saved = localStorage.getItem('pmct.v2') 
-  || migrateFromV1(localStorage.getItem('pmct.v1'));
+const saved = localStorage.getItem('gc.v2') 
+  || migrateFromV1(localStorage.getItem('gc.v1'));
 ```
 
 ### 3. **Decoys Must Never Be a Real Alias**
@@ -185,7 +187,7 @@ Keep the mental model clean:
 - `state.missedThisRun` (Set of card IDs missed in this session)
 - Game loop variables
 
-**Persistent** (survive app close/reopen, stored in `pmct.v1`):
+**Persistent** (survive app close/reopen, stored in `gc.v1`):
 - `hi` (player name)
 - `category` (preferred filter)
 - `mode` ('arcade' or 'learn')
@@ -215,7 +217,7 @@ state.category = loadPersist().category || 'all';
    - `id`: unique short string, no spaces (e.g., `"git-status"`)
    - `category`: one of `"claude"`, `"mac"`, `"git"`
    - `difficulty`: (optional) `"easy"`, `"medium"`, or `"hard"` (missing → `"medium"`)
-   - `prompt`: the question shown above Pac-Man
+   - `prompt`: the question shown above the Phantom
    - `answer`: the CORRECT command (must match one of the 4 dots)
    - `decoys`: 3 wrong-but-plausible commands (none should be real aliases of the answer)
    - `hint`: short memory aid, shown after wrong answer
@@ -313,12 +315,12 @@ node test/cards.test.js
 ### Smoke Test Checklist
 - [ ] Game starts with a title bar (no console errors)
 - [ ] 4 colored dots appear
-- [ ] Click the correct dot → Pac-Man chomps it, score increases
+- [ ] Capture the correct token → it's chomped, score increases
 - [ ] Click a wrong dot → a ghost flashes, life decreases
 - [ ] Press `C` → category cycles, deck filters
 - [ ] Press `L` → switch to Learn mode
 - [ ] In Learn mode, press `ANSWER` → reveal, press `EXPLAIN` → show explanation
-- [ ] localStorage `pmct.v1` contains `hi`, `category`, `cardStats`, `mode`
+- [ ] localStorage `gc.v1` contains `hi`, `category`, `cardStats`, `mode`
 
 ---
 
@@ -331,7 +333,7 @@ node test/cards.test.js
 4. **Play:** Game loop picks random cards, player answers
 5. **Game over (Arcade only):** Show final score, list missed cards (if any)
 6. **Learn mode:** After each card, reveal explanation; player decides next/retry
-7. **Close app:** `pmct.v1` stays in localStorage; player's state is preserved
+7. **Close app:** `gc.v1` stays in localStorage; player's state is preserved
 
 ### Code Style
 - No `any` types (but the codebase is untyped, so this is N/A).
@@ -349,11 +351,11 @@ const savePersist = () => {
     cardStats: state.cardStats,
     mode: state.mode,
   };
-  localStorage.setItem('pmct.v1', JSON.stringify(persist));
+  localStorage.setItem('gc.v1', JSON.stringify(persist));
 };
 
 const loadPersist = () => {
-  const saved = localStorage.getItem('pmct.v1');
+  const saved = localStorage.getItem('gc.v1');
   return saved ? JSON.parse(saved) : {};
 };
 ```
@@ -375,9 +377,10 @@ Morgan reads these files and routes findings to the team or Sky. Don't flood Sky
 
 ## Recent Status
 
-- **Main:** `3791d6e` (P0–P6 live, 56 cards, green gate passes)
-- **Next branch:** `shamus/p7-gameover-a11y-2026-06-03` (P7 built + reviewed, ff-clean over main, awaits Sky's merge)
-- **Public site:** Still serving the bare base game (origin/main at Initial commit) — awaits Sky's `git push origin main`
+- **Live:** The "terminal, not arcade" Ghost Code redesign is **shipped** at https://ghostcode.skypistudio.com (`origin/main` = `8496cd2`). 56 cards, calm dark terminal palette, green gate passing.
+- **Identity:** Calm, modern terminal-command trainer. Phantom mascot, `--accent` (`#3DD8C4`) keyed theme, Inter + JetBrains Mono. No more arcade/synthwave framing.
+- **In flight:** Identity/cross-engine + attribution pass on `attribution/ghost-code-credit-2026-06-18` (start-screen "Built by Sky Halisky" + Source credit, HUD relabel SCORE/BEST, `@supports` wordmark fallback, README/CLAUDE doc rebrand). Branch only — Sky-merge per Const. Art. 1; UI bits await Dani Design-Compiler review before UI-DONE.
+- **Merge rule:** `main` is Sky's hand only — agents branch, Sky merges.
 
 ---
 
@@ -403,7 +406,7 @@ Morgan reads these files and routes findings to the team or Sky. Don't flood Sky
 
 ## Quick Links
 
-- **Play it:** `open ~/Games/pacman-code-trainer/index.html`
-- **Repo:** Local `/Users/skypie/Games/pacman-code-trainer`
-- **Public site:** https://skypie99.github.io/pacman-code-trainer/ (currently serving bare base)
+- **Play it (live):** https://ghostcode.skypistudio.com
+- **Run locally:** `cd ~/Games/pacman-code-trainer && python3 -m http.server 8000`, then open `http://localhost:8000`
+- **Repo (local):** `/Users/skypie/Games/pacman-code-trainer` · **Source:** https://github.com/Skypie99/ghost-code
 - **Read first:** PLAN.md (living roadmap), DECISIONS_LOG.md (structural decisions), LEARNINGS.md (durable lessons)

@@ -1,14 +1,20 @@
 # Ghost Code
 
-A retro arcade flashcard game for memorizing Claude Code commands, Mac terminal commands, and Git. Guide the Phantom — a spectral terminal cursor — and capture the right command token. A wrong guess costs a spirit.
+A calm, modern terminal-command trainer. Guide the Phantom — a spectral terminal cursor — and capture the right command token across Claude Code, the macOS terminal, and Git. A wrong guess costs a spirit. 56 cards, zero dependencies, runs in any browser.
 
 ## Play it
 
-Double-click `index.html`. That's it — it opens in your default browser.
+Live at **[ghostcode.skypistudio.com](https://ghostcode.skypistudio.com)**.
 
-(Or from the terminal: `open ~/Games/pacman-code-trainer/index.html`.)
+To run it locally, serve the folder and open it in your browser — for example:
 
-**Controls:** mouse, or `1` `2` `3` `4` for the four command tokens. `R` restart. `Esc` pause. `C` cycle category. `H` 50/50 lifeline. `L` toggle Learn Mode.
+```bash
+cd ~/Games/pacman-code-trainer && python3 -m http.server 8000
+```
+
+Then visit `http://localhost:8000`.
+
+**Controls:** mouse, or `1` `2` `3` `4` for the four command tokens. `↑ → ↓ ←` to aim. `H` 50/50 lifeline. `R` restart. `Esc` pause. `C` cycle category. `L` toggle Learn Mode. `?` help.
 
 ## Game modes
 
