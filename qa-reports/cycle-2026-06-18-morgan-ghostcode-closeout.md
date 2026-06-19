@@ -13,7 +13,7 @@ model_tier: opus (Sky-directed this session)
 ```
 
 ## ⭐ DECISIONS FOR SKY
-- **{node: real-device-verification, type: DECISION_FOR_SKY}** — the overhaul shipped **Chromium-only**; Safari/WebKit + VoiceOver/TalkBack + Windows-High-Contrast are **unverified**. Sky accepted this risk and directed the push. **Action (Sky, ~1 min):** view `ghostcode.skypistudio.com` on iPhone/Safari (the `-webkit-background-clip:text` title gradient is the only WebKit-sensitive surface). **Rollback if off:** `git push --force-with-lease origin 48af607:main`.
+- **{node: real-device-verification, type: DECISION_FOR_SKY}** — the overhaul shipped **Chromium-only**; Safari/WebKit + VoiceOver/TalkBack + Windows-High-Contrast are **unverified**. Sky accepted this risk and directed the push. **Action (Sky, ~1 min):** view `ghostcode.skypistudio.com` on iPhone/Safari (the `-webkit-background-clip:text` title gradient is the only WebKit-sensitive surface). **Rollback if off:** `git push --force-with-lease origin 0a1cada:main` (prior-good commit on the NEW build). ⚠️ **WARNING:** do NOT roll back to `48af607` — that commit predates the "terminal not arcade" overhaul + attribution and using it as a rollback target would discard the entire shipped redesign.
 - Nothing else requires Sky. Build / ship / gate work is **complete**.
 
 ## Original asks → status

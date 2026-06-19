@@ -1,5 +1,7 @@
 # Ghost Code — Deep UI Polish Sweep (the craft layer)
 
+> **UPDATE 2026-06-19: MERGED + LIVE** — the craft sweep is on origin/main (`a2cbc23`); markers verified live. The "Awaiting … Sky review + merge" status below is superseded — kept for history.
+
 **Date:** 2026-06-19 · **Branch:** `feat/ghostcode-polish` (off `main`/`origin/main` `0a1cada`) · **File:** `index.html`
 **Status:** BUILT + verified (green gate + built output). **Awaiting Dani Design-Compiler review → Sky review + merge (Sky-only, Const. Art. 1).**
 **Plan:** `~/.claude/plans/opus-4-8-ultracode-steady-shell.md` (Ghost Code section)

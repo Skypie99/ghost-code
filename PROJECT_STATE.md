@@ -2,10 +2,10 @@
 _Last compiled: 2026-06-04 by /morgan — CUSTOM DOMAIN LIVE_
 
 ## Current Status
-**LIVE at the custom URL.** The game (rebranded "Ghost Code") now serves at **https://ghostcode.skypistudio.com** with green HTTPS + HSTS, http→https 301, and the old `skypie99.github.io/ghost-code/` URL 301-redirects to the custom domain (good for any inbound links + SEO). `main = origin/main = 7ab62c6`. Portfolio card at `skypistudio.com/work/ghost-code` is updated to point Live demo at the new URL and now correctly shows both GitHub + Live-demo buttons (the `links` field had been silently stripped — caught + restored this cycle).
+**LIVE at the custom URL.** The game (rebranded "Ghost Code") now serves at **https://ghostcode.skypistudio.com** with green HTTPS + HSTS, http→https 301, and the old `skypie99.github.io/ghost-code/` URL 301-redirects to the custom domain (good for any inbound links + SEO). `main = origin/main = a2cbc23` (live, post-overhaul + attribution). Portfolio card at `skypistudio.com/work/ghost-code` is updated to point Live demo at the new URL and now correctly shows both GitHub + Live-demo buttons (the `links` field had been silently stripped — caught + restored this cycle).
 
 ## Branch topology
-- **`main` `7ab62c6`** = `origin/main` — canonical + LIVE. Includes: full Ghost Code rebrand (no Pac-Man trade dress), mobile flex-wrap fix, AA contrast polish, CNAME file for custom domain.
+- **`main` `a2cbc23`** = `origin/main` — canonical + LIVE. Includes: full Ghost Code rebrand (no Pac-Man trade dress), the "terminal not arcade" overhaul, attribution byline, mobile flex-wrap fix, AA contrast polish, CNAME file for custom domain.
 - Stale branches (prune at leisure — none blocking): `Taylor/a11y/category-aria-labels-2026-05-27`, `a11y/auto-2026-05-25`, `community/auto-2026-05-25-casey-readme`, `cycle/auto-2026-05-23-ui`, `dani/ghost-code-concept-2026-06-03` (served), `feat/auto-2026-05-25-shamus-git-cards`, `feat/auto-2026-05-25-shamus-git-ui`, `release/auto-2026-05-25`, `test/pacman-cards-data-validator-2026-05-25`, `test/pacman-empty-deck-robustness-2026-05-25`.
 - This cycle: `chore/custom-domain-2026-06-04` + `feat/ghost-code-custom-url-2026-06-04` (portfolio) merged + locally pruned.
 

@@ -1,4 +1,4 @@
-# Pac-Man Code Trainer — Roadmap (PLAN.md)
+# Ghost Code — Roadmap (PLAN.md)
 
 > Living roadmap for build bursts. Each burst continues here instead of re-deciding.
 > Owner: Morgan (planning) → roles execute. **Never merge to `main` — Sky's gate.**
@@ -17,14 +17,14 @@ close=$(grep -n '</script>' index.html | tail -1 | cut -d: -f1)
 sed -n "$((open+1)),$((close-1))p" index.html | node --check -   # exit 0
 # then: serve :8080, 0 console errors, smoke (start · 4 dots · correct/wrong · C · L · localStorage)
 ```
-Data layer = `localStorage['pmct.v1']` only. **No DB, no migrations.** Keep persist changes
+Data layer = `localStorage['gc.v1']` only (one-time migration from legacy `pmct.v1` exists). **No DB.** Keep persist changes
 additive (new keys on the `Object.assign({defaults}, loadPersist())` default) — never rename
-`hi/category/cardStats/mode`; bump to `pmct.v2` only with a migration if a rename is ever forced.
+`hi/category/cardStats/mode`; bump to `gc.v2` only with a migration if a rename is ever forced.
 
 ## Design tokens (design to these — no new colors)
-`--neon-pink #e6237f` · `--neon-cyan #1ed4e6` · `--neon-purp` · `--pac #ffe600` ·
-`--dot-1..4` · `--gold #ffd700` · `--soft #f1e6ff` (text) · `--dim` · ghost colors ·
-`--shadow-sm/md/glow`. Fonts: `Press Start 2P` (headers), `VT323` (body).
+`--accent #3DD8C4` (single teal accent) · `--surface-base` · `--text-primary` / `--text-secondary` ·
+`--border-subtle` · `--dot-1..4` (answer choices) — calm dark "terminal not arcade" palette
+(treat `:root` in `index.html` as source of truth). Fonts: `Inter` (UI), `JetBrains Mono` (command/code).
 A11y baseline: `#a11y-announcer` aria-live · aria-labels · `aria-pressed` toggles ·
 `:focus-visible` rings · `prefers-reduced-motion`.
 
