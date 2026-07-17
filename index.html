@@ -1188,7 +1188,7 @@
     body.learning-mode #learn-progress-bar { width: 92%; }
     #learn-panel {
       padding: 12px 14px;
-      max-height: 38vh; overflow-y: auto;
+      max-height: 32vh; overflow-y: auto; /* [M1 fold] tighter cap; a long reveal scrolls inside the panel */
       -webkit-overflow-scrolling: touch; touch-action: pan-y;
     }
     #learn-panel .lp-status { font-size: 11px; }
@@ -1200,11 +1200,23 @@
        edges so even a 3-line command (e.g. "git reset HEAD index.html") clears
        the vertically-centred E/W tokens on the smallest phones. */
     #arena { min-height: clamp(230px, 42vh, 360px); }
-    #phantom { width: 42px; height: 52px; }
-    .phantom-head { width: 30px; height: 36px; }
+    /* [M1 fold · L5-F5] Learn-mode fold relief: the growing learn panel pushes
+       the S (4th) token below the fold at ≤600. Compact the diamond in learn
+       mode and let the cabinet scroll so every option stays reachable — pre-hint
+       + retry1 show all four without scrolling; retry2/reveal scroll (learn is
+       untimed, so nothing is ever unreachable). Arcade keeps the full diamond. */
+    body.learning-mode #arena { min-height: clamp(170px, 30vh, 270px); }
+    body.learning-mode #cabinet { overflow-y: auto; }
+    /* [M1 · candidate C, Sky-picked] De-collide the ≤600 diamond within the
+       NESW anchors (SD-5 untouched): smaller Phantom + tighter glow so the
+       mascot clears the E/W command tokens. Was 42×52 / head 30×36 / halo 16px.
+       Opens ~+10px clearance each side (measured @375); longest command wraps
+       to 2 lines. Pairs with the narrower .token below. */
+    #phantom { width: 36px; height: 44px; }
+    .phantom-head { width: 26px; height: 30px; box-shadow: 0 0 10px rgba(61,216,196,.32); }
     /* Wider tokens + smaller mono so the longest command (JetBrains Mono is wider
        than the old VT323) wraps to fewer lines and the diamond clears on small phones. */
-    .token { width: clamp(124px, 41vw, 200px); padding: 7px 8px; }
+    .token { width: clamp(112px, 37vw, 165px); padding: 7px 8px; } /* [M1·C] narrower E/W tokens open the center gutter for the Phantom (was clamp(124px,41vw,200px)) */
     .token .key { font-size: 10px; margin-bottom: 2px; }
     .token .txt { font-size: clamp(11px, 3.4vw, 16px); line-height: 1.18; overflow-wrap: anywhere; }
     .token.n { top: 0; }
