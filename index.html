@@ -101,6 +101,7 @@
     /* ONE elevation shadow (no glow); a single soft accent halo for "alive/answer" */
     --shadow:       0 1px 2px rgba(0,0,0,.45), 0 8px 24px rgba(0,0,0,.30);
     --accent-halo:  0 0 16px rgba(61,216,196,.35);
+    --neutral-halo: 0 0 16px rgba(157,167,179,.35);  /* desaturated focus halo — wrong+focused (Q6) */
 
     /* ---- Back-compat remap: old names → new system ---- */
     --bg-deep:    var(--surface-base);
@@ -640,6 +641,15 @@
   }
   .token.correct::after { content: "\2713"; color: var(--success); }   /* ✓ */
   .token.wrong::after   { content: "\2717"; color: var(--danger); }    /* ✗ */
+  /* Q6 — wrong + keyboard-focused: keep the focus double-ring's exact geometry, but
+     swap its teal ("good/active") hue for a neutral slate so the focus ring no longer
+     collides with the red .wrong verdict. Fill + ✗ glyph untouched. Neutral ring
+     measures ~7.8:1 vs base and ~5.5:1 vs the .wrong fill (both clear SC 1.4.11 >=3:1). */
+  .token.wrong:focus-visible {
+    outline-color: var(--text-secondary);              /* was --accent (teal) */
+    border-color:  var(--text-secondary) !important;   /* beat .wrong's red !important */
+    box-shadow:    var(--neutral-halo) !important;      /* neutral halo; same geometry as --accent-halo */
+  }
   /* Captured (correct) state — dissolves upward */
   .token.captured {
     opacity: 0;
