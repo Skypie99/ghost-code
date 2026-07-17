@@ -1382,6 +1382,13 @@
     font-family: var(--font-ui); font-weight: 600; font-size: 11px;
     letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-secondary);
   }
+  /* Q10/L1-F10 — returning-player welcome-back beat (static; shown only when mastered>0) */
+  .title-stat__val--earned { color: var(--accent); }
+  .title-welcome {
+    margin: calc(-1 * var(--space-4)) 0 0;
+    font-family: var(--font-ui); font-size: 14px;
+    color: var(--text-secondary); letter-spacing: 0.01em;
+  }
   @media (max-width: 600px) {
     .results-stats { gap: var(--space-5); }
     .results-stat__val { font-size: 22px; }
@@ -2566,12 +2573,23 @@ setBoardInert(true);   // title screen is up at load — keep Tab out of the boa
     const l = document.createElement('span'); l.className = 'title-stat__label'; l.textContent = label;
     cell.appendChild(v); cell.appendChild(l); return cell;
   };
-  strip.appendChild(mk(mastered + '/' + total, 'MASTERED'));
+  const masteredCell = mk(mastered + '/' + total, 'MASTERED');
+  // Q10/L1-F10: a returning player's earned mastery should read as EARNED — accent the
+  // numeral (reinforcing, not color-alone: the count is already text) + one static
+  // welcome-back line. Read-only from cardStats; no new gc.v1 key, no animation.
+  if (mastered > 0) masteredCell.querySelector('.title-stat__val').classList.add('title-stat__val--earned');
+  strip.appendChild(masteredCell);
   strip.appendChild(mk(String(state.persist.hi || 0), 'BEST SCORE'));
   strip.appendChild(mk(seen + '/' + total, 'SEEN'));
   const h1 = titleEl.querySelector('h1');
   if (h1 && h1.nextSibling) titleEl.insertBefore(strip, h1.nextSibling);
   else titleEl.appendChild(strip);
+  if (mastered > 0) {
+    const welcome = document.createElement('p');
+    welcome.className = 'title-welcome';
+    welcome.textContent = 'Welcome back — pick up where you left off';
+    strip.insertAdjacentElement('afterend', welcome);
+  }
 })();
 
 // ----- Deck-load guard -----
