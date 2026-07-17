@@ -1720,6 +1720,16 @@ function renderCard(card) {
   }
 
   const options = shuffle([card.answer, ...card.decoys]);
+  // [M2 · L4-F1 · SD-9] Same-paint judgment reset. Clearing 'correct'/'wrong'
+  // HERE — in the same synchronous renderCard() call as the prompt swap above
+  // (DOM.promptText.textContent) and the token-text swap below — is what keeps
+  // reduced motion from ever painting a new prompt over the previous card's
+  // verdict colours ("a frame of wrong truth"). Verified atomic at per-frame
+  // (requestAnimationFrame) resolution on every advance path — arcade correct/
+  // wrong, learn correct, learn reveal→next — on BOTH reduced-motion routes
+  // (@media prefers-reduced-motion AND body.reduce-motion). Do not move this
+  // clear after the prompt/token render. P3/S1's held win-state (green border +
+  // ✓ + burned-in command) must be torn down in THIS clear too, never straggle.
   DOM.tokens.forEach((d, i) => {
     d.classList.remove('correct','wrong','captured','eliminated');
     d.style.pointerEvents = 'auto';
