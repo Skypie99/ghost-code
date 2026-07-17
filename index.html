@@ -2459,7 +2459,7 @@ if (copyResultBtn) {
   };
   copyResultBtn.addEventListener('click', () => {
     const acc = state.runTotal > 0 ? Math.round(state.runCorrect / state.runTotal * 100) : 0;
-    const cat = (state.persist.category || 'all').toUpperCase();
+    const cat = CATEGORY_LABELS[state.persist.category] || (state.persist.category || 'all').toUpperCase();
     const text = `GHOST CODE — ${state.score} pts · ${acc}% accuracy · best streak ${state.runStreakMax} · ${cat} deck\nhttps://ghostcode.skypistudio.com`;
     const done = () => {
       copyResultBtn.textContent = 'COPIED!';
