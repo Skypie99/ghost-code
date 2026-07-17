@@ -1229,6 +1229,22 @@
   }
 
   /* ====================================================================
+     TABLET BAND (601–819px) — [Q3a · L5-F4]. The desktop #bar (8 full-size
+     buttons) wraps to a 2nd row here (below 601 the max-width:600 block
+     condenses it), and the fixed `height:min(780px,94vh); overflow:hidden`
+     cabinet severs SETTINGS on that 2nd row. Fix = CONTAINER SIZING ONLY:
+     let the cabinet grow to fit its own content. `min-height` keeps the
+     ≤780px states filling to 780 (the arena/diamond is UNCHANGED — it is
+     already pinned at its min-height in this band, so flex has no slack to
+     redistribute), tap targets are NOT shrunk, and DOM/focus order is
+     untouched. overflow-y:auto only ever engages on a genuinely short
+     viewport (mirrors the max-height:500px escape hatch below).
+     ==================================================================== */
+  @media (min-width: 601px) and (max-width: 819px) {
+    #cabinet { height: auto; min-height: min(780px, 94vh); max-height: 96vh; overflow-y: auto; }
+  }
+
+  /* ====================================================================
      VERY SHORT VIEWPORTS (landscape phone, split-screen) — height-keyed,
      independent of width (this is the band the old layout collapsed in,
      e.g. 740x380, because the only breakpoint was width<=600). A vertical
