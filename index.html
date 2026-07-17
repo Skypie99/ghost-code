@@ -894,7 +894,7 @@
   /* Fallback: if background-clip:text is unsupported, the gradient + transparent
      fill would render the wordmark INVISIBLE. Force a solid accent fill instead.
      Covers every .word1 (title GHOST, game-over score, PAUSED). */
-  @supports not (background-clip: text) and not (-webkit-background-clip: text) {
+  @supports not ((background-clip: text) or (-webkit-background-clip: text)) {
     .word1 {
       -webkit-text-fill-color: var(--accent);
       color: var(--accent);
