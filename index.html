@@ -676,11 +676,66 @@
     border-color:  var(--text-secondary) !important;   /* beat .wrong's red !important */
     box-shadow:    var(--neutral-halo) !important;      /* neutral halo; same geometry as --accent-halo */
   }
-  /* Captured (correct) state — dissolves upward */
+  /* Captured (correct) — S1: HELD win, not dissolved. Keeps the green border + glow (and
+     the .correct ✓ glyph) for the full auto-advance window; torn down in renderCard()'s
+     [M2·L4-F1·SD-9] clear. No transform (a stray one overrides the .token.n/.e/.s/.w
+     position translate and jumps the token) and no self-transition (teardown rides the
+     base .token transition, same as .correct — so it never straggles past the clear). */
   .token.captured {
-    opacity: 0;
-    transform: translateY(-12px) scale(0.85);
-    transition: all 0.35s ease-out;
+    border-color: var(--success) !important;
+    box-shadow: 0 0 22px rgba(74,222,128,0.5) !important;
+  }
+  /* S1 — "+N" score-fly, anchored to the captured token. Rises a few px and HOLDS (both
+     fill) until the SD-9 teardown removes it. Under reduced motion the global * override
+     collapses the rise to its static, VISIBLE end-frame (never a fade-to-nothing). */
+  .score-fly {
+    position: absolute;
+    top: -6px; left: 0; right: 0;
+    text-align: center;
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--success);
+    pointer-events: none;
+    z-index: 8;
+    animation: score-fly-rise 0.45s ease-out both;
+  }
+  @keyframes score-fly-rise {
+    from { transform: translateY(4px);  opacity: 0; }
+    to   { transform: translateY(-8px); opacity: 1; }
+  }
+  /* S1 — arcade win burn-in: the full winning command, centered over the field, held for
+     the auto-advance window and cleared at the SD-9 boundary. Absolutely positioned (never
+     reflows the board); wraps rather than clips so the longest answer stays intact at 375
+     and does not shift at 1440. Rendered via textContent only. Ends VISIBLE for RM. */
+  #win-strap {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    max-width: 92%;
+    padding: 10px 18px;
+    background: rgba(74,222,128,0.10);
+    border: 1px solid var(--success);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-weight: 600;
+    font-size: clamp(14px, 3.4vw, 20px);
+    color: var(--success);
+    text-align: center;
+    white-space: normal;
+    word-break: break-word;
+    z-index: 8;
+    pointer-events: none;
+    box-shadow: 0 0 18px rgba(74,222,128,0.30);
+    display: none;
+  }
+  #win-strap.visible {
+    display: block;
+    animation: strap-burn-in 0.3s ease-out both;
+  }
+  @keyframes strap-burn-in {
+    from { opacity: 0; transform: translate(-50%, -50%) scale(0.96); }
+    to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
   }
   @keyframes flash {
     50% { box-shadow: 0 0 24px rgba(74,222,128,0.55); }
@@ -848,6 +903,10 @@
     margin: 2px 0;
     letter-spacing: 0;
   }
+  /* S1 — the brief correct-hold shows the answer at the hint's calmer type scale (not the
+     full 22px reveal), so winning reads composed, not shouty. Wins over the base + the
+     <=600 override by specificity (id + two classes). */
+  #learn-panel .lp-answer.lp-answer--sm { font-size: 18px; font-weight: 500; }
   #learn-panel .lp-explain {
     font-family: var(--font-ui);
     font-size: 16px;
@@ -1513,6 +1572,8 @@
     <div class="token e" data-pos="e" data-key="2" role="button" tabindex="0" aria-label="Answer 2 of 4"><span class="key">2</span><span class="txt"></span></div>
     <div class="token s" data-pos="s" data-key="3" role="button" tabindex="0" aria-label="Answer 3 of 4"><span class="key">3</span><span class="txt"></span></div>
     <div class="token w" data-pos="w" data-key="4" role="button" tabindex="0" aria-label="Answer 4 of 4"><span class="key">4</span><span class="txt"></span></div>
+    <!-- S1 arcade win burn-in (the full winning command). aria-hidden: the aria-live announcer is the SR channel. -->
+    <div id="win-strap" aria-hidden="true"></div>
   </div>
 
   <!-- Bottom bar -->
@@ -1617,6 +1678,7 @@ const DOM = {
   hint:         document.getElementById('hint'),
   phantom:      document.getElementById('phantom'),
   arena:        document.getElementById('arena'),
+  winStrap:     document.getElementById('win-strap'),
   bar:          document.getElementById('bar'),
   modeToggle:   document.getElementById('mode-toggle'),
   cabinet:      document.getElementById('cabinet'),
