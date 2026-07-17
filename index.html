@@ -714,7 +714,7 @@
     transform: translate(-50%, -50%);
     max-width: 92%;
     padding: 10px 18px;
-    background: rgba(74,222,128,0.10);
+    background: var(--surface-raised);   /* opaque chip — the command reads crisply, no Phantom bleed-through */
     border: 1px solid var(--success);
     border-radius: var(--radius-sm);
     font-family: var(--font-mono);
@@ -1917,6 +1917,8 @@ function renderCard(card) {
   // ✓ + burned-in command) must be torn down in THIS clear too, never straggle.
   DOM.tokens.forEach((d, i) => {
     d.classList.remove('correct','wrong','captured','eliminated');
+    const fly = d.querySelector('.score-fly');   // S1: kill the "+N" in the SAME paint as the class reset
+    if (fly) fly.remove();
     d.style.pointerEvents = 'auto';
     d.removeAttribute('aria-hidden');
     d.querySelector('.txt').textContent = options[i];
@@ -1924,7 +1926,23 @@ function renderCard(card) {
     d.setAttribute('aria-label', `Answer ${i + 1} of 4: ${options[i]}`);
   });
 
+  // S1 — clear the arcade burn-in strap in this SAME synchronous paint (the strap is an
+  // #arena child, not a token, so the forEach above never touches it). Idempotent — runs
+  // on every advance so the held win-state can never straggle a frame past the SD-9 clear.
+  DOM.winStrap.classList.remove('visible');
+  DOM.winStrap.textContent = '';
+
   renderLearnProgress();
+}
+
+// S1 — spawn the "+N" score-fly on the just-captured token. aria-hidden: the aria-live
+// announcer stays the sole SR channel. textContent only (never innerHTML).
+function spawnScoreFly(tokenEl, earned) {
+  const fly = document.createElement('span');
+  fly.className = 'score-fly';
+  fly.setAttribute('aria-hidden', 'true');
+  fly.textContent = '+' + earned;
+  tokenEl.appendChild(fly);
 }
 
 // ----- Learning Panel -----
@@ -2047,6 +2065,7 @@ function showLearningPanel({ phase }) {
 
   if (phase === 'correct') {
     panel.appendChild(p('lp-status lp-status--gold', 'CORRECT!'));
+    panel.appendChild(p('lp-answer lp-answer--sm', card.answer));   // S1 — burn in the winning command (closes L3-F7); textContent via p()
     panel.appendChild(p('lp-hint', card.hint));
     return;
   }
@@ -2128,6 +2147,7 @@ function answer(tokenEl) {
   stats[state.current.id].total++;
 
   if (isRight) {
+    const earned = 10 + state.streak;   // S1: points earned this answer, captured BEFORE streak++ so the "+N" fly matches the announced value
     tokenEl.classList.add('correct');
     stats[state.current.id].c++;
     state.score += 10 + state.streak;
@@ -2144,8 +2164,10 @@ function answer(tokenEl) {
       if (DOM.announcer) DOM.announcer.textContent = `Correct! ${state.current.hint} Next card in a moment.`;
     } else {
       if (DOM.announcer) DOM.announcer.textContent = `Correct! +${10 + state.streak - 1} points. Streak: ${state.streak}.`;
+      DOM.winStrap.textContent = state.current.answer;   // S1 (arcade): burn in the full winning command
+      DOM.winStrap.classList.add('visible');
     }
-    setTimeout(() => tokenEl.classList.add('captured'), 250);
+    setTimeout(() => { tokenEl.classList.add('captured'); spawnScoreFly(tokenEl, earned); }, 250);
     if (state.score > state.persist.hi) state.persist.hi = state.score;
     save();
     renderHUD();
