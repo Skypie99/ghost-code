@@ -268,6 +268,13 @@
     overflow: hidden;
     background: var(--surface-raised);
   }
+  /* [Q3b · L4-F4] Learn mode overflows the fixed cabinet at every width (the
+     reveal panel alone is ~275px, pushing the diamond + bottom bar past the
+     frame). Let the cabinet scroll in LEARN mode so they are always reachable
+     instead of clipped by the rounded edge. Arcade keeps overflow:hidden (the
+     fixed hero frame). At ≥601 the diamond stays full-size and a tall reveal
+     simply scrolls; at ≤600 it also compacts (see the media block). */
+  body.learning-mode #cabinet { overflow-y: auto; }
   /* Flow order of the play regions (DOM order differs; absolute overlays ignore it) */
   #mode-toggle       { order: 1; flex: 0 0 auto; }
   #hud               { order: 2; flex: 0 0 auto; }
@@ -1205,8 +1212,7 @@
        mode and let the cabinet scroll so every option stays reachable — pre-hint
        + retry1 show all four without scrolling; retry2/reveal scroll (learn is
        untimed, so nothing is ever unreachable). Arcade keeps the full diamond. */
-    body.learning-mode #arena { min-height: clamp(170px, 30vh, 270px); }
-    body.learning-mode #cabinet { overflow-y: auto; }
+    body.learning-mode #arena { min-height: clamp(170px, 30vh, 270px); } /* [M1 fold] compact the diamond in learn mode @≤600 only (cabinet-scroll is general, see base #cabinet) */
     /* [M1 · candidate C, Sky-picked] De-collide the ≤600 diamond within the
        NESW anchors (SD-5 untouched): smaller Phantom + tighter glow so the
        mascot clears the E/W command tokens. Was 42×52 / head 30×36 / halo 16px.
