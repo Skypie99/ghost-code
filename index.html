@@ -32,8 +32,36 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <!-- Pass 3: Inter for UI/prose, JetBrains Mono for command/code text -->
+<!-- Q5/L7-F1: preload the two variable woff2 (latin subset) so the glyph files fetch
+     in parallel with the stylesheet instead of being discovered after it. URLs byte-
+     match the css2 resolution for modern browsers — Inter v20 / JetBrains Mono v24 are
+     variable fonts, one file per family across all weights. -->
+<link rel="preload" as="font" type="font/woff2" crossorigin href="https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7W0Q5nw.woff2">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="https://fonts.gstatic.com/s/jetbrainsmono/v24/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxDcwgknk-4.woff2">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
+  /* Q5/L7-F1 — metrics-matched fallback faces. On a cold-cache first paint the browser
+     renders these (Arial / Menlo re-metric'd to Inter / JetBrains Mono) so the HUD
+     numerals, command tokens, wordmark and tagline occupy the IDENTICAL box; when the
+     real webfont swaps in there is no reflow. size-adjust + ascent/descent overrides
+     derived from the shipped Inter v20 / JetBrains Mono v24 variable fonts (canvas
+     metrics vs Arial / Menlo). */
+  @font-face {
+    font-family: 'Inter Fallback';
+    src: local('Arial');
+    size-adjust: 107.68%;
+    ascent-override: 89.99%;
+    descent-override: 22.38%;
+    line-gap-override: 0%;
+  }
+  @font-face {
+    font-family: 'JetBrains Mono Fallback';
+    src: local('Menlo'), local('Courier New');
+    size-adjust: 99.66%;
+    ascent-override: 102.35%;
+    descent-override: 30.10%;
+    line-gap-override: 0%;
+  }
   /* ============ "TERMINAL, NOT ARCADE" — calm dark developer-tool palette ============
      Pass 3: ~90% quiet graphite, color reserved for MEANING (one teal accent for
      focus/mascot/interactive; green/red/amber for outcome+progress). Old token NAMES
@@ -61,8 +89,8 @@
     --warning:        #FBBF24;
     --danger:         #F87171;
     /* Fonts */
-    --font-ui:   'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
-    --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+    --font-ui:   'Inter', 'Inter Fallback', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --font-mono: 'JetBrains Mono', 'JetBrains Mono Fallback', ui-monospace, 'SFMono-Regular', Menlo, monospace;
     /* 4px spacing scale + radii */
     --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px; --space-6:32px; --space-8:48px;
     --radius-sm:6px; --radius-md:10px; --radius-lg:14px;
