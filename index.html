@@ -1554,9 +1554,11 @@
   </div>
 
   <!-- Pause overlay -->
-  <div class="screen hidden" id="pauseScreen" tabindex="-1" aria-label="Game paused">
-    <h1><span class="word1">PAUSED</span></h1>
-    <p>Tap PAUSE or press Esc to resume.</p>
+  <div class="screen hidden" id="pauseScreen" tabindex="-1"
+       role="dialog" aria-modal="true" aria-labelledby="pause-title">
+    <h1 id="pause-title"><span class="word1">PAUSED</span></h1>
+    <p>Press ESC or tap RESUME to continue.</p>
+    <button class="big-btn" id="resume-btn">RESUME</button>
   </div>
 </div>
 
@@ -2319,20 +2321,47 @@ function gameOver() {
   // Move focus to PLAY AGAIN button so keyboard/SR users land somewhere sensible
   document.getElementById('again-btn').focus();
 }
+let pauseLastFocus = null;
+// Q8 — #pauseScreen fades in via the shared .screen `visibility` transition, which keeps
+// it `visibility:hidden` for much of the 0.35s fade; focus() on a visibility:hidden
+// element is a silent no-op. Poll each animation frame and move focus onto RESUME the
+// instant it becomes visible (fast under reduced motion, <=1 fade later otherwise);
+// bounded well past the fade, and bailing out if we've resumed in the meantime.
+function focusResumeWhenReady(tries) {
+  if (tries <= 0 || !state.paused) return;
+  const rb = document.getElementById('resume-btn');
+  if (!rb) return;
+  if (getComputedStyle(rb).visibility === 'visible') rb.focus();
+  if (document.activeElement !== rb) requestAnimationFrame(() => focusResumeWhenReady(tries - 1));
+}
 function togglePause() {
   if (!state.playing) return;
   state.paused = !state.paused;
   DOM.pauseScr.classList.toggle('hidden', !state.paused);
   document.body.classList.toggle('playing-state', !state.paused);
-  // Announce via the live region; focus stays on the trigger (PAUSE button / token)
-  // so keyboard + SR users keep their place and Esc/PAUSE resumes from there.
+  if (state.paused) {
+    // Q8 — true modal: capture focus BEFORE inerting the board (inert blurs a focused
+    // descendant to <body>), then move focus onto the RESUME control (deferred/retried
+    // past the fade — see focusResumeWhenReady).
+    pauseLastFocus = document.activeElement;
+    setBoardInert(true);
+    focusResumeWhenReady(40);
+  } else {
+    // Un-inert BEFORE restoring focus — focus() on an element still inside an inert
+    // subtree is a no-op. Restore to the pre-pause element (focus-restore contract).
+    setBoardInert(false);
+    const back = pauseLastFocus; pauseLastFocus = null;
+    if (back && back.isConnected && typeof back.focus === 'function') back.focus();
+    else document.getElementById('pause').focus();
+  }
   if (DOM.announcer) DOM.announcer.textContent = state.paused ? 'Paused.' : 'Resumed.';
 }
 
 // ----- Pass 5 a11y: keep keyboard focus OUT of the board while a full-screen
-//        overlay (title / game-over) covers it; restore it during play. Pause
-//        is left interactive on purpose (the PAUSE button resumes; answer() and
-//        the lifeline already guard on state.paused). -----
+//        overlay (title / game-over / pause) covers it; restore it during play.
+//        Q8: pause now also inerts the board and is a true role=dialog modal —
+//        focus moves to RESUME on open and is restored to the pre-pause element on
+//        resume (answer() and the lifeline still guard on state.paused as well). -----
 function setBoardInert(on) {
   if (DOM.arena)      DOM.arena.inert      = on;
   if (DOM.bar)        DOM.bar.inert        = on;
@@ -2475,6 +2504,7 @@ document.getElementById('start-btn').addEventListener('click', startGame);
 document.getElementById('again-btn').addEventListener('click', startGame);
 document.getElementById('restart').addEventListener('click', startGame);
 document.getElementById('pause').addEventListener('click', togglePause);
+document.getElementById('resume-btn').addEventListener('click', togglePause);   // Q8: RESUME + Esc both resume
 document.getElementById('lifeline-btn').addEventListener('click', useLifeline);
 
 // ----- Pass 5 a11y: shortcuts dialog wiring (close button + scrim click) -----
