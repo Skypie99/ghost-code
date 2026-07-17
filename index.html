@@ -903,6 +903,14 @@
     visibility: hidden;
     pointer-events: none;
   }
+  /* M4/L4-F3 — title->board swap sequencing (full-motion only; scoped to #title).
+     The shared .screen opacity fade cross-dissolved the OPAQUE title layer over the
+     live board, so title text and board text were both visible for ~350ms. Instead:
+     fade the title CONTENT out over the still-opaque screen (board stays hidden), then
+     cut the now-empty screen to reveal the board — never both at once. Pause + game-over
+     keep the shared .screen fade untouched. Reduced-motion skips to the instant swap. */
+  #title.title-exit > * { opacity: 0; transition: opacity 0.18s ease; }
+  #title.title-exit-cut { transition: none; }
 
   /* ===== GHOST CODE title treatment ===== */
   /* "GHOST" cyan→pink gradient lockup */
@@ -2115,7 +2123,19 @@ function startGame(opts) {
   state.learnMastered  = new Set();
   state.missedThisRun  = new Set();
   state.lifelinesLeft  = 3;
-  DOM.title.classList.add('hidden');
+  // M4/L4-F3: sequence the title's exit so its text never cross-dissolves over the
+  // live board (fence: pause + game-over keep the shared .screen fade). RM -> instant.
+  if (DOM.title.classList.contains('hidden')) {
+    /* already off-screen (restart from gameplay) — nothing to sequence */
+  } else if (matchMedia('(prefers-reduced-motion: reduce)').matches || document.body.classList.contains('reduce-motion')) {
+    DOM.title.classList.add('hidden');                                    // RM: instant swap (unchanged)
+  } else {
+    DOM.title.classList.add('title-exit');                               // beat 1: content fades over opaque bg
+    setTimeout(() => {
+      DOM.title.classList.add('title-exit-cut', 'hidden');               // beat 2: cut empty screen -> board
+      requestAnimationFrame(() => DOM.title.classList.remove('title-exit', 'title-exit-cut'));
+    }, 190);
+  }
   DOM.gameover.classList.add('hidden');
   DOM.pauseScr.classList.add('hidden');
   hideLearningPanel();
