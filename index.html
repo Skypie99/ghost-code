@@ -1169,7 +1169,10 @@
     }
     #hud #lives-stat { margin-left: 0; }
     #hud .stat { min-width: 0; align-items: center; }
-    #hud .stat .label { font-size: 8px; letter-spacing: 0.5px; }
+    /* [Q9 · L6-F3] Legible floor for low-vision players: 8px HUD labels were
+       sub-legible at 375. 10px is the largest size that holds the single-row
+       HUD (11px wraps it to 2 rows); contrast unchanged (~7.8:1). */
+    #hud .stat .label { font-size: 10px; letter-spacing: 0.5px; }
     #hud .stat .val { font-size: 18px; }
     #cat-badge { font-size: 9px; padding: 4px 7px; margin-top: 2px; }
 
@@ -1255,7 +1258,7 @@
     #hud { gap: 4px 12px; flex-wrap: wrap; justify-content: center; }
     #hud #lives-stat { margin-left: 0; }
     #hud .stat .val { font-size: 18px; }
-    #hud .stat .label, #cat-badge { font-size: 8px; }
+    #hud .stat .label, #cat-badge { font-size: 10px; } /* [Q9 · L6-F3] legible floor (was 8px) */
     #prompt-text { font-size: clamp(17px, 3vw, 22px); }
     /* Overlays cover the viewport (not just the scrolling cabinet) so the board
        behind them is fully masked regardless of scroll position. */
