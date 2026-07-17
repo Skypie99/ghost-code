@@ -2142,10 +2142,12 @@ function startGame(opts) {
     DOM.title.classList.add('hidden');                                    // RM: instant swap (unchanged)
   } else {
     DOM.title.classList.add('title-exit');                               // beat 1: content fades over opaque bg
-    setTimeout(() => {
-      DOM.title.classList.add('title-exit-cut', 'hidden');               // beat 2: cut empty screen -> board
-      requestAnimationFrame(() => DOM.title.classList.remove('title-exit', 'title-exit-cut'));
-    }, 190);
+    // beat 2: cut the now-empty screen to reveal the board. The helper classes stay on the
+    // permanently-hidden title (harmless — opacity 0 / visibility hidden render nothing); the
+    // title is never re-shown in a session, so no cleanup is scheduled. Avoiding a deferred
+    // rAF/timer cleanup keeps this robust when the tab is backgrounded mid-swap. (If a title
+    // re-show path is ever added, it must itself clear title-exit / title-exit-cut.)
+    setTimeout(() => DOM.title.classList.add('title-exit-cut', 'hidden'), 190);
   }
   DOM.gameover.classList.add('hidden');
   DOM.pauseScr.classList.add('hidden');
