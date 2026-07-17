@@ -1170,7 +1170,7 @@
     /* HUD condenses + wraps, centred */
     #hud {
       padding: 0 6px;
-      gap: 4px 10px;
+      gap: 4px 8px;
       flex-wrap: wrap;
       justify-content: center;
     }
@@ -1181,7 +1181,7 @@
        HUD (11px wraps it to 2 rows); contrast unchanged (~7.8:1). */
     #hud .stat .label { font-size: 10px; letter-spacing: 0.5px; }
     #hud .stat .val { font-size: 18px; }
-    #cat-badge { font-size: 9px; padding: 4px 7px; margin-top: 2px; }
+    #cat-badge { font-size: 9px; padding: 4px 5px; margin-top: 2px; }
 
     /* Corner brackets are desktop ornaments — keep them as modest accents */
     .corner.tl, .corner.tr { width: 110px; height: 52px; }
@@ -1659,7 +1659,7 @@ function renderHUD() {
     l.className = 'spirit-pip';
     DOM.lives.appendChild(l);
   }
-  DOM.catBadge.textContent = state.persist.category.toUpperCase();
+  DOM.catBadge.textContent = CATEGORY_LABELS[state.persist.category] || state.persist.category.toUpperCase();
 
   // Lifeline pips
   DOM.lifelines.innerHTML = '';
@@ -1693,7 +1693,7 @@ function renderLearnProgress() {
 }
 
 // ----- Card metadata helpers -----
-const CATEGORY_LABELS = { claude: 'CLAUDE CODE', mac: 'MAC TERMINAL', git: 'GIT' };
+const CATEGORY_LABELS = { all: 'ALL', claude: 'CLAUDE', mac: 'TERMINAL', git: 'GIT' };
 const DIFF = c => (c && (c.difficulty === 'easy' || c.difficulty === 'hard')) ? c.difficulty : 'medium';
 const DIFF_WEIGHT = { easy: 1.2, medium: 1.0, hard: 0.7 };
 
@@ -2129,7 +2129,7 @@ function gameOver() {
   DOM.gameover.insertBefore(statsRow, againBtn);
 
   // ----- Per-category mastery bars (read-only, derived from cardStats c>=3) -----
-  const CATS = [['claude', 'CLAUDE CODE'], ['mac', 'MAC TERMINAL'], ['git', 'GIT']];
+  const CATS = [['claude', CATEGORY_LABELS.claude], ['mac', CATEGORY_LABELS.mac], ['git', CATEGORY_LABELS.git]];
   const masteryWrap = document.createElement('div');
   masteryWrap.className = 'mastery';
   masteryWrap.setAttribute('role', 'group');
