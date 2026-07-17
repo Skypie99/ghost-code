@@ -351,7 +351,17 @@
     line-height: 1;
     font-variant-numeric: tabular-nums;
   }
-  #lives { display: flex; gap: 6px; margin-top: 4px; }
+  #lives { display: flex; gap: 6px; margin-top: 4px; align-items: center; }
+  /* Q7 — a heart glyph leads the SPIRITS pips so the meter reads "life," not "rating".
+     CSS ::before survives the renderHUD() innerHTML rebuild of #lives; decorative only
+     (the meter's real semantic rides #lives' aria-label). */
+  #lives::before {
+    content: "\2665";                 /* ♥ */
+    color: var(--accent);
+    font-size: 13px;
+    line-height: 16px;
+    font-family: system-ui, -apple-system, 'Segoe UI Symbol', sans-serif;
+  }
 
   /* ======================================================
      SPIRIT PIP — replaces the yellow pac-man silhouette life icon.
@@ -379,12 +389,28 @@
     85%           { opacity: 0.15; }
   }
 
-  /* Lifeline (50/50) HUD — gold star, generic */
-  #lifelines { display: flex; gap: 5px; margin-top: 4px; }
+  /* Lifeline (50/50) HUD — Q7: an "eliminate" mark (slashed circle ⊘), not a rating star.
+     Same 16x22 bounding box + gold as the old star — glyph-only, layout position unchanged. */
+  #lifelines { display: flex; gap: 5px; margin-top: 4px; align-items: center; }
   .lifeline-pip {
     width: 16px; height: 22px;
+    position: relative;
+    background: none;
+  }
+  .lifeline-pip::before {            /* the circle */
+    content: "";
+    position: absolute; inset: 0; margin: auto;
+    box-sizing: border-box;
+    width: 15px; height: 15px;
+    border: 2px solid var(--gold);
+    border-radius: 50%;
+  }
+  .lifeline-pip::after {             /* the diagonal slash */
+    content: "";
+    position: absolute; inset: 0; margin: auto;
+    width: 2px; height: 17px;
     background: var(--gold);
-    clip-path: polygon(50% 0%,65% 40%,100% 40%,70% 62%,85% 100%,50% 72%,15% 100%,30% 62%,0% 40%,35% 40%);
+    transform: rotate(45deg);
   }
   .token.eliminated {
     opacity: 0.12;
@@ -1716,6 +1742,7 @@ function renderHUD() {
     l.className = 'spirit-pip';
     DOM.lives.appendChild(l);
   }
+  DOM.lives.setAttribute('aria-label', `${state.lives} ${state.lives !== 1 ? 'lives' : 'life'} remaining`);
   DOM.catBadge.textContent = CATEGORY_LABELS[state.persist.category] || state.persist.category.toUpperCase();
 
   // Lifeline pips
