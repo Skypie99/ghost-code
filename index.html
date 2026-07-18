@@ -1151,6 +1151,47 @@
   .missed-review .lp-explain {
     font-size: 20px;
   }
+  /* M3 (L2-F3 / L5-F3): never-clip machinery. The box stays at its 220px footprint,
+     but its scroll is made legible instead of silently slicing the last line. Two
+     sticky gradient overlays (bg-colour → transparent) fade the scroll edges so a
+     partly-visible line reads as "continues", never sliced mid-glyph; a sticky
+     "↓ more" affordance (glyph + text — not colour-alone) signals more below. Every
+     cue is gated on .mr-overflow, so a list that already fits shows nothing. Pure
+     class toggles (no opacity animation) → reduced-motion safe by construction. The
+     scrollbar (scrollbar-width:thin, kept) stays the functional indicator; the box
+     keeps tabindex=0 + native overflow-y:auto so keyboard scroll + Tab-past work. */
+  .missed-review::before {
+    content: "";
+    position: sticky;
+    top: 0;
+    display: block;
+    height: 22px;
+    margin-bottom: -22px;
+    background: linear-gradient(to bottom, var(--surface-base) 35%, transparent);
+    pointer-events: none;
+    opacity: 0;
+    z-index: 2;
+  }
+  .missed-review.mr-overflow.mr-scrolled::before { opacity: 1; }
+  .missed-review .mr-more {
+    position: sticky;
+    bottom: 0;
+    height: 26px;
+    margin-top: -26px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 2px;
+    font-family: var(--font-ui);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    color: var(--text-secondary);
+    background: linear-gradient(to top, var(--surface-base) 45%, transparent);
+    pointer-events: none;
+    visibility: hidden;
+    z-index: 2;
+  }
+  .missed-review.mr-overflow:not(.mr-atbottom) .mr-more { visibility: visible; }
 
   /* ===== PRIMARY BUTTON — filled accent (the one bright CTA) ===== */
   .big-btn {
@@ -2280,6 +2321,19 @@ function startGame(opts) {
   renderHUD();
   nextCard();
 }
+// M3 (L2-F3 / L5-F3): make the game-over review box's overflow legible without
+// growing it. Toggles .mr-overflow (content exceeds the 220px box), .mr-scrolled
+// (scrolled down at all → top fade), .mr-atbottom (fully scrolled → drop the bottom
+// fade + "↓ more"). Pure class toggles → no animation → reduced-motion safe. A short
+// list that already fits stays completely un-cued (all three classes absent).
+function updateMissedReviewFade(box) {
+  if (!box) return;
+  const overflow = box.scrollHeight > box.clientHeight + 1;
+  box.classList.toggle('mr-overflow', overflow);
+  if (!overflow) { box.classList.remove('mr-scrolled', 'mr-atbottom'); return; }
+  box.classList.toggle('mr-scrolled', box.scrollTop > 1);
+  box.classList.toggle('mr-atbottom', box.scrollTop + box.clientHeight >= box.scrollHeight - 1);
+}
 function gameOver() {
   state.playing = false;
   document.body.classList.remove('playing-state');
@@ -2381,6 +2435,19 @@ function gameOver() {
     }
 
     section.appendChild(list);
+
+    // M3: sticky "↓ more" affordance (glyph + text — not colour-alone). aria-hidden:
+    // the region already exposes every entry to a screen reader regardless of scroll,
+    // and the thin scrollbar is the functional indicator — this is a sighted cue only.
+    const moreCue = document.createElement('div');
+    moreCue.className = 'mr-more';
+    moreCue.setAttribute('aria-hidden', 'true');
+    moreCue.textContent = '↓ more';
+    section.appendChild(moreCue);
+
+    // Re-evaluate the fade/affordance cues as the box is scrolled (passive: read-only).
+    section.addEventListener('scroll', () => updateMissedReviewFade(section), { passive: true });
+
     // Insert before the PLAY AGAIN button (againBtn declared above)
     DOM.gameover.insertBefore(section, againBtn);
   }
@@ -2400,6 +2467,10 @@ function gameOver() {
   }
 
   DOM.gameover.classList.remove('hidden');
+  // M3: measure the review box's overflow AFTER the screen is shown (layout settled)
+  // so the fade/affordance cues reflect real geometry. The box may not exist (a run
+  // with zero misses builds no review block) — the helper no-ops on null.
+  requestAnimationFrame(() => updateMissedReviewFade(DOM.gameover.querySelector('.missed-review')));
   setBoardInert(true);                  // overlay up — keep Tab out of the board behind it
   hideLearningPanel();
   // Move focus to PLAY AGAIN button so keyboard/SR users land somewhere sensible
