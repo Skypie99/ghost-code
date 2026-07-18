@@ -1500,6 +1500,7 @@
     width: 108px; text-align: left; flex: 0 0 auto;
   }
   .mastery__track {
+    position: relative;   /* M6: anchors the provisional "this run" sliver */
     flex: 1; height: 8px; background: var(--surface-track);
     border: 1px solid var(--border-subtle); border-radius: 999px; overflow: hidden;
   }
@@ -1507,6 +1508,24 @@
   .mastery__count {
     font-family: var(--font-mono); font-size: 13px; color: var(--text-primary);
     width: 46px; text-align: right; flex: 0 0 auto; font-variant-numeric: tabular-nums;
+  }
+  /* M6 (L3-F1): provisional "this run" credit on the mastery bars. The sliver is a
+     hatched teal segment (diagonal texture — NOT a solid duplicate of the banked-mastery
+     fill), so it reads as not-yet-banked; not-colour-alone is satisfied by the paired
+     "+N this run" chip text + the summary line. Built only when this run scored (no +0). */
+  .mastery__runsliver {
+    position: absolute; top: 0; height: 100%;
+    background-image: repeating-linear-gradient(45deg, var(--accent) 0 2px, transparent 2px 5px);
+    opacity: 0.9;
+  }
+  .mastery__runchip {
+    flex: 0 0 auto;
+    font-family: var(--font-ui); font-weight: 600; font-size: 11px;
+    letter-spacing: 0.02em; color: var(--accent); white-space: nowrap;
+  }
+  .mastery__runsummary {
+    font-family: var(--font-ui); font-size: 13px; color: var(--text-secondary);
+    text-align: center; margin: var(--space-1) 0 0; line-height: 1.4;
   }
   /* Title lifetime-stats strip */
   .title-stats {
@@ -1576,7 +1595,10 @@
   </div>
 
   <!-- Learning Mode progress bar -->
-  <div id="learn-progress-bar" aria-hidden="true">
+  <!-- M6/L6-F8: the core long-term progression signal — no longer aria-hidden. Exposed as a
+       progressbar with a live value/label kept in lockstep with the visible count (dynamic max
+       = active-deck size, so a filtered deck reports its real total, not a constant). -->
+  <div id="learn-progress-bar" role="progressbar" aria-valuemin="0" aria-valuenow="0" aria-label="Mastered 0 of 0">
     <span class="lp-label">MASTERED</span>
     <div class="lp-track"><div class="lp-fill" id="learn-fill"></div></div>
     <span class="lp-count" id="learn-count">0/0</span>
@@ -1733,6 +1755,7 @@ const DOM = {
   learnPanel:   document.getElementById('learn-panel'),
   learnFill:    document.getElementById('learn-fill'),
   learnCount:   document.getElementById('learn-count'),
+  learnProgressBar: document.getElementById('learn-progress-bar'),
   modeArcade:   document.getElementById('mode-arcade'),
   modeLearn:    document.getElementById('mode-learn'),
 };
@@ -1775,6 +1798,7 @@ const state = {
   runCorrect: 0,
   runTotal: 0,
   runStreakMax: 0,
+  runCorrectByCat: { claude: 0, mac: 0, git: 0 }, // M6: session-only per-category correct tally (display credit; NEVER persisted)
   reviewDeck: null,         // Pass 4b: session-only id list for the "review missed" drill
   // Learning Mode per-card state
   learnAttempt: 0,          // 0-indexed wrong attempts on current card
@@ -1879,6 +1903,12 @@ function renderLearnProgress() {
   const pct = total > 0 ? (mastered / total) * 100 : 0;
   DOM.learnFill.style.width = pct + '%';
   DOM.learnCount.textContent = mastered + '/' + total;
+  // M6/L6-F8: keep the SR progressbar value in lockstep with the visible count (dynamic max).
+  if (DOM.learnProgressBar) {
+    DOM.learnProgressBar.setAttribute('aria-valuenow', String(mastered));
+    DOM.learnProgressBar.setAttribute('aria-valuemax', String(total));
+    DOM.learnProgressBar.setAttribute('aria-label', `Mastered ${mastered} of ${total}`);
+  }
 }
 
 // ----- Card metadata helpers -----
@@ -2175,7 +2205,15 @@ function answer(tokenEl) {
   haptic(isRight ? 14 : [10, 40, 10]);   // crisp tick on capture, double-buzz on miss
 
   // Pass 4: per-run accuracy tally (arcade only — learn mode has retries + no game-over)
-  if (!isLearnMode()) { state.runTotal++; if (isRight) state.runCorrect++; }
+  if (!isLearnMode()) {
+    state.runTotal++;
+    if (isRight) {
+      state.runCorrect++;
+      // M6: also credit the answered card's category (display-only; feeds the game-over "+N this run").
+      const rc = state.current.category;
+      if (rc in state.runCorrectByCat) state.runCorrectByCat[rc]++;
+    }
+  }
 
   state.busy = true;
   DOM.tokens.forEach(d => d.style.pointerEvents = 'none');
@@ -2293,6 +2331,7 @@ function startGame(opts) {
   state.runCorrect = 0;
   state.runTotal = 0;
   state.runStreakMax = 0;
+  state.runCorrectByCat = { claude: 0, mac: 0, git: 0 };   // M6: reset the per-category run credit
   state.playing  = true;
   state.paused   = false;
   state.learnMastered  = new Set();
@@ -2388,9 +2427,36 @@ function gameOver() {
     track.setAttribute('aria-valuemax', String(total));
     const fill = document.createElement('div'); fill.className = 'mastery__fill'; fill.style.width = pct + '%';
     track.appendChild(fill);
+    // M6 (L3-F1): show THIS RUN's correct answers as provisional credit — a hatched teal
+    // sliver at the bar's leading edge (distinct from the solid banked-mastery fill) + a
+    // "+N this run" chip. Rendered only when this run scored in the category (no +0 noise).
+    // Not-colour-alone: the credit is carried by the chip text, the summary line, and the
+    // bar's accessible name — never hue alone. aria-valuenow stays banked mastery (the run
+    // credit is provisional, not yet banked), so it rides the aria-label as text instead.
+    const runN = state.runCorrectByCat[cat] || 0;
+    let chip = null;
+    if (runN > 0) {
+      const sliver = document.createElement('div'); sliver.className = 'mastery__runsliver';
+      sliver.style.left = pct + '%';
+      sliver.style.width = Math.max(Math.min((runN / total) * 100, 100 - pct), 2) + '%';
+      track.appendChild(sliver);
+      chip = document.createElement('span'); chip.className = 'mastery__runchip';
+      chip.setAttribute('aria-hidden', 'true');
+      chip.textContent = '+' + runN + ' this run';
+      track.setAttribute('aria-label', label + ' mastery, plus ' + runN + ' this run');
+    }
     const count = document.createElement('span'); count.className = 'mastery__count'; count.textContent = mastered + '/' + total;
     row.appendChild(lab); row.appendChild(track); row.appendChild(count);
+    if (chip) row.appendChild(chip);
     masteryWrap.appendChild(row);
+  }
+  // M6: one-line plain-language summary of this run (echoes the CORRECT stat so the reveal
+  // doesn't require decoding three bars). Child of .mastery → cleared with it on replay.
+  if (state.runTotal > 0) {
+    const runSummary = document.createElement('p');
+    runSummary.className = 'mastery__runsummary';
+    runSummary.textContent = `You answered ${state.runCorrect} of ${state.runTotal} correctly this run.`;
+    masteryWrap.appendChild(runSummary);
   }
   DOM.gameover.insertBefore(masteryWrap, againBtn);
 
