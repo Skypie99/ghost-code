@@ -856,6 +856,24 @@
     white-space: nowrap;
   }
   body.learning-mode #learn-badge { display: block; }
+  /* S3 (L3-F6): drill-run identity badge — mirrors the learn-badge pill (one accent teal, existing
+     type). Shown only during a review drill (body.drill-mode); replaces the now-overridden category
+     readout so the HUD row keeps its width. aria-live=polite (text updated only on change → the
+     "N of M" progress is announced once per clear, never spammed). */
+  #drill-badge {
+    order: 3; flex: 0 0 auto;          /* between HUD (2) and prompt (4); learn-bar (also 3) is hidden in arcade */
+    font-family: var(--font-ui);
+    font-weight: 600;
+    font-size: 11px;
+    color: var(--accent);
+    padding: 4px 10px;
+    border: 1px solid var(--accent);
+    border-radius: var(--radius-sm);
+    display: none;                     /* shown only mid-drill; the cabinet gap handles spacing */
+    white-space: nowrap;
+  }
+  body.drill-mode #drill-badge { display: block; }
+  body.drill-mode #category-stat { display: none; }   /* category is overridden while drilling → free the HUD row */
   /* In learning mode hide the spirits HUD stat */
   body.learning-mode #lives-stat { visibility: hidden; }
   /* Pass 2 (D6): the panel now FLOWS directly below the prompt (order 5) instead of
@@ -1368,6 +1386,7 @@
     /* Learn mode: badge + progress bar + panel all flow; cap the panel so long
        reveal phases scroll internally instead of pushing the diamond off-screen. */
     #learn-badge { font-size: 10px; padding: 3px 6px; }
+    #drill-badge { font-size: 10px; padding: 3px 6px; }   /* Q9 floor = 10px */
     body.learning-mode #learn-progress-bar { width: 92%; }
     #learn-panel {
       padding: 12px 14px;
@@ -1591,7 +1610,7 @@
     <div class="stat" id="streak"><span class="label">STREAK</span><span class="val">0</span></div>
     <div class="stat" id="lives-stat"><span class="label">SPIRITS</span><div id="lives"></div></div>
     <div class="stat" id="lifelines-stat"><span class="label">50/50</span><div id="lifelines" aria-label="Lifelines remaining"></div></div>
-    <div class="stat"><span class="label">CATEGORY</span><span id="cat-badge">ALL</span><span id="learn-badge" aria-label="Learning Mode active">LEARN MODE</span></div>
+    <div class="stat" id="category-stat"><span class="label">CATEGORY</span><span id="cat-badge">ALL</span><span id="learn-badge" aria-label="Learning Mode active">LEARN MODE</span></div>
   </div>
 
   <!-- Learning Mode progress bar -->
@@ -1603,6 +1622,10 @@
     <div class="lp-track"><div class="lp-fill" id="learn-fill"></div></div>
     <span class="lp-count" id="learn-count">0/0</span>
   </div>
+
+  <!-- S3 (L3-F6): drill-run identity badge — standalone chrome line below the HUD, shown only
+       during a review drill (keeps the HUD single-row; the category readout is hidden while drilling). -->
+  <div id="drill-badge" aria-live="polite" aria-atomic="true"></div>
 
   <!-- Prompt -->
   <div id="prompt">
@@ -1732,6 +1755,7 @@ const DOM = {
   streakVal:    document.querySelector('#streak .val'),
   lives:        document.getElementById('lives'),
   catBadge:     document.getElementById('cat-badge'),
+  drillBadge:   document.getElementById('drill-badge'),
   promptTag:    document.getElementById('prompt-tag'),
   diffBadge:    document.getElementById('diff-badge'),
   lifelines:    document.getElementById('lifelines'),
@@ -1800,6 +1824,7 @@ const state = {
   runStreakMax: 0,
   runCorrectByCat: { claude: 0, mac: 0, git: 0 }, // M6: session-only per-category correct tally (display credit; NEVER persisted)
   reviewDeck: null,         // Pass 4b: session-only id list for the "review missed" drill
+  drillCleared: new Set(),  // S3: unique ids cleared (answered right) in the current drill — badge progress, session-only
   // Learning Mode per-card state
   learnAttempt: 0,          // 0-indexed wrong attempts on current card
   learnRevealed: false,     // has the answer been revealed?
@@ -2229,6 +2254,8 @@ function answer(tokenEl) {
     const earned = 10 + state.streak;   // S1: points earned this answer, captured BEFORE streak++ so the "+N" fly matches the announced value
     tokenEl.classList.add('correct');
     stats[state.current.id].c++;
+    // S3: in a review drill, mark this card cleared (unique) + refresh the identity badge.
+    if (state.reviewDeck && state.reviewDeck.length) { state.drillCleared.add(state.current.id); updateDrillBadge(); }
     state.score += 10 + state.streak;
     state.streak++;
     if (state.streak > state.runStreakMax) state.runStreakMax = state.streak;
@@ -2332,6 +2359,7 @@ function startGame(opts) {
   state.runTotal = 0;
   state.runStreakMax = 0;
   state.runCorrectByCat = { claude: 0, mac: 0, git: 0 };   // M6: reset the per-category run credit
+  state.drillCleared = new Set();                          // S3: reset drill-badge progress
   state.playing  = true;
   state.paused   = false;
   state.learnMastered  = new Set();
@@ -2359,6 +2387,7 @@ function startGame(opts) {
   setBoardInert(false);                 // board is live again
   renderHUD();
   nextCard();
+  updateDrillBadge();   // S3: show/hide + reset the drill-run identity badge for this run
 }
 // M3 (L2-F3 / L5-F3): make the game-over review box's overflow legible without
 // growing it. Toggles .mr-overflow (content exceeds the 220px box), .mr-scrolled
@@ -2372,6 +2401,20 @@ function updateMissedReviewFade(box) {
   if (!overflow) { box.classList.remove('mr-scrolled', 'mr-atbottom'); return; }
   box.classList.toggle('mr-scrolled', box.scrollTop > 1);
   box.classList.toggle('mr-atbottom', box.scrollTop + box.clientHeight >= box.scrollHeight - 1);
+}
+// S3 (L3-F6): give the review-drill run a persistent on-screen identity. Toggles body.drill-mode
+// (drives the badge's visibility + hides the now-overridden category readout so the HUD row keeps
+// its width) and keeps the badge's progress current. reviewDeck is the drill's sole identity
+// (non-empty = drilling). pickCard() draws WITH repeats (no dequeue), so "cleared" counts UNIQUE
+// cards answered right this drill — an honest progress count, not a queue position. Text is set
+// only when it changes → the aria-live=polite region announces each step once (never spammed) and
+// stays silent on ordinary HUD renders.
+function updateDrillBadge() {
+  if (!DOM.drillBadge) return;
+  const inDrill = !!(state.reviewDeck && state.reviewDeck.length);
+  document.body.classList.toggle('drill-mode', inDrill);
+  const txt = inDrill ? `DRILLING MISSES · ${state.drillCleared.size} of ${state.reviewDeck.length}` : '';
+  if (DOM.drillBadge.textContent !== txt) DOM.drillBadge.textContent = txt;
 }
 function gameOver() {
   state.playing = false;
@@ -2518,10 +2561,17 @@ function gameOver() {
     DOM.gameover.insertBefore(section, againBtn);
   }
 
-  // Pass 4b: "DRILL MISSED" — replay just the missed cards as a focused review run
+  // Pass 4b + S3 (SD-1 / L8-F4): "DRILL MISSED" replays just the missed cards as a focused
+  // review run — and it is the study-report screen's PRIMARY action. When there ARE misses to
+  // drill, DRILL MISSED takes the exact bright treatment PLAY AGAIN normally has (filled accent
+  // + the existing 3-pulse cue) and PLAY AGAIN steps back to a secondary ghost. Only fill /
+  // weight / order move — hotkeys, handlers, and the app-driven focus target (again-btn) are
+  // unchanged. The blink is the same photosensitivity-cleared single-iteration pulse, relocated
+  // to the new primary (not a new/faster/stacked flash). On a flawless run (no misses → no drill
+  // button) PLAY AGAIN stays the primary CTA, exactly as before.
   if (state.missedThisRun.size > 0) {
     const drillBtn = document.createElement('button');
-    drillBtn.className = 'btn';
+    drillBtn.className = 'big-btn blink';
     drillBtn.id = 'drill-missed-btn';
     drillBtn.textContent = `DRILL MISSED (${state.missedThisRun.size})`;
     drillBtn.setAttribute('aria-label', `Drill the ${state.missedThisRun.size} command${state.missedThisRun.size !== 1 ? 's' : ''} you missed this run`);
@@ -2530,6 +2580,9 @@ function gameOver() {
       startGame({ review: true });
     });
     DOM.gameover.insertBefore(drillBtn, againBtn);
+    againBtn.className = 'btn';            // PLAY AGAIN → secondary ghost (fill + blink move to DRILL MISSED)
+  } else {
+    againBtn.className = 'big-btn blink';  // no misses → PLAY AGAIN remains the primary CTA (unchanged)
   }
 
   DOM.gameover.classList.remove('hidden');
