@@ -1337,7 +1337,40 @@
     animation: hud-pop 0.25s ease-out;
   }
 
+  /* ======================================================
+     S2 — PHANTOM IDENTITY BOOKENDS: motion. Placement lives with the shared
+     .phantom-figure substrate near the COMMAND TOKENS block; this is just the
+     animation, kept beside the RM rules it must be read alongside.
+     ====================================================== */
+  /* Fork B = C. One-shot entrance, single iteration, on the WRAPPER (not #phantom —
+     SD-5 aim untouched). `both` is deliberate and matches .score-fly/#win-strap:
+     under RM the collapsed duration lands the 100% frame — fully materialized and
+     VISIBLE, never a fade-to-nothing. Delay 0.15s clears .blink's first trough (0.8s). */
+  @keyframes phantom-materialize {
+    from { opacity: 0; transform: translateY(6px) scale(0.94); }
+    to   { opacity: 1; transform: translateY(0)   scale(1);    }
+  }
+  #title:not(.hidden) .phantom-figure--title {
+    animation: phantom-materialize 0.5s cubic-bezier(.2,.8,.3,1) 0.15s 1 both;
+  }
+
+  /* D-3: the dormant keyframes, re-homed. #gameover carries .hidden in markup (:1721),
+     so this does NOT fire at page load — CSS animations run regardless of visibility.
+     The :not(.hidden) scoping is the entire lifecycle: starts when gameOver() unhides,
+     stops when startGame() re-hides. Zero JS, zero timers, replay-safe. */
+  #gameover:not(.hidden) .phantom-figure--over .phantom-head {
+    animation: phantom-float 3.2s ease-in-out 2;
+  }
+  #gameover:not(.hidden) .phantom-figure--over .phantom-tail {
+    animation: phantom-tail-pulse 3.2s ease-in-out 0.25s 2;
+  }
+
   @media (prefers-reduced-motion: reduce) {
+    /* WARNING: this bare `*` selector does NOT match ::before/::after pseudo-elements —
+       only the in-app `body.reduce-motion` block below extends to them. Any new
+       animation placed on a ::before/::after would escape THIS (the real OS
+       accessibility setting) path while still being caught by the in-app one. Never
+       animate a pseudo-element; every S2/future animation must target a real element. */
     * {
       animation-duration: 0.01ms !important;
       animation-iteration-count: 1 !important;
