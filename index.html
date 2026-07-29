@@ -549,6 +549,7 @@
     /* Tapered plume — smooth, not bumpy */
     clip-path: polygon(20% 0%, 80% 0%, 100% 40%, 60% 100%, 40% 100%, 0% 40%);
     opacity: 0.9;
+    transform-origin: 50% 0;   /* S2: phantom-tail-pulse's scaleY plumes downward, not from center */
   }
 
   /* Cursor bar — blinks above the Phantom head */
@@ -563,12 +564,12 @@
   }
 
   @keyframes phantom-float {
-    from { transform: translateX(-50%) translateY(0px); }
-    to   { transform: translateX(-50%) translateY(-10px); }
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50%      { transform: translateX(-50%) translateY(-3px); }
   }
   @keyframes phantom-tail-pulse {
-    from { opacity: 0.6; transform: translateX(-50%) scaleY(1); }
-    to   { opacity: 1;   transform: translateX(-50%) scaleY(1.12); }
+    0%, 100% { opacity: 0.9; transform: translateX(-50%) scaleY(1); }
+    50%      { opacity: 1;   transform: translateX(-50%) scaleY(1.05); }
   }
   @keyframes cursor-blink {
     0%, 45%  { opacity: 1; }
