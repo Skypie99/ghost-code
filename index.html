@@ -1924,7 +1924,11 @@ function renderLearnProgress() {
   if (!isLearnMode() || !state.playing) return;
   const deck = activeDeck();
   const total = deck.length;
-  const mastered = state.learnMastered.size;
+  // Adversarial finding (P4 close-out): learnMastered is a whole-session Set, never
+  // filtered by category/difficulty — count only cards inside the ACTIVE deck so this
+  // can never exceed `total` (an unfiltered count could exceed a filtered total after
+  // switching categories mid-session, producing an ARIA-invalid aria-valuenow > aria-valuemax).
+  const mastered = deck.filter(c => state.learnMastered.has(c.id)).length;
   const pct = total > 0 ? (mastered / total) * 100 : 0;
   DOM.learnFill.style.width = pct + '%';
   DOM.learnCount.textContent = mastered + '/' + total;
