@@ -2637,9 +2637,13 @@ function togglePause() {
 //        focus moves to RESUME on open and is restored to the pre-pause element on
 //        resume (answer() and the lifeline still guard on state.paused as well). -----
 function setBoardInert(on) {
-  if (DOM.arena)      DOM.arena.inert      = on;
-  if (DOM.bar)        DOM.bar.inert        = on;
-  if (DOM.modeToggle) DOM.modeToggle.inert = on;
+  if (DOM.arena)           DOM.arena.inert           = on;
+  if (DOM.bar)             DOM.bar.inert             = on;
+  if (DOM.modeToggle)      DOM.modeToggle.inert      = on;
+  // Adversarial finding (P4 close-out): #learn-progress-bar sits behind title/pause/
+  // game-over the same as arena/bar, but wasn't covered here — un-hidden by M6 (L6-F8),
+  // it leaked into the a11y tree on every non-gameplay screen. Inert it in lockstep.
+  if (DOM.learnProgressBar) DOM.learnProgressBar.inert = on;
 }
 
 // ----- Pass 5 a11y: keyboard-shortcuts help dialog (opened with "?") -----
