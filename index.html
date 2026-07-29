@@ -2484,8 +2484,13 @@ function gameOver() {
     let chip = null;
     if (runN > 0) {
       const sliver = document.createElement('div'); sliver.className = 'mastery__runsliver';
-      sliver.style.left = pct + '%';
-      sliver.style.width = Math.max(Math.min((runN / total) * 100, 100 - pct), 2) + '%';
+      const sliverW = Math.max(Math.min((runN / total) * 100, 100 - pct), 2);
+      // Adversarial finding (P4 close-out): at pct===100 the old left:pct%/width:2% (floor)
+      // combo placed the sliver entirely past the track's right edge, clipped by overflow:
+      // hidden — invisible on a just-mastered category despite scoring this run. Clamp left
+      // so the (possibly floor-forced) width always stays inside the track.
+      sliver.style.left = Math.min(pct, 100 - sliverW) + '%';
+      sliver.style.width = sliverW + '%';
       track.appendChild(sliver);
       chip = document.createElement('span'); chip.className = 'mastery__runchip';
       chip.setAttribute('aria-hidden', 'true');
