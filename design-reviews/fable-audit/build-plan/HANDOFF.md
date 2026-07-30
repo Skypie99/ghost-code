@@ -395,9 +395,23 @@
   States both merge options up front (single ff of the P6 tip vs phase-by-phase, six stops) — either
   is ff-only, train order, never skipping. Verified `git diff 9789d1a..HEAD -- CNAME` is empty before
   asserting "no DNS changes" in the doc. Added to `00_master.md`'s "Files here" list.
-- STATUS: Items 1-4 complete. Continuing to Item 5 (train report).
-- NEXT ACTION + resume: if this window dies, a fresh window reads this file — Items 1-4 are
-  documented above and do not need re-running; continue from Item 5.
+- **Backfill:** P6-4 = `81bddf6`.
+- [BANKED `<pending, this commit>`] **P6-5** — train report written:
+  `reports/2026-07-29_GhostCode_UPLIFT_TrainReport.md`. Per-phase commit spans + rollback anchors
+  re-derived from `git log --oneline <base>..<tip>` for all 6 phases (not transcribed from memory);
+  reproduces the ACTUAL conservation table; full gate-results table; links both checklists; the
+  complete "open items to carry to Sky" list (nothing merged, M2's device-RM gap, S2's forked clause,
+  `c24f34c` undecided, Fork C provisional, deferred/known-honest items, pre-existing disowned defects,
+  evidence gaps including the missing `captures/p3/` dir, and the SD-8 provenance note). **The
+  provenance claim (23 Opus 4.8 / 7 Sonnet 5 commits) was independently re-verified this item via
+  `git log --format='%b' <sha> | grep '^Co-Authored-By:'` on all 30 commits** — not copied from the
+  phase-file's transcription — and matches exactly (23/7, same 7 SHAs: `b34473e`/`26a6e46`/`15e6669`
+  + all 4 P5 commits). This window's own model (Sonnet 5) tagged honestly against SD-8's Opus 4.8
+  directive.
+- STATUS: Items 1-5 complete. Continuing to Item 6 (final ledgers).
+- NEXT ACTION + resume: if this window dies, a fresh window reads this file — Items 1-5 are
+  documented above and do not need re-running; continue from Item 6 (DECISIONS.md §D final row +
+  P6-verification-evidence.md + this file's TRAIN COMPLETE state).
 
 ## Execution checkpoint template (each phase appends entries in this shape)
 
