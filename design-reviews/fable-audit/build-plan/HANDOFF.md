@@ -408,10 +408,42 @@
   phase-file's transcription — and matches exactly (23/7, same 7 SHAs: `b34473e`/`26a6e46`/`15e6669`
   + all 4 P5 commits). This window's own model (Sonnet 5) tagged honestly against SD-8's Opus 4.8
   directive.
-- STATUS: Items 1-5 complete. Continuing to Item 6 (final ledgers).
-- NEXT ACTION + resume: if this window dies, a fresh window reads this file — Items 1-5 are
-  documented above and do not need re-running; continue from Item 6 (DECISIONS.md §D final row +
-  P6-verification-evidence.md + this file's TRAIN COMPLETE state).
+- **Backfill:** P6-5 = `a79c95b`.
+- [BANKED `<pending, this commit>`] **P6-6** — final ledgers: `reports/P6-verification-evidence.md`
+  written (per-item measurements, evidence tags, the 28-item device checklist restated as "28/28
+  open, 0/28 checked," full commit list with one-line rationales). `DECISIONS.md` §D given its final
+  P6 rows (pre-flight through STOP). This file (below) given its TRAIN COMPLETE state.
+- STATUS: **TRAIN COMPLETE.** All 6 phases (P1–P6) stopped complete on stacked branches. All 19 slate
+  proposals reconciled: 18 CLOSED + 1 (S2) CLOSED-with-one-clause-FORKED, 0 PENDING-SKY-PICK, 0
+  DEFERRED. Green gate clean throughout (56/56, 0 console errors, every checkpoint). **Nothing is
+  merged** — `main`==`origin/main`==`9789d1a`, unmoved through the entire train.
+- REMAINING: none for any agent. Everything left is Sky's:
+  1. Decide `c24f34c` keep/drop (cheapest before the P2 merge — `DEPLOY-CHECKLIST.md` step 0).
+  2. Merge in train order, either path (`DEPLOY-CHECKLIST.md` step 1) — single ff of the P6 tip, or
+     six phase-by-phase stops.
+  3. Push → confirm CI green → work through `DEPLOY-CHECKLIST.md` steps 3–7 (favicon chain, font
+     preloads, social re-scrape, DNS confirm).
+  4. Run the 28-item `DEVICE-GATE-CHECKLIST.md` against the live site (or a LAN pre-flight first, if
+     preferred — either checklist file supports both).
+  5. Optional: Fork C final call (keep-vs-remove the title controls line — mocks already rendered,
+     `captures/p2/forkC/`); optional Dani Design-Compiler pass on the accumulated before/after set.
+- KNOWN ISSUES: none blocking that this phase can act on. Carried forward, all already itemized in
+  `reports/2026-07-29_GhostCode_UPLIFT_TrainReport.md` §5: M2's CRITICAL closed on Chromium
+  non-reproduction (real-device RM check still open, flagged as this train's single largest
+  outstanding correctness risk); S2's in-play clause FORKED not built; `c24f34c` undecided; Fork C
+  provisional; several deferred/known-honest presentation deviations (all correct-as-shipped, not
+  oversights); a handful of pre-existing, disowned-by-P5 defects; and the evidence-coverage gaps
+  (all-Chromium captures, no `captures/p3/` directory, P1/P3 drivers not recoverable from session
+  scratchpads).
+- NEXT ACTION + resume: **there is no next phase — this is the last car.** If a future window is ever
+  fired on `6.md` again: read this file first, see TRAIN COMPLETE above, do nothing (all 7 P6 work
+  items are banked). Any further action on this repo is either (a) Sky's own merge/deploy/device work
+  per the two checklists, or (b) a NEW train, planned fresh, not a continuation of this one.
+
+> **ff-only merge-order reminder (final):** merging this tip fast-forwards `main` through **P1, P2,
+> P3, P4, P5 AND P6** — merge in train order, or stop anywhere earlier per `DEPLOY-CHECKLIST.md` step
+> 1's phase-by-phase option. Stop is ON the branch; Sky merges. Serial per project: no other phase
+> runs while this branch is open.
 
 ## Execution checkpoint template (each phase appends entries in this shape)
 
