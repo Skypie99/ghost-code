@@ -293,6 +293,86 @@
 > **ff-only merge-order reminder:** merging this branch fast-forwards `main` through P1, P2, P3, P4
 > AND P5 — merge in train order (P1→P2→P3→P4→P5). Stop is ON the branch; Sky merges.
 
+## Execution state — P6 IN PROGRESS (branch `uplift/p6-closeout`)
+
+### P6 Close-Out — 2026-07-29 · branch `uplift/p6-closeout` · base `a2b75f6` (rollback anchor)
+- [pre-flight] Branch created off `uplift/p5-ghost`@`a2b75f6` (P5's tip; P5 stopped complete with 4
+  commits banked, so base = P5's tip per §2.1). Base green gate PASS (56/56, script window 1804..3027).
+  No drift (`main`==`origin/main`==`9789d1a`, unmoved). All 30 conservation-table SHAs re-resolved via
+  `git log -1` and confirmed present with matching subjects before any work began.
+- [BANKED `f5aece0`] **P6-0** (bootstrap, partial SKY-PREP #1): staged the 14 existing
+  `build-plan/**.md` files by explicit pathspec (00_master/DECISIONS/HANDOFF/1-6.md/reports P1-P5) —
+  all landed as `A` (ADD), confirmed via `git diff --cached --name-status` before committing. 2916
+  insertions, zero binaries. `design-reviews/` captures/assets/tools remain untracked (commit-scope
+  decision: build-plan text only).
+- [captures] `tools/p6-captures.mjs` written (new — fills 2 coverage holes + 1 new probe): seeded@768
+  title+gameover (01-base-screens.mjs's seeded matrix was 1440+375 only), in-app
+  Settings->Motion=Reduced @768/375 (04-rm.mjs's in-app job was 1440 only), and a new in-play
+  photosensitivity probe for the wrong-answer window (nothing in the train had measured this before).
+  Output → `build-plan/reports/captures/p6/final/`.
+- [photosensitivity probe — methodology note] A first rAF-loop version produced untrustworthy
+  box-shadow-alpha readings (matched none of the 3 declared `danger-pulse` keyframe stops) —
+  consistent with this environment's documented rAF/timer-callback throttling (RUNBOOK.md / P3
+  evidence: "throttles rAF + CSS transitions when the tab isn't painting"). Replaced with in-page
+  `setInterval` polling (same timer substrate as the app's own `setTimeout` calls, so the MEASURED
+  gap is self-consistent regardless of callback-delivery delay) + a live computed-style sample for
+  iteration-count + the keyframe source itself for the amplitude bound. Ran 3 independent times:
+  measured lockout window 1894ms / 1896ms / 1983ms (mean 1924ms, all within normal timer-scheduling
+  jitter of the code's declared 1900ms constant) — reported as a precision band (±poll interval),
+  not a single cherry-picked number. `animationIterationCount` read live = `'1'` every time; static
+  grep of `.danger-flash`'s rule + the `danger-pulse` keyframe confirms no `infinite` keyword and no
+  iteration-count override anywhere in the stylesheet. **PASS.**
+- [BANKED `<pending>`] **P6-1** — whole-train gates at the tip:
+  - Green gate: 56/56, 0 console errors, script window 1804..3027.
+  - New capture rig (above): PASS — seeded@768 + in-app RM@768/375 captured; photosensitivity probe
+    PASS (measured window consistent with ≥1900ms across 3 runs; iteration-count confirmed 1).
+  - `p5-anim-audit.mjs` re-run at the tip: FINITE-ITERATION AUDIT PASS; PHOTOSENSITIVITY (tail-pulse)
+    PASS (~0.30 Hz). **Honest note:** console reports "cursor-blink instances: 6" vs P5's prose
+    reporting 3 — verified via the raw JSON this is a benign double-count (the script concatenates
+    its title-pass + game-over-pass findings; all 3 physical `.phantom-cursor-bar` DOM elements are
+    always present regardless of which screen is active, so each pass finds all 3 = 3+3=6). Same 3
+    physical elements P5 already accounted for ("mutually exclusive in real play via z-index/opacity
+    stacking, not absence"); P5's prose likely transcribed the architectural count instead of the
+    script's own concatenated total. Not a regression — allowlisted either way.
+  - `p5-oneactor.mjs` re-run at the tip: ONE-ACTOR-MOVES PASS (150 frames, 1 distinct position/
+    transform, 0 non-'none' animation-name frames).
+  - `p4-endstate.mjs` and `p5-law2-domcheck.mjs` deliberately NOT re-run: the former hardcodes its
+    output path to `captures/p4/endstate/` — re-running it at the P6 tip (which includes P5's Phantom
+    bookends, absent from P4's own tip) would silently overwrite P4's evidence captures with
+    different-looking pixels than what `P4-verification-evidence.md`'s prose describes. The latter
+    needs two genuinely different URLs to compare and P6 makes zero code changes, so there is nothing
+    to A/B. Both replaced by a stronger, more direct proof: `git diff 15e6669..a2b75f6` (P5's diff)
+    touches zero lines matching any M3/M6/S3 selector/function
+    (`missed-review|mr-overflow|mr-more|updateMissedReviewFade|mastery__|learn-progress-bar|
+    runCorrectByCat|drill-badge|drill-missed-btn|drillCleared`) — their P4 end-state guarantees
+    therefore carry forward unchanged to the P6 tip without needing a re-shoot.
+  - Three fade-check legs via `p2-m4.mjs` (honest three-way framing per the phase brief — nothing
+    changed at P6 so there is no before/after, only what each leg actually proves):
+    1. **Measured, intra-session:** ran `p2-m4.mjs p6-run1` and `p6-run2` back-to-back at the tip —
+       `pauseSettledSha` identical both runs (`d75d3ba28f1338b4` == `d75d3ba28f1338b4`). `maxDE=0`
+       both full-motion and reduced-motion, both runs (matches the established P2/P4/P5 baseline).
+    2. **Measured, cross-session string compare:** computed `.screen` transition on both `#pauseScreen`
+       and `#gameover` = `"opacity 0.35s, visibility 0.35s"` both runs — byte-identical to P5's
+       recorded value.
+    3. **Code-inferred, definitive:** `git diff 9789d1a..HEAD -U0 -- index.html`, filtered to the
+       `.screen`/`.screen.hidden` rule bodies and the literal `transition: opacity 0.35s...` line,
+       matches **zero** lines across the WHOLE train — the core fade rule itself was never touched by
+       any phase. (A broader keyword grep for `pauseScreen`/`togglePause` DOES find 3 lines — Q8's own
+       already-verified P3 work: an `aria-label`→`aria-labelledby` swap, a documenting comment, and
+       the new RESUME button's listener — none of which touch the fade mechanism; expected, not a
+       LAW 3 violation.) **P6 itself changes zero lines of `index.html`/`cards.js`** (`git diff
+       a2b75f6..HEAD` on those two files = empty) — the strongest form of this proof for this phase.
+  - Diff audit: `git diff 9789d1a..HEAD --stat` = 20 files — the same 6 code files as P5's tip
+    (`index.html` + `favicon.svg`/`favicon-32.png`/`favicon-180.png`/`favicon.ico`/`og-image.png`)
+    plus the 14 build-plan `.md` files P6-0 just added. No drift-adjusted base recorded in
+    `DECISIONS.md` §D (checked) — base remains `9789d1a`. Every touched file accounted for by a
+    phase's intended-files list; nothing unexplained.
+  - This item's own commit (this HANDOFF update) = **P6-1**. (Commit SHAs are backfilled into the
+    NEXT checkpoint entry once known — a commit cannot cite its own hash in its own content.)
+- STATUS: Item 1 complete, evidence banked. Continuing to Item 2 (conservation -> ACTUAL).
+- NEXT ACTION + resume: if this window dies, a fresh window reads this file — Item 1's gates are
+  documented above and do not need re-running; continue from Item 2.
+
 ## Execution checkpoint template (each phase appends entries in this shape)
 
 ```
