@@ -385,9 +385,19 @@
   cluster -> iPhone 375 -> keyboard latency -> full-site Safari pass) so Sky toggles each OS setting
   exactly once and isn't bouncing between screens. Nothing checked off yet — this train has had zero
   real-device passes. Added to `00_master.md`'s "Files here" list.
-- STATUS: Items 1-3 complete. Continuing to Item 4 (deploy checklist).
-- NEXT ACTION + resume: if this window dies, a fresh window reads this file — Items 1-3 are
-  documented above and do not need re-running; continue from Item 4.
+- **Backfill:** P6-3 = `a9a54e7`.
+- [BANKED `<pending, this commit>`] **P6-4** — `build-plan/DEPLOY-CHECKLIST.md` written: master §7's
+  L1-L6 as one ordered list (merge -> push -> CI green -> verify favicon chain -> verify font-preload
+  byte-match -> re-scrape social caches -> confirm no DNS change -> live device session), with 5
+  de-facto riders folded in rather than invented as new L-numbers (L1's og-image/alt same-deploy
+  dependency, L2's 4-binary favicon chain, L3's Google-Fonts-version spot-check, the `c24f34c`
+  pre-merge keep/drop call flagged as cheapest-to-decide-now, and the git-clean hazard repeated).
+  States both merge options up front (single ff of the P6 tip vs phase-by-phase, six stops) — either
+  is ff-only, train order, never skipping. Verified `git diff 9789d1a..HEAD -- CNAME` is empty before
+  asserting "no DNS changes" in the doc. Added to `00_master.md`'s "Files here" list.
+- STATUS: Items 1-4 complete. Continuing to Item 5 (train report).
+- NEXT ACTION + resume: if this window dies, a fresh window reads this file — Items 1-4 are
+  documented above and do not need re-running; continue from Item 5.
 
 ## Execution checkpoint template (each phase appends entries in this shape)
 
