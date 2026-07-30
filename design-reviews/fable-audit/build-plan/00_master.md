@@ -55,21 +55,48 @@ The report's §"Candidate mockup-gated phases" was the starting point. Refinemen
 
 ---
 
-## 4 · Conservation map (19/19 — planning state)
+## 4 · Conservation map (19/19 — ACTUAL, reconciled at P6 close-out 2026-07-29)
 
-Every slate proposal lands in exactly one phase. P6 updates this table to ACTUAL (CLOSED / FORKED / PENDING-SKY-PICK / DEFERRED, with commit refs).
+Every slate proposal landed in exactly one phase. All 30 commit SHAs below were re-resolved via
+`git log -1 <sha>` at P6 close-out (not trusted from transcription) — every one present, every subject
+matching. Status legend: **CLOSED** (shipped, banked, evidenced) · **FORKED** (a clause traced and
+consciously not built, with the finding recorded) · PENDING-SKY-PICK / DEFERRED (unused — none of
+either in this train).
 
-| ID | Phase | | ID | Phase | | ID | Phase |
-|---|---|---|---|---|---|---|---|
-| S1 | P3 | | M3 | P4 | | Q4 | P2 |
-| S2 | P5 | | M4 | P2 | | Q5 | P2 |
-| S3 | P4 | | M5 | P2 | | Q6 | P3 |
-| M1 | P1 | | M6 | P4 | | Q7 | P3 |
-| M2 | P1 | | Q1 | P2 | | Q8 | P3 |
-| | | | Q2 | P2 | | Q9 | P1 |
-| | | | Q3 | P1 | | Q10 | P2 |
+| ID | Phase | Status | Commit(s) | One-line |
+|---|---|---|---|---|
+| M1 | P1 | CLOSED | `b300b41` | Candidate C de-collision (≤600 diamond) + learn-mode fold relief |
+| M2 | P1 | CLOSED | `6d150c4` | L4-F1 verified NON-REPRO at per-frame resolution; documents the SD-9 same-paint clear anchor (no behavioral change) |
+| Q3 | P1 | CLOSED | `71bff76` + `b5c3a50` | 768 SETTINGS un-clip (Q3a) + 1440 learn-diamond/bar un-clip (Q3b) — **one slate ID, two commits** (see arithmetic note below) |
+| Q9 | P1 | CLOSED | `4290195` | 8px→10px HUD stat-label floor |
+| M4 | P2 | CLOSED | `15838b9` (+ `78d605a` harden) | Title→board double-exposure killed (two-beat exit); harden commit dropped a fragile deferred-rAF cleanup found by adversarial review |
+| M5 | P2 | CLOSED | `350f8bb` (M5a) + `c4b06dc` (M5b) | Favicon recolor + PNG/ICO fallbacks (M5a); OG card export + truthful alt (M5b) |
+| Q1 | P2 | CLOSED | `9e5c46d` | Controls-orphan fixed via inverted NBSP binding |
+| Q2 | P2 | CLOSED | `8f32c49` (+ `c24f34c` follow-up) | Canonical category name via `CATEGORY_LABELS`; follow-up self-flagged "⚠ EXCEEDS APPROVED PLAN" (share-string unification) — **Sky's keep/drop call, open item** |
+| Q4 | P2 | CLOSED | `dcd858e` | Invalid `@supports` grammar fixed (De Morgan) |
+| Q5 | P2 | CLOSED | `3c9c438` | Preload woff2 + metrics-matched fallbacks (kills FOUT) |
+| Q10 | P2 | CLOSED | `e48e310` | Returning-player welcome-back beat |
+| S1 | P3 | CLOSED | `0cf8bca` (S1a) + `161ae66` (S1b) | Held-win CSS state layer + wiring (score-fly, win-strap, learn answer line) |
+| Q6 | P3 | CLOSED | `974f601` | Neutralized teal focus-ring on a wrong token |
+| Q7 | P3 | CLOSED | `be022b6` | SPIRITS heart glyph + 50/50 slashed-circle (glyph + aria only, SD-2) |
+| Q8 | P3 | CLOSED | `36d160e` | Pause overlay → real modal (RESUME button, inert board, focus stash/restore) |
+| M3 | P4 | CLOSED | `d67e2e5` | Never-clip the game-over review box |
+| M6 | P4 | CLOSED | `8e7b61f` (+ `b34473e`/`26a6e46`/`15e6669` adversarial fixes) | This-run credit + un-hidden Learn MASTERED bar; 3 follow-ups fixed 2 real a11y bugs + 1 cosmetic clip found by adversarial review |
+| S3 | P4 | CLOSED | `63da969` | DRILL MISSED promoted to primary CTA + drill badge |
+| S2 | P5 | **CLOSED (title + game-over bookends) / FORKED (in-play breathing clause)** | `13c1122` + `34f8d76` + `87cc42a` + `a2b75f6` | Bookends built as specified; in-play clause traced (D-3: `renderCard`/`answer`/`learningRetry`/`learningReveal`/`nextCard` — no idle non-card-read window exists in the loop) and consciously re-homed to game-over instead — **one slate ID, two rows in P5's own evidence report** (see arithmetic note below) |
+| — | P6 | — (0 slate items) | — | This phase carries no slate items; it reconciles the 19 above |
 
-Counts: P1=4 · P2=7 · P3=4 · P4=3 · P5=1 · P6=0 → **19**. Nothing dropped; nothing smuggled.
+**Counts: P1=4 · P2=7 · P3=4 · P4=3 · P5=1 · P6=0 → 19. 18 CLOSED outright + 1 (S2) CLOSED-with-one-clause-FORKED · 0 PENDING-SKY-PICK · 0 DEFERRED.** Nothing dropped; nothing smuggled.
+
+**Two arithmetic traps that produce a false 20 (stated explicitly so no future reader miscounts):**
+1. **Q3 is one slate ID, not two.** "Q3a" and "Q3b" are the two commits that closed the ONE id `Q3`
+   (768 un-clip + 1440 un-clip respectively) — count it once.
+2. **S2 is one slate ID, not two.** P5's own evidence report lists "S2 (title + game-over bookends)"
+   and "S2 (in-play breathing clause)" as two separate ROWS for readability — they are the same ID
+   with a split status, not two IDs. Count it once.
+
+Full per-ID evidence: `reports/P1-verification-evidence.md` through `P5-verification-evidence.md`.
+This table is reproduced in `reports/2026-07-29_GhostCode_UPLIFT_TrainReport.md`.
 
 **Fidelity rule:** each phase prompt quotes its proposals' slate blocks **VERBATIM** from the report — the recorded taste travels intact; no lossy paraphrase. (This rule exists because a one-liner drift was caught at planning: Q7 is a **glyph-swap + aria-semantics change only** — its own verification demands a glyph-only diff, and the "50/50 appears twice" observation is fenced out-of-scope by the report itself.)
 

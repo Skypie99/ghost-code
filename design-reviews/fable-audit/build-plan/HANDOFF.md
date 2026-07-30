@@ -369,9 +369,17 @@
     phase's intended-files list; nothing unexplained.
   - This item's own commit (this HANDOFF update) = **P6-1**. (Commit SHAs are backfilled into the
     NEXT checkpoint entry once known — a commit cannot cite its own hash in its own content.)
-- STATUS: Item 1 complete, evidence banked. Continuing to Item 2 (conservation -> ACTUAL).
-- NEXT ACTION + resume: if this window dies, a fresh window reads this file — Item 1's gates are
-  documented above and do not need re-running; continue from Item 2.
+- **Backfill:** P6-0 = `f5aece0`. P6-1 = `74f0e20`.
+- [BANKED `<pending, this commit>`] **P6-2** — conservation map -> ACTUAL. Rewrote `00_master.md` §4
+  in place: all 19 slate IDs re-resolved to CLOSED (18) / CLOSED-with-one-clause-FORKED (S2, 1) / 0
+  PENDING-SKY-PICK / 0 DEFERRED, every commit SHA re-verified via `git log -1` as part of this item's
+  own gate (not reused from pre-flight). Stated both arithmetic traps explicitly (Q3 = one ID/two
+  commits; S2 = one ID/two rows in P5's own report) so no future reader miscounts to 20. Tally:
+  4+7+4+3+1+0 = **19**, reconciled exactly — this phase's hard gate. Table will be reproduced
+  verbatim in the Item 5 train report.
+- STATUS: Items 1-2 complete. Continuing to Item 3 (device-gate checklist).
+- NEXT ACTION + resume: if this window dies, a fresh window reads this file — Items 1-2 are
+  documented above and do not need re-running; continue from Item 3.
 
 ## Execution checkpoint template (each phase appends entries in this shape)
 
