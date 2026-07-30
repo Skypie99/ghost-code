@@ -377,9 +377,17 @@
   commits; S2 = one ID/two rows in P5's own report) so no future reader miscounts to 20. Tally:
   4+7+4+3+1+0 = **19**, reconciled exactly — this phase's hard gate. Table will be reproduced
   verbatim in the Item 5 train report.
-- STATUS: Items 1-2 complete. Continuing to Item 3 (device-gate checklist).
-- NEXT ACTION + resume: if this window dies, a fresh window reads this file — Items 1-2 are
-  documented above and do not need re-running; continue from Item 3.
+- **Backfill:** P6-2 = `0bfb775`.
+- [BANKED `<pending, this commit>`] **P6-3** — `build-plan/DEVICE-GATE-CHECKLIST.md` written: 28
+  deduped items harvested from every `NEEDS-SKY-DEVICE` tag in `reports/P1-verification-evidence.md`
+  through `P5-verification-evidence.md` plus each phase's own §8 list. Ordered as one efficient
+  session (cold-cache first -> default-settings Safari walk -> Reduce Motion cluster -> VoiceOver
+  cluster -> iPhone 375 -> keyboard latency -> full-site Safari pass) so Sky toggles each OS setting
+  exactly once and isn't bouncing between screens. Nothing checked off yet — this train has had zero
+  real-device passes. Added to `00_master.md`'s "Files here" list.
+- STATUS: Items 1-3 complete. Continuing to Item 4 (deploy checklist).
+- NEXT ACTION + resume: if this window dies, a fresh window reads this file — Items 1-3 are
+  documented above and do not need re-running; continue from Item 4.
 
 ## Execution checkpoint template (each phase appends entries in this shape)
 
