@@ -86,8 +86,30 @@
     --accent-quiet:   #1E6F66;   /* muted accent for filled bg / progress track */
     --accent-hover:   #5FE6D4;   /* lightened accent — primary-button hover */
     --accent-subtle:  #BFF5EE;   /* near-white teal — title gradient highlight */
-    --surface-track:  rgba(255,255,255,0.06);  /* progress-bar tracks */
-    --surface-hover:  rgba(255,255,255,0.04);  /* subtle button hover wash */
+    /* ---- Channel triplets ------------------------------------------------
+       Every alpha-composed colour in the sheet (fills, glows, washes, scrims)
+       is written as rgba(var(--x-rgb), A) instead of a literal. The alphas are
+       load-bearing design decisions and stay per-use; only the CHANNELS are
+       shared. A theme swap therefore re-keys ~20 composed colours by setting
+       7 triplets, with no chance of one being missed. */
+    --accent-rgb:   61,216,196;
+    --success-rgb:  74,222,128;
+    --danger-rgb:   248,113,113;
+    --warning-rgb:  251,191,36;
+    --muted-rgb:    157,167,179;   /* --text-secondary, for the neutral focus halo */
+    --overlay-rgb:  255,255,255;   /* the "lift" wash: white ON DARK, inverts on light */
+    --scrim-rgb:    8,11,16;       /* modal backdrop base */
+    --surface-track:  rgba(var(--overlay-rgb),0.06);  /* progress-bar tracks */
+    --surface-hover:  rgba(var(--overlay-rgb),0.04);  /* subtle button hover wash */
+    /* Ink that sits ON a saturated accent fill (primary button, active mode tab).
+       NOT the same thing as the page surface — on a light theme the surface goes
+       near-white while this must stay dark to survive on the teal fill. */
+    --ink-on-accent:  var(--surface-base);
+    /* Modal backdrop */
+    --scrim:          rgba(var(--scrim-rgb),0.72);
+    /* Ambient accent washes (the one soft tint on #sky and the .screen overlays) */
+    --wash-sky:       rgba(var(--accent-rgb),0.05);
+    --wash-screen:    rgba(var(--accent-rgb),0.06);
     /* Semantic only — never decoration */
     --success:        #4ADE80;
     --warning:        #FBBF24;
@@ -100,8 +122,8 @@
     --radius-sm:6px; --radius-md:10px; --radius-lg:14px;
     /* ONE elevation shadow (no glow); a single soft accent halo for "alive/answer" */
     --shadow:       0 1px 2px rgba(0,0,0,.45), 0 8px 24px rgba(0,0,0,.30);
-    --accent-halo:  0 0 16px rgba(61,216,196,.35);
-    --neutral-halo: 0 0 16px rgba(157,167,179,.35);  /* desaturated focus halo — wrong+focused (Q6) */
+    --accent-halo:  0 0 16px rgba(var(--accent-rgb),.35);
+    --neutral-halo: 0 0 16px rgba(var(--muted-rgb),.35);  /* desaturated focus halo — wrong+focused (Q6) */
 
     /* ---- Back-compat remap: old names → new system ---- */
     --bg-deep:    var(--surface-base);
@@ -121,17 +143,34 @@
     --sun-bot:    var(--accent-quiet);
     --soft:       var(--text-primary);
     --dim:        var(--text-secondary);
-    --danger-glow: rgba(248,113,113,0.55);
+    --danger-glow: rgba(var(--danger-rgb),0.55);
     --shadow-sm:   var(--shadow);
     --shadow-md:   var(--shadow);
     --shadow-glow: var(--accent-halo);
 
     /* === Phantom mascot = accent, flattened (no heavy glow) === */
     --phantom-core:    var(--accent);
-    --phantom-glow:    rgba(61,216,196,0.35);
-    --phantom-tail:    rgba(61,216,196,0.16);
+    --phantom-glow:    rgba(var(--accent-rgb),0.35);
+    --phantom-tail:    rgba(var(--accent-rgb),0.16);
+    /* The Phantom's eyes sit ON the teal body, not on the page surface — so they
+       are white in BOTH themes. This is the one white that must never invert. */
     --phantom-eye:     #ffffff;
     --phantom-eye-dim: rgba(255,255,255,0.55);
+    /* Tail plume stops + the ≤600 head halo */
+    --phantom-tail-near: rgba(var(--accent-rgb),0.42);
+    --phantom-tail-far:  rgba(var(--accent-rgb),0.14);
+    --phantom-halo-sm:   0 0 10px rgba(var(--accent-rgb),.32);
+    /* ---- Outcome fills + glows (correct / wrong / captured / lifeline) ---- */
+    --success-fill:        rgba(var(--success-rgb),0.12);
+    --success-glow:        0 0 16px rgba(var(--success-rgb),0.35);
+    --success-glow-soft:   0 0 18px rgba(var(--success-rgb),0.30);
+    --success-glow-strong: 0 0 22px rgba(var(--success-rgb),0.5);
+    --success-glow-flash:  0 0 24px rgba(var(--success-rgb),0.55);
+    --danger-fill:         rgba(var(--danger-rgb),0.12);
+    --danger-glow-soft:    0 0 14px rgba(var(--danger-rgb),0.30);
+    --danger-pulse-lo:     0 0 10px rgba(var(--danger-rgb),0.35);
+    --danger-pulse-hi:     0 0 22px rgba(var(--danger-rgb),0.60);
+    --warning-fill:        rgba(var(--warning-rgb),0.12);
   }
   * { box-sizing: border-box; }
   html, body {
@@ -173,7 +212,7 @@
   #sky {
     position: fixed; inset: 0; z-index: -3;
     background:
-      radial-gradient(ellipse 120% 80% at 50% -10%, rgba(61,216,196,0.05) 0%, transparent 55%),
+      radial-gradient(ellipse 120% 80% at 50% -10%, var(--wash-sky) 0%, transparent 55%),
       var(--surface-base);
   }
 
@@ -516,7 +555,7 @@
   .phantom-eye-r {
     position: absolute;
     width: 11px; height: 14px;
-    background: #fff;
+    background: var(--phantom-eye);
     border-radius: 50%;
     top: 16px;
   }
@@ -543,8 +582,8 @@
     transform: translateX(-50%);
     width: 30px; height: 34px;
     background: radial-gradient(ellipse at 50% 0%,
-      rgba(61,216,196,0.42) 0%,
-      rgba(61,216,196,0.14) 55%,
+      var(--phantom-tail-near) 0%,
+      var(--phantom-tail-far) 55%,
       transparent 100%);
     /* Tapered plume — smooth, not bumpy */
     clip-path: polygon(20% 0%, 80% 0%, 100% 40%, 60% 100%, 40% 100%, 0% 40%);
@@ -658,16 +697,16 @@
   }
 
   .token.correct {
-    background: rgba(74,222,128,0.12) !important;
+    background: var(--success-fill) !important;
     border-color: var(--success) !important;
-    box-shadow: 0 0 16px rgba(74,222,128,0.35) !important;
+    box-shadow: var(--success-glow) !important;
     /* WCAG 2.3.1: one bloom, not 3 in 0.4s — stays under 3 flashes/sec */
     animation: flash 0.5s 1;
   }
   .token.wrong {
-    background: rgba(248,113,113,0.12) !important;
+    background: var(--danger-fill) !important;
     border-color: var(--danger) !important;
-    box-shadow: 0 0 14px rgba(248,113,113,0.30) !important;
+    box-shadow: var(--danger-glow-soft) !important;
   }
   /* WCAG 1.4.1: outcome is not signalled by colour alone — a ✓ / ✗ glyph (shape)
      marks correct vs wrong. White for contrast on either token background; the
@@ -678,7 +717,7 @@
     top: 5px; right: 8px;
     font-family: system-ui, -apple-system, 'Segoe UI Symbol', sans-serif;
     font-size: 14px; font-weight: 700; line-height: 1;
-    color: #fff;
+    color: var(--text-primary);   /* dead: both states below set their own colour */
   }
   .token.correct::after { content: "\2713"; color: var(--success); }   /* ✓ */
   .token.wrong::after   { content: "\2717"; color: var(--danger); }    /* ✗ */
@@ -698,7 +737,7 @@
      base .token transition, same as .correct — so it never straggles past the clear). */
   .token.captured {
     border-color: var(--success) !important;
-    box-shadow: 0 0 22px rgba(74,222,128,0.5) !important;
+    box-shadow: var(--success-glow-strong) !important;
   }
   /* S1 — "+N" score-fly, anchored to the captured token. Rises a few px and HOLDS (both
      fill) until the SD-9 teardown removes it. Under reduced motion the global * override
@@ -741,7 +780,7 @@
     word-break: break-word;
     z-index: 8;
     pointer-events: none;
-    box-shadow: 0 0 18px rgba(74,222,128,0.30);
+    box-shadow: var(--success-glow-soft);
     display: none;
   }
   #win-strap.visible {
@@ -753,7 +792,7 @@
     to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
   }
   @keyframes flash {
-    50% { box-shadow: 0 0 24px rgba(74,222,128,0.55); }
+    50% { box-shadow: var(--success-glow-flash); }
   }
 
   /* ======================================================
@@ -762,9 +801,9 @@
      the cabinet border strobes. No creature shape.
      ====================================================== */
   @keyframes danger-pulse {
-    0%   { box-shadow: 0 0 10px rgba(248,113,113,0.35); }
-    40%  { box-shadow: 0 0 22px rgba(248,113,113,0.60); }
-    100% { box-shadow: 0 0 10px rgba(248,113,113,0.35); }
+    0%   { box-shadow: var(--danger-pulse-lo); }
+    40%  { box-shadow: var(--danger-pulse-hi); }
+    100% { box-shadow: var(--danger-pulse-lo); }
   }
   .danger-flash { animation: danger-pulse 0.4s ease-out; }
   .danger-flash-cabinet {
@@ -817,7 +856,7 @@
   }
   /* 50/50 lifeline — amber (the progress/streak semantic), no glow */
   .btn.lifeline-btn { border-color: var(--warning); color: var(--warning); }
-  .btn.lifeline-btn:hover:not(:disabled) { background: rgba(251,191,36,0.12); color: var(--warning); }
+  .btn.lifeline-btn:hover:not(:disabled) { background: var(--warning-fill); color: var(--warning); }
   /* Disabled control (e.g. 50/50 with none left) — dims + ignores pointer so no hover-fill */
   .btn:disabled { opacity: 0.38; box-shadow: none; pointer-events: none; }
   /* Press feedback on buttons — consistent tactile cue with the tokens.
@@ -851,7 +890,7 @@
   .mode-btn:hover { background: var(--surface-hover); color: var(--text-primary); }
   .mode-btn.active {
     background: var(--accent);
-    color: var(--surface-base);
+    color: var(--ink-on-accent);
   }
   .mode-btn:focus-visible {
     outline: 2px solid var(--accent);
@@ -1017,7 +1056,7 @@
        can't bleed through (title / game-over / pause). The pink radial is a
        tint ON TOP of the opaque base, not a transparency. */
     background:
-      radial-gradient(ellipse 100% 60% at 50% 0%, rgba(61,216,196,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 100% 60% at 50% 0%, var(--wash-screen) 0%, transparent 60%),
       var(--bg-deep);
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
@@ -1240,7 +1279,7 @@
     padding: 15px 34px;
     border: 1px solid var(--accent);
     border-radius: var(--radius-sm);
-    color: var(--surface-base);
+    color: var(--ink-on-accent);
     background: var(--accent);
     cursor: pointer;
     letter-spacing: 0.02em;
@@ -1264,7 +1303,7 @@
     display: none;
     align-items: center; justify-content: center;
     padding: 24px;
-    background: rgba(8, 11, 16, 0.72);  /* eased so the board keeps spatial context behind the modal */
+    background: var(--scrim);  /* eased so the board keeps spatial context behind the modal */
   }
   #shortcuts-modal.visible, #settings-modal.visible { display: flex; }
   #shortcuts-modal .sc-dialog, #settings-modal .sc-dialog {
@@ -1468,7 +1507,7 @@
        Opens ~+10px clearance each side (measured @375); longest command wraps
        to 2 lines. Pairs with the narrower .token below. */
     #phantom { width: 36px; height: 44px; }
-    .phantom-head { width: 26px; height: 30px; box-shadow: 0 0 10px rgba(61,216,196,.32); }
+    .phantom-head { width: 26px; height: 30px; box-shadow: var(--phantom-halo-sm); }
     /* S2 bookends scale down alongside the arena Phantom at this breakpoint. */
     .phantom-figure { width: 36px; height: 44px; }
     .phantom-figure--title { top: -2px; left: 29px; }
