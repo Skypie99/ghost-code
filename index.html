@@ -332,6 +332,11 @@
        eyes sit on the teal body, not the page, so they stay white in both. */
   }
 
+  /* Title-screen theme control. Secondary to PRESS START — the negative margin
+     pulls it out of the .screen's 28px gap so it reads as attached to the CTA
+     rather than as a second call to action. */
+  .title-theme-btn { margin-top: -14px; }
+
   /* Selection — absent before this pass; now themed in both directions. */
   ::selection { background: var(--accent-quiet); color: var(--text-primary); }
 
@@ -1949,9 +1954,17 @@
     <h1><div class="phantom-figure phantom-figure--title" aria-hidden="true"><!-- S2: reuses #phantom's inner geometry verbatim (:481-590) — recolor/reuse, never redraw --><div class="phantom-cursor-bar"></div><div class="phantom-head"><div class="phantom-eye-l"></div><div class="phantom-eye-r"></div></div><div class="phantom-tail"></div></div><span class="word1">GHOST</span><span class="word2">CODE</span><span class="tagline">learn commands · haunt the terminal</span></h1>
     <p>Guide the Phantom. Capture the right command token. A wrong guess costs a spirit.</p>
     <p><span style="color:var(--accent);font-family:var(--font-ui);font-weight:600;font-size:14px;letter-spacing:0.04em;">LEARN MODE</span> <span style="font-family:var(--font-ui);font-size:17px;color:var(--text-secondary);">— no spirit loss · hint escalation · answer reveal</span></p>
+    <!-- T THEME is deliberately NOT listed here: adding it wraps this line and
+         orphans "? HELP". The visible THEME button below is the affordance, and
+         the ? dialog documents the key. -->
     <p class="small kbd-hint">MOUSE&nbsp;or&nbsp;1·2·3·4 · ↑→↓←&nbsp;AIM · H&nbsp;50/50 · R&nbsp;RESTART · ESC&nbsp;PAUSE · C&nbsp;CATEGORY · L&nbsp;LEARN · ?&nbsp;HELP</p>
     <p class="small touch-hint">TAP&nbsp;or&nbsp;SWIPE toward a token · buttons below for 50/50 · PAUSE · RESTART · CATEGORY</p>
     <button class="big-btn blink" id="start-btn">PRESS START</button>
+    <!-- The theme control has to live HERE as well as in Settings: the bottom bar
+         (and therefore the SETTINGS button) sits behind the title overlay and is
+         unreachable until a game is running. A theme switch nobody can find on the
+         front door is not a theme switch. Label text is set by syncThemeBtn(). -->
+    <button class="btn title-theme-btn" id="theme-btn">THEME · SYSTEM</button>
     <p class="small" style="margin-top:26px;padding-top:14px;border-top:1px solid var(--border-subtle);font-family:var(--font-ui);font-size:13px;letter-spacing:0.02em;color:var(--text-secondary);">
       Built by <a href="https://skypistudio.com" target="_blank" rel="noopener" aria-label="Sky Halisky — portfolio (opens in new tab)" style="color:var(--accent);text-decoration:underline;text-underline-offset:3px;">Sky Halisky</a>
       &nbsp;·&nbsp;
@@ -1992,6 +2005,7 @@
       <dt><kbd>L</kbd></dt><dd>Toggle Learn / Arcade mode</dd>
       <dt><kbd>Esc</kbd></dt><dd>Pause or resume</dd>
       <dt><kbd>R</kbd></dt><dd>Restart the game</dd>
+      <dt><kbd>T</kbd></dt><dd>Cycle theme — system, light, dark</dd>
       <dt><kbd>?</kbd></dt><dd>Open or close this help</dd>
     </dl>
     <button class="big-btn sc-close" id="sc-close">CLOSE</button>
@@ -2979,6 +2993,30 @@ function applyTheme(choice) {
   return resolved;
 }
 
+// Cycle system -> light -> dark -> system. Reachable from the title screen (the
+// button) and anywhere via the T key, because the Settings dialog is behind the
+// title overlay until a game starts.
+const THEME_ORDER = ['system', 'light', 'dark'];
+function cycleTheme() {
+  const cur = state.persist.theme || 'system';
+  const next = THEME_ORDER[(THEME_ORDER.indexOf(cur) + 1) % THEME_ORDER.length];
+  state.persist.theme = next;
+  save();
+  applyTheme(next);
+  syncThemeBtn();
+  if (settingsOpen()) buildSettings();   // keep the Settings segment in step
+}
+function syncThemeBtn() {
+  const b = document.getElementById('theme-btn');
+  if (!b) return;
+  const cur = state.persist.theme || 'system';
+  b.textContent = 'THEME · ' + cur.toUpperCase();
+  const resolved = document.documentElement.getAttribute('data-theme') || 'dark';
+  b.setAttribute('aria-label', cur === 'system'
+    ? `Theme: following your system, currently ${resolved}. Activate to switch to light.`
+    : `Theme: ${cur}. Activate to switch to ${THEME_ORDER[(THEME_ORDER.indexOf(cur) + 1) % THEME_ORDER.length]}.`);
+}
+
 function buildSettings() {
   const body = document.getElementById('settings-body');
   if (!body) return;
@@ -3010,7 +3048,7 @@ function buildSettings() {
     v => { state.persist.reduceMotion = (v === 'calm'); document.body.classList.toggle('reduce-motion', state.persist.reduceMotion); save(); }));
   body.appendChild(segRow('Theme', [['system','System'],['light','Light'],['dark','Dark']],
     state.persist.theme || 'system',
-    v => { state.persist.theme = v; save(); applyTheme(v); }));
+    v => { state.persist.theme = v; save(); applyTheme(v); syncThemeBtn(); }));
   body.appendChild(segRow('Difficulty', [['all','All'],['easy','Easy'],['medium','Medium'],['hard','Hard']],
     state.persist.difficultyFilter || 'all',
     v => { state.persist.difficultyFilter = v; save(); if (state.playing && !state.reviewDeck) nextCard(); }));
@@ -3034,6 +3072,9 @@ function closeSettings() {
 {
   const sBtn = document.getElementById('settings-btn');
   if (sBtn) sBtn.addEventListener('click', openSettings);
+  const tBtn = document.getElementById('theme-btn');
+  if (tBtn) tBtn.addEventListener('click', cycleTheme);
+  syncThemeBtn();
   const sClose = document.getElementById('set-close');
   if (sClose) sClose.addEventListener('click', closeSettings);
   if (setModal) setModal.addEventListener('click', (e) => { if (e.target === setModal) closeSettings(); });
@@ -3169,6 +3210,7 @@ document.addEventListener('keydown', (e) => {
     return;
   }
   if (e.key === '?') { e.preventDefault(); return openShortcuts(); }
+  if (e.key === 't' || e.key === 'T') { e.preventDefault(); return cycleTheme(); }
   if (e.key === 'r' || e.key === 'R') return startGame();
   if (e.key === 'Escape')              return togglePause();
   if (e.key === 'h' || e.key === 'H') return useLifeline();

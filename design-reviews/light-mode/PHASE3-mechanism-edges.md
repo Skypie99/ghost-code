@@ -178,3 +178,81 @@ Both would require changing the dark theme, which this work is sworn to preserve
 
 - **P-2** — `CLAUDE.md`'s "Design Tokens" list is still the retired synthwave palette. It now sits
   directly above an accurate two-theme section, which makes the staleness more confusing, not less.
+
+---
+
+## 6. POST-SHIP FIX — the toggle was unreachable from the title screen
+
+**Reported by Sky immediately after deploy: "WHERE IS THE DARK THEME And option to toggle?!"**
+She was right, and the automated evidence above had a hole in it.
+
+### The defect
+
+The `SETTINGS` button lives in `#bar`, at the bottom of the cabinet. The `#title` overlay
+(`.screen`, `z-index: 20`) covers the whole cabinet including that bar. Measured on the title
+screen: the button renders (`display: block`, `visibility: visible`, sane rect) but
+`document.elementFromPoint()` at its centre returns **`title`**, and a real Playwright click
+**times out**. There was also no keyboard route — `s` did nothing.
+
+So on a cold visit — the first and only thing most people see — **the theme control could not be
+reached at all.** You had to press START and begin a game first.
+
+### Why my own tests missed it
+
+`capture.mjs` and `edges.mjs` both opened the dialog by calling **`openSettings()` programmatically**.
+That bypasses the overlay entirely. Every assertion about the toggle was true *and* useless: I
+proved the control **works** and never proved anyone can **reach** it.
+
+The lesson is specific and worth keeping: *driving a UI through its own JS entry points tests the
+mechanism, not the interface.* Reachability has to be tested the way a user gets there — a real
+click, a real keypress, a real tap.
+
+### The fix
+
+1. **A visible `THEME · SYSTEM|LIGHT|DARK` button on the title screen**, directly under PRESS START.
+   Reuses the existing `.btn` component; a `-14px` top margin pulls it out of the `.screen`'s 28px
+   gap so it reads as secondary to the CTA rather than as a second call to action. Cycles
+   system → light → dark; label and `aria-label` track the state.
+2. **A `T` keyboard shortcut** that cycles the theme, working on the title screen *and* mid-game,
+   documented in the `?` shortcuts dialog.
+3. The Settings row stays, and the two stay in sync in both directions.
+
+**Deliberately reverted mid-fix:** I first added `T THEME` to the title's controls-hint line, which
+wrapped it and orphaned `? HELP` — a pre-existing fragility this would have made worse. Removed;
+the visible button is the affordance and `?` is the keyboard reference.
+
+### Verification — driven as a user, not through JS
+
+```
+COLD VISIT, MOUSE ONLY (OS=dark)
+  PASS  theme button is visible on the title screen — THEME · SYSTEM
+  PASS  click 1 → LIGHT     PASS  click 2 → DARK     PASS  click 3 → back to SYSTEM
+PERSISTENCE
+  PASS  light survives a hard reload (OS is dark)
+  PASS  button label restored from storage
+KEYBOARD
+  PASS  T from the title screen → light    PASS  T mid-game also works
+  PASS  T is documented in the ? shortcuts modal
+TOUCH (390x844)
+  PASS  theme button visible on phone      PASS  tap target 38px (WCAG 2.5.8)
+  PASS  tap switches theme
+SETTINGS STAYS IN SYNC
+  PASS  Settings shows LIGHT as pressed after the title toggle
+```
+
+Re-ran after the fix: green gate OK · **edges 24/24 PASS** · **no-FOUC clean both themes**
+(85 / 85 frames, zero wrong-polarity).
+
+### Cost to the dark theme, stated plainly
+
+Dark vs the pre-light-mode baseline is now **10 IDENTICAL / 4 DIFFERS**, up from 13/1:
+
+| Screen | Why |
+|---|---|
+| `title@desktop`, `title@mobile` | the new THEME button — unavoidable, it is the fix |
+| `settings@desktop` | the THEME row (as before) |
+| `shortcuts@desktop` | the added `T` row in the `?` dialog |
+
+All four are the feature being visible. Every other screen — board, tokens, correct/wrong, focus,
+learn, results, pause — is still **pixel-identical** to `main@cff5321`. The gameplay experience is
+untouched; only the surfaces that had to advertise the control moved.
