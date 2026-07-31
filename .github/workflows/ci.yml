@@ -34,6 +34,27 @@ jobs:
           sed -n "$((open+1)),$((close-1))p" index.html | node --check -
           echo "OK: inline <script> parses cleanly (lines $open..$close)."
 
+      - name: Syntax-check the pre-paint theme script in <head>
+        run: |
+          open=$(grep -n '<script id="theme-boot">' index.html | cut -d: -f1)
+          if [ -z "$open" ]; then
+            echo "ERROR: the theme-boot script is missing — light mode would flash on load."
+            exit 1
+          fi
+          close=$(awk -v s="$open" 'NR>s && /<\/script>/ {print NR; exit}' index.html)
+          sed -n "$((open+1)),$((close-1))p" index.html | node --check -
+          echo "OK: theme-boot <script> parses cleanly (lines $open..$close)."
+
+      - name: Theme contract (both themes defined, no-FOUC hook present)
+        run: |
+          grep -q ':root\[data-theme="light"\]' index.html \
+            || { echo "ERROR: the light theme block is gone."; exit 1; }
+          grep -q 'color-scheme: light' index.html \
+            || { echo "ERROR: light theme lost its color-scheme (UA scrollbars would stay dark)."; exit 1; }
+          grep -q 'id="theme-color-meta"' index.html \
+            || { echo "ERROR: the theme-color meta lost its id — the browser chrome would desync."; exit 1; }
+          echo "OK: light + dark themes present, theme-color hook intact."
+
       - name: Run the card-deck data validator
         run: node test/cards.test.js
 

@@ -5,7 +5,67 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Ghost Code</title>
 <meta name="description" content="A calm, modern terminal-command trainer. Guide the Phantom, capture the right command token. 56 cards across Claude Code, macOS terminal, and Git. Zero dependencies, runs in any browser." />
-<meta name="theme-color" content="#0E1116" />
+<!-- Kept in sync with the resolved theme by the pre-paint script below (an explicit
+     in-app choice must win over the OS preference, which a media= pair cannot express). -->
+<meta name="theme-color" id="theme-color-meta" content="#0E1116" />
+
+<!-- ====================================================================
+     THEME RESOLUTION — runs BEFORE first paint (no FOUC).
+     Head scripts are render-blocking, so stamping data-theme here means the
+     very first paint already uses the right tokens; there is no dark frame
+     ahead of a light theme. Order matters twice over: this sits AFTER the
+     theme-color meta (so it can address it) and BEFORE <style>.
+
+     Preference model: gc.v1.theme is 'light' | 'dark' | 'system' (absent =
+     'system'). 'system' resolves through prefers-color-scheme. The attribute
+     is ALWAYS stamped, which also gives the showcase factory a deterministic
+     hook — set data-theme on <html> and the page obeys, no matter the OS.
+
+     Failure mode is deliberate: if this cannot run (JS off, storage blocked)
+     nothing is stamped and the page stays dark — exactly today's shipped
+     experience. Everything is wrapped so a bad localStorage value can never
+     stop the page from rendering.
+
+     NOTE the id, it is load-bearing: the green gate (and CI) find the main
+     inline block by grepping for a BARE opening script tag and slicing to the
+     last closing one. A second bare opening tag here would make that slice
+     swallow the whole document and fail the gate. The id attribute keeps the
+     heuristic aimed at the right block; the gate checks this one by id as its
+     own step. For the same reason, avoid writing bare script tags in comments.
+     ==================================================================== -->
+<script id="theme-boot">
+(function () {
+  var DARK = '#0E1116', LIGHT = '#F3F6FA';
+  function pref() {
+    try {
+      var raw = localStorage.getItem('gc.v1');
+      var t = raw ? JSON.parse(raw).theme : null;
+      return (t === 'light' || t === 'dark' || t === 'system') ? t : 'system';
+    } catch (e) { return 'system'; }
+  }
+  function systemIsLight() {
+    try { return window.matchMedia('(prefers-color-scheme: light)').matches; }
+    catch (e) { return false; }
+  }
+  window.__gcApplyTheme = function (choice) {
+    var resolved = (choice === 'system' || !choice)
+      ? (systemIsLight() ? 'light' : 'dark')
+      : choice;
+    document.documentElement.setAttribute('data-theme', resolved);
+    var m = document.getElementById('theme-color-meta');
+    if (m) m.setAttribute('content', resolved === 'light' ? LIGHT : DARK);
+    return resolved;
+  };
+  window.__gcThemePref = pref;
+  window.__gcApplyTheme(pref());
+  // Follow the OS live, but only while the player is on 'system'.
+  try {
+    window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', function () {
+      if (window.__gcThemePref() === 'system') window.__gcApplyTheme('system');
+    });
+  } catch (e) {}
+})();
+</script>
 
 <!-- Favicon — SVG for modern engines, PNG/ICO + apple-touch fallbacks for Safari/iOS
      (M5/L1-F5/L1-F6). Recolored to the shipped palette; mascot geometry untouched. -->
@@ -167,6 +227,7 @@
     --phantom-tail-near: rgba(var(--accent-rgb),0.42);
     --phantom-tail-far:  rgba(var(--accent-rgb),0.14);
     --phantom-halo-sm:   0 0 10px rgba(var(--accent-rgb),.32);
+    color-scheme: dark;   /* UA scrollbars + any future form control */
     /* ---- Outcome fills + glows (correct / wrong / captured / lifeline) ---- */
     --success-fill:        rgba(var(--success-rgb),0.12);
     --success-glow:        0 0 16px rgba(var(--success-rgb),0.35);
@@ -179,6 +240,111 @@
     --danger-pulse-hi:     0 0 22px rgba(var(--danger-rgb),0.60);
     --warning-fill:        rgba(var(--warning-rgb),0.12);
   }
+
+  /* ====================================================================
+     LIGHT THEME — "Platinum". A DESIGNED SIBLING, not an inversion.
+     The shipped graphite is a blue-BLACK, so its light twin is a
+     blue-WHITE, and the dark theme's own #0E1116 surface comes back as
+     the light theme's ink. Every identity carrier survives: the phosphor
+     teal (darkened to #0B6E77 so it can hold text on a light surface,
+     hue held), the mono commands, the "> " prefix, the Phantom.
+
+     Every ink-on-surface pairing here is MEASURED, not eyeballed — 47 of
+     them, all clearing WCAG 2.2 AA (4.5:1 text · 3:1 large + UI). The
+     checker lives at design-reviews/light-mode/tools/contrast.mjs and is
+     the same module these values are authored in, so the table and the
+     stylesheet cannot drift apart.
+
+     Applied via [data-theme] only. The pre-paint script in <head>
+     resolves system preference -> attribute BEFORE first paint, so there
+     is no flash, and the showcase factory gets a deterministic hook.
+     ==================================================================== */
+  :root[data-theme="light"] {
+    color-scheme: light;
+    /* Surfaces */
+    --surface-base:   #F3F6FA;
+    --surface-raised: #FFFFFF;
+    --surface-token:  #E9EEF5;
+    --border-subtle:  #D8E0EA;
+    --border-strong:  #7A8390;   /* 3.54:1 on base — clears SC 1.4.11 */
+    /* Text */
+    --text-primary:   #0E1116;   /* 17.2:1 on base — the dark theme's base, reused as ink */
+    --text-secondary: #515C6B;   /* 6.9:1 on base */
+    /* Accent — same teal, darkened to survive on light */
+    --accent:         #0B6E77;   /* 5.98:1 on raised */
+    --accent-quiet:   #CCE7EA;   /* FILL tint — dark ink sits on it */
+    --accent-hover:   #095A62;
+    --accent-subtle:  #0D7F88;   /* gradient HIGHLIGHT end — 4.39:1 on base */
+    --accent-deep:    #053C41;   /* gradient SHADOW end */
+    /* Semantic — RE-PICKED, not reused: the dark values are 1.7-2.9:1 on white */
+    --success:        #116634;
+    --warning:        #79520A;
+    --danger:         #B02A22;
+    /* Ink on a saturated accent fill — inverts relative to dark */
+    --ink-on-accent:  #FFFFFF;
+    /* Channels */
+    --accent-rgb:   11,110,119;
+    --success-rgb:  17,102,52;
+    --danger-rgb:   176,42,34;
+    --warning-rgb:  121,82,10;
+    --muted-rgb:    81,92,107;
+    --overlay-rgb:  0,0,0;      /* the "lift" is a BLACK wash on light */
+    --scrim-rgb:    14,17,22;
+
+    /* ---- Materiality, REDESIGNED (not reused) --------------------------
+       Dark leans on 45%-black shadows and 16px coloured blooms. On a light
+       surface a heavy shadow is a bruise and a coloured bloom is a smudge,
+       so the shadow goes short + low-alpha (the 1px border does the edge
+       work) and every glow becomes a tight RING at the same loudness rank
+       as its dark cousin. Geometry of the focus treatment is preserved. */
+    --shadow:              0 1px 2px rgba(0,0,0,.06), 0 8px 24px rgba(0,0,0,.08);
+    --accent-halo:         0 0 0 3px rgba(var(--accent-rgb),.28);
+    --neutral-halo:        0 0 0 3px rgba(var(--muted-rgb),.30);
+    --success-glow:        0 0 0 3px rgba(var(--success-rgb),0.22);
+    --success-glow-soft:   0 0 0 2px rgba(var(--success-rgb),0.18);
+    --success-glow-strong: 0 0 0 4px rgba(var(--success-rgb),0.26);
+    --success-glow-flash:  0 0 0 5px rgba(var(--success-rgb),0.30);
+    --danger-glow-soft:    0 0 0 3px rgba(var(--danger-rgb),0.20);
+    --danger-pulse-lo:     0 0 0 2px rgba(var(--danger-rgb),0.20);
+    --danger-pulse-hi:     0 0 0 5px rgba(var(--danger-rgb),0.34);
+    --phantom-halo-sm:     0 0 0 2px rgba(var(--accent-rgb),.18);
+    --danger-glow:         rgba(var(--danger-rgb),0.45);
+    /* Lifts get a touch more alpha — black-on-light reads weaker than white-on-dark */
+    --surface-track:       rgba(var(--overlay-rgb),0.09);
+    --surface-hover:       rgba(var(--overlay-rgb),0.05);
+    /* Outcome fills sit UNDER text, so they stay light — raising these would
+       eat the token's own text contrast (verified: 14.0:1 and 14.1:1). */
+    --success-fill:        rgba(var(--success-rgb),0.10);
+    --danger-fill:         rgba(var(--danger-rgb),0.09);
+    --warning-fill:        rgba(var(--warning-rgb),0.12);
+    /* A modal scrim still DARKENS the backdrop on light — that is what makes
+       it read as "behind" — but it needs less alpha than on dark. */
+    --scrim:               rgba(var(--scrim-rgb),0.45);
+    /* Ambient washes halved: at dark's alpha the teal tints the page green. */
+    --wash-sky:            rgba(var(--accent-rgb),0.028);
+    --wash-screen:         rgba(var(--accent-rgb),0.03);
+    /* The Phantom needs a denser plume to stay a legible mass on white. */
+    --phantom-tail-near:   rgba(var(--accent-rgb),0.34);
+    --phantom-tail-far:    rgba(var(--accent-rgb),0.10);
+    --phantom-glow:        rgba(var(--accent-rgb),0.22);
+    --phantom-tail:        rgba(var(--accent-rgb),0.14);
+    /* --phantom-eye / --phantom-eye-dim are deliberately NOT overridden: the
+       eyes sit on the teal body, not the page, so they stay white in both. */
+  }
+
+  /* Selection — absent before this pass; now themed in both directions. */
+  ::selection { background: var(--accent-quiet); color: var(--text-primary); }
+
+  /* Theme-swap transition. Applied only WHILE switching (JS adds .theme-anim
+     for ~240ms), so it can never make ordinary hovers feel laggy. Carries no
+     !important, so the existing reduced-motion rules — both the OS media query
+     and the in-app body.reduce-motion override, which set transition-duration
+     to 0.01ms !important — collapse it to instant. */
+  html.theme-anim, html.theme-anim * {
+    transition: background-color .22s ease, border-color .22s ease,
+                color .22s ease, box-shadow .22s ease;
+  }
+
   * { box-sizing: border-box; }
   html, body {
     margin: 0; padding: 0; height: 100%;
@@ -1911,6 +2077,9 @@ const persist = Object.assign({
   soundOn: true,           // [PERSIST-ADDITIVE] Pass 4b — sound effects on/off
   reduceMotion: false,     // [PERSIST-ADDITIVE] Pass 4b — in-app reduce-motion override
   difficultyFilter: 'all', // [PERSIST-ADDITIVE] Pass 4b — 'all' | 'easy' | 'medium' | 'hard'
+  theme: 'system',         // [PERSIST-ADDITIVE] light mode — 'system' | 'light' | 'dark'.
+                           // Read by the pre-paint <head> script too; keep the name in
+                           // sync there if it ever moves.
 }, loadPersist());
 
 const state = {
@@ -2788,6 +2957,28 @@ function closeShortcuts() {
 const setModal = document.getElementById('settings-modal');
 let setLastFocus = null;
 function settingsOpen() { return !!setModal && setModal.classList.contains('visible'); }
+// ----- Theme -----
+// Thin wrapper over the pre-paint resolver in <head> (that one is the single
+// source of resolution logic — this must never re-implement it). Adds the two
+// things a runtime switch needs and a first paint doesn't: a brief cross-fade,
+// and a screen-reader announcement.
+let themeAnimTimer = null;
+function applyTheme(choice) {
+  const root = document.documentElement;
+  root.classList.add('theme-anim');
+  clearTimeout(themeAnimTimer);
+  themeAnimTimer = setTimeout(() => root.classList.remove('theme-anim'), 260);
+  const resolved = typeof window.__gcApplyTheme === 'function'
+    ? window.__gcApplyTheme(choice)
+    : (root.setAttribute('data-theme', choice === 'light' ? 'light' : 'dark'), choice);
+  if (DOM.announcer) {
+    DOM.announcer.textContent = choice === 'system'
+      ? `Theme following system — currently ${resolved}.`
+      : `Theme set to ${resolved}.`;
+  }
+  return resolved;
+}
+
 function buildSettings() {
   const body = document.getElementById('settings-body');
   if (!body) return;
@@ -2817,6 +3008,9 @@ function buildSettings() {
   body.appendChild(segRow('Motion', [['full','Full'],['calm','Reduced']],
     state.persist.reduceMotion ? 'calm' : 'full',
     v => { state.persist.reduceMotion = (v === 'calm'); document.body.classList.toggle('reduce-motion', state.persist.reduceMotion); save(); }));
+  body.appendChild(segRow('Theme', [['system','System'],['light','Light'],['dark','Dark']],
+    state.persist.theme || 'system',
+    v => { state.persist.theme = v; save(); applyTheme(v); }));
   body.appendChild(segRow('Difficulty', [['all','All'],['easy','Easy'],['medium','Medium'],['hard','Hard']],
     state.persist.difficultyFilter || 'all',
     v => { state.persist.difficultyFilter = v; save(); if (state.playing && !state.reviewDeck) nextCard(); }));

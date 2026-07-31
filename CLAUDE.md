@@ -50,6 +50,11 @@ open=$(grep -n '<script>' index.html | head -1 | cut -d: -f1)
 close=$(grep -n '</script>' index.html | tail -1 | cut -d: -f1)
 sed -n "$((open+1)),$((close-1))p" index.html | node --check -
 
+# 2b. Validate the pre-paint theme script in <head> (light mode's no-FOUC hook)
+open=$(grep -n '<script id="theme-boot">' index.html | cut -d: -f1)
+close=$(awk -v s="$open" 'NR>s && /<\/script>/ {print NR; exit}' index.html)
+sed -n "$((open+1)),$((close-1))p" index.html | node --check -
+
 # 3. Run the card validator
 node test/cards.test.js
 
@@ -85,6 +90,33 @@ node test/cards.test.js
 - `--font-mono` → `JetBrains Mono` (command / code text) — falls back to `ui-monospace`, `SFMono-Regular`, `Menlo`, monospace
 
 > Note: the color tokens listed above are from the pre-redesign synthwave palette and are stale after the "terminal, not arcade" redesign. The live palette is a calm dark terminal theme keyed off `--accent` (`#3DD8C4`). Treat `:root` in `index.html` as the source of truth, not this list, until it's refreshed.
+
+### Two themes — how to add a colour without breaking one of them
+
+There are now **two** token blocks in `:root`: the dark default, and `:root[data-theme="light"]`
+("Platinum"). A `<head>` script resolves `gc.v1.theme` (`system` | `light` | `dark`) and stamps
+`data-theme` on `<html>` **before first paint**, so there is no flash. The showcase factory can
+force a theme by setting that attribute directly.
+
+Rules when touching colour:
+
+1. **Never write a raw colour in a rule.** Every live rule reads a token; the only literals in the
+   sheet are the token definitions themselves. A census script will otherwise find you.
+2. **Alpha-composed colours use the channel triplets** — `rgba(var(--accent-rgb), .35)`, never
+   `rgba(61,216,196,.35)`. The alphas are per-use design decisions; the channels are shared, so
+   one theme swap re-keys everything.
+3. **If you add a token, add it to BOTH blocks.** A token defined only in `:root` silently keeps
+   its dark value on light — which is exactly how washed-out light modes happen.
+4. **Watch for tokens doing two jobs.** `--accent-quiet` (pale fill) and `--accent-deep` (gradient
+   shadow end) share a value in dark and must diverge in light. `--ink-on-accent` is *not* the page
+   surface. `--overlay-rgb` is white on dark and **black** on light.
+5. **`--phantom-eye` stays white in both** — it sits on the teal body, not on the page.
+6. **Glows are redesigned, not reused** — a 16px bloom on a light surface is a smudge; light uses
+   tight rings at the same loudness rank.
+
+Verify with the harness in `design-reviews/light-mode/tools/`:
+`contrast.mjs` (47 measured pairings), `edges.mjs` (theme resolution + the edges),
+`fouc.mjs` (screencast proof of no flash), `capture.mjs` (the byte-identity gate).
 
 **A11y Baseline:**
 - `#a11y-announcer` (an `aria-live="polite"` div that announces card prompts, feedback, game state)

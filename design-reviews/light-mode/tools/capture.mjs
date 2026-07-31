@@ -39,7 +39,7 @@ fs.mkdirSync(outDir, { recursive: true });
 
 // ── Deterministic seed injected before ANY page script runs ──────────────────
 // mulberry32 — tiny, well-distributed, fully reproducible.
-const SEED_SCRIPT = (themeAttr) => `
+const SEED_SCRIPT = (themePref) => `
 (() => {
   let s = 0x9E3779B9;
   Math.random = function () {
@@ -52,6 +52,7 @@ const SEED_SCRIPT = (themeAttr) => `
     localStorage.setItem('gc.v1', JSON.stringify({
       hi: 120, category: 'all', mode: 'arcade', bestStreak: 7,
       soundOn: false, reduceMotion: false, difficultyFilter: 'all',
+      theme: ${JSON.stringify(themePref || 'system')},
       cardStats: {
         'git-status':    { c: 4, w: 0, total: 4 },
         'git-clone':     { c: 3, w: 1, total: 4 },
@@ -62,11 +63,6 @@ const SEED_SCRIPT = (themeAttr) => `
       }
     }));
   } catch (e) {}
-  ${themeAttr ? `
-  try { localStorage.setItem('gc.theme', ${JSON.stringify(themeAttr)}); } catch (e) {}
-  document.addEventListener('DOMContentLoaded', () => {
-    document.documentElement.setAttribute('data-theme', ${JSON.stringify(themeAttr)});
-  });` : ''}
 })();
 `;
 
