@@ -3,3 +3,6 @@
 .vscode/
 *.log
 Thumbs.db
+
+# Light-mode capture evidence: PNGs are large and regenerable from tools/capture.mjs
+design-reviews/light-mode/captures/
