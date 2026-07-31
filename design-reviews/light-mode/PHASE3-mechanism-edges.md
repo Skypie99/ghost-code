@@ -152,3 +152,29 @@ colour without breaking one of them" section, since the gate it documents has ch
 
 *(Amusing sub-find: the first version of the comment explaining this hazard contained a literal
 bare script tag, and so triggered the hazard. The comment now avoids the literal, and says so.)*
+
+---
+
+## 5. Parking lot — found, deliberately not fixed
+
+Both would require changing the dark theme, which this work is sworn to preserve.
+
+- **P-5** — shipped dark `--border-strong` (`#3A4453`) on `--surface-base` (`#0E1116`) is **1.92:1**,
+  under the 3:1 SC 1.4.11 floor for the `.token:hover` / `.btn:hover` / `kbd` boundary. Pre-existing
+  on `main`. Sky chose to leave it so dark stays byte-identical; the light theme fixes its own at
+  3.54:1. Cheap fix later: `#3A4453` → `~#4A5666`.
+
+- **P-6** — **the Phantom is one-eyed on phones.** At `≤600px` the `@media` block shrinks
+  `.phantom-head` to `width: 26px`, but `.phantom-eye-l/-r` are `width: 11px` at `left: 8px` /
+  `right: 8px` — which needs 27px. They overlap by **10 of their 11 pixels**, so the mascot renders
+  a single central eye on every phone. Measured at 375: L `[182.5..193.5]`, R `[181.5..192.5]`,
+  overlap `10.0px`. At 1440 the head is 44px and the eyes have a correct 6px gap.
+  Present identically on `main` in **both** themes (`captures/_crop/phantom-{light,dark}-375.png`),
+  so it is not a light-mode regression. Fix when wanted: at `≤600`, eyes to ~8px wide at
+  `left/right: 4px` → `[4..12]` and `[14..22]`, a 2px gap.
+
+- **P-1** — the dead synthwave layer (`#stars/#sun/#grid/#scanlines/#vignette`, `display:none` since
+  Pass 3) still holds ~95 lines of CSS and the last 21 raw colours in the file.
+
+- **P-2** — `CLAUDE.md`'s "Design Tokens" list is still the retired synthwave palette. It now sits
+  directly above an accurate two-theme section, which makes the staleness more confusing, not less.
