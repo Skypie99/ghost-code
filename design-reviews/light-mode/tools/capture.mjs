@@ -153,25 +153,33 @@ const SCREENS = [
     drive: async (page) => {
       await page.evaluate(() => startGame());
       await page.waitForTimeout(500);
-      // Answer a few correctly (so the results screen has real numbers), then
-      // burn the three spirits.
-      for (let i = 0; i < 3; i++) {
-        await page.evaluate(() => {
-          const el = [...document.querySelectorAll('.token')]
-            .find(t => t.dataset.value === state.current.answer);
-          if (el) answer(el);
-        });
-        await page.waitForTimeout(900);
+      // Score a few first so the results screen has real numbers. The state.busy
+      // guard matters: answering while the previous answer is still resolving is
+      // a no-op, which is what silently left the old driver mid-play.
+      const step = async (wantCorrect) => {
+        for (let t = 0; t < 25; t++) {
+          const acted = await page.evaluate((want) => {
+            if (state.busy || !state.playing || !state.current) return false;
+            const els = [...document.querySelectorAll('.token')];
+            const el = want
+              ? els.find(x => x.dataset.value === state.current.answer)
+              : els.find(x => x.dataset.value !== state.current.answer);
+            if (!el) return false;
+            answer(el); return true;
+          }, wantCorrect);
+          if (acted) return true;
+          await page.waitForTimeout(120);
+        }
+        return false;
+      };
+      for (let i = 0; i < 3; i++) { await step(true); await page.waitForTimeout(900); }
+      for (let i = 0; i < 8; i++) {
+        const over = await page.evaluate(() => !document.getElementById('gameover').classList.contains('hidden'));
+        if (over) break;
+        await step(false);
+        await page.waitForTimeout(1100);
       }
-      for (let i = 0; i < 3; i++) {
-        await page.evaluate(() => {
-          const el = [...document.querySelectorAll('.token')]
-            .find(t => t.dataset.value !== state.current.answer);
-          if (el) answer(el);
-        });
-        await page.waitForTimeout(1000);
-      }
-      await page.waitForTimeout(600);
+      await page.waitForTimeout(700);
     },
   },
   {

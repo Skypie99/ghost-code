@@ -83,9 +83,16 @@
     --text-secondary: #9DA7B3;   /* ~6.5:1 on base (AA)  */
     /* One accent — phosphor teal (the Phantom/cursor color, tamed) */
     --accent:         #3DD8C4;   /* ~9.8:1 on base */
-    --accent-quiet:   #1E6F66;   /* muted accent for filled bg / progress track */
+    --accent-quiet:   #1E6F66;   /* FILL: the tint behind .btn.active / pressed segments */
     --accent-hover:   #5FE6D4;   /* lightened accent — primary-button hover */
-    --accent-subtle:  #BFF5EE;   /* near-white teal — title gradient highlight */
+    /* The two gradient stops on the wordmark + Phantom head. --accent-subtle is the
+       HIGHLIGHT end, --accent-deep the SHADOW end. In dark, --accent-deep happens to
+       equal --accent-quiet — but they are different jobs and must diverge on light,
+       where the fill goes pale (dark ink sits on it) while the gradient's shadow end
+       must stay deep. Keeping them fused would fade the "GHOST" wordmark toward
+       near-white at its 100% stop. */
+    --accent-subtle:  #BFF5EE;   /* near-white teal — gradient highlight end */
+    --accent-deep:    var(--accent-quiet);   /* gradient shadow end */
     /* ---- Channel triplets ------------------------------------------------
        Every alpha-composed colour in the sheet (fills, glows, washes, scrims)
        is written as rgba(var(--x-rgb), A) instead of a literal. The alphas are
@@ -533,7 +540,7 @@
     transform: translateX(-50%);
     width: 44px; height: 52px;
     background: radial-gradient(ellipse at 38% 32%,
-      var(--accent-subtle) 0%, var(--accent) 52%, var(--accent-quiet) 100%);
+      var(--accent-subtle) 0%, var(--accent) 52%, var(--accent-deep) 100%);
     border-radius: 50% 50% 45% 45% / 55% 55% 50% 50%;
     /* Pointed chin via clip-path — teardrop, NOT Pac-Man arc */
     clip-path: polygon(
@@ -1091,7 +1098,7 @@
     font-weight: 700;
     font-size: 40px;
     letter-spacing: 3px;
-    background: linear-gradient(135deg, var(--accent-subtle) 0%, var(--accent) 60%, var(--accent-quiet) 100%);
+    background: linear-gradient(135deg, var(--accent-subtle) 0%, var(--accent) 60%, var(--accent-deep) 100%);
     -webkit-background-clip: text;
             background-clip: text;
     -webkit-text-fill-color: transparent;

@@ -1,0 +1,14 @@
+OK title@desktop
+OK title@mobile
+OK board@desktop
+OK board@mobile
+OK correct@desktop
+OK wrong@desktop
+OK token-focus@desktop
+OK learn-reveal@desktop
+OK learn-reveal@mobile
+OK gameover@desktop
+OK gameover@mobile
+OK settings@desktop
+OK shortcuts@desktop
+OK pause@desktop
