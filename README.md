@@ -2,6 +2,8 @@
 
 A calm, modern terminal-command trainer. Guide the Phantom — a spectral terminal cursor — and capture the right command token across Claude Code, the macOS terminal, and Git. A wrong guess costs a spirit. 56 cards, zero dependencies, runs in any browser.
 
+![Ghost Code in Arcade Mode: the Phantom cursor sits between four command tokens for the prompt "Open the current folder in a Finder window"](docs/screenshot.png)
+
 ## Play it
 
 Live at **[ghostcode.skypistudio.com](https://ghostcode.skypistudio.com)**.
