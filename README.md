@@ -52,6 +52,6 @@ Your high score, mastered commands, and theme preference (system/light/dark) liv
 
 ## About this project
 
-**Status:** complete and live; last updated September 2026. Built by [Sky Halisky](https://skypistudio.com) as a SkyPi Studio project, with AI-assisted implementation and review under [Claude Corp](https://github.com/Skypie99/Claude_Corp) governance. Product direction, accessibility decisions and releases stay with the owner.
+**Status:** complete and live; last updated September 2026. Built by [Skyler Halisky](https://skypistudio.com) as a SkyPi Studio project, with AI-assisted implementation and review under [Claude Corp](https://github.com/Skypie99/Claude_Corp) governance. Product direction, accessibility decisions and releases stay with the owner.
 
 **What's current:** this README, `index.html`, `cards.js`, the deck validator in `test/`, and CI in `.github/workflows/`. The other root files (`CLAUDE.md`, `PLAN.md`, `PROJECT_STATE.md`, `DECISIONS_LOG.md`, `LEARNINGS.md`, `TASK_GRAPH.json`) and the `copy/`, `design-reviews/` and `qa-reports/` folders are the dated working records and agent context behind the build and its reviews. The three root `*.yaml` files are retired automation snapshots from May 2026, kept for history.
