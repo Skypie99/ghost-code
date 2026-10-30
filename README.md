@@ -1,6 +1,6 @@
 # Ghost Code
 
-A calm, modern terminal-command trainer. Guide the Phantom — a spectral terminal cursor — and capture the right command token across Claude Code, the macOS terminal, and Git. A wrong guess costs a spirit. 56 cards, zero dependencies, runs in any browser.
+A calm, modern terminal-command trainer. Guide the Phantom, a spectral terminal cursor, and capture the right command token across Claude Code, the macOS terminal, and Git. A wrong guess costs a spirit. 56 cards, zero dependencies, runs in any browser.
 
 ![Ghost Code in Arcade Mode: the Phantom cursor sits between four command tokens for the prompt "Open the current folder in a Finder window"](docs/screenshot.png)
 
@@ -21,9 +21,9 @@ Then visit `http://localhost:8000`.
 
 ## Game modes
 
-**Arcade Mode** — 3 spirits. A wrong answer costs one spirit and flashes danger. Aim for score and streak.
+**Arcade Mode**: 3 spirits. A wrong answer costs one spirit and flashes danger. Aim for score and streak.
 
-**Learn Mode** — No spirit loss. Wrong answers escalate: hint → retry → reveal. Use it to study before going for score.
+**Learn Mode**: no spirit loss. Wrong answers escalate: hint → retry → reveal. Use it to study before going for score.
 
 ## Add a card
 
@@ -31,7 +31,7 @@ Then visit `http://localhost:8000`.
 2. Copy the last `{ ... }` block, paste it on a new line, change the words.
 3. Save. Refresh the game tab.
 
-Example — adding a card for `git status`:
+For example, to add a card for `git status`:
 
 ```js
 { id: "git-status", category: "git",
@@ -41,12 +41,12 @@ Example — adding a card for `git status`:
   hint: "Same word your laundry app uses." },
 ```
 
-Categories: `"claude"` (Claude Code), `"mac"` (Mac terminal), `"git"`. You can invent new ones — just add a matching filter button if you want it on its own toggle.
+Categories: `"claude"` (Claude Code), `"mac"` (Mac terminal), `"git"`. You can invent new ones; just add a matching filter button if you want it on its own toggle.
 
 ## Files
 
-- `index.html` — the whole game (HTML + CSS + JS, no build step).
-- `cards.js` — the flashcard deck.
+- `index.html`: the whole game (HTML + CSS + JS, no build step).
+- `cards.js`: the flashcard deck.
 
 Your high score, mastered commands, and theme preference (system/light/dark) live in browser `localStorage` under the key `gc.v1`. Clearing site data wipes your progress.
 
